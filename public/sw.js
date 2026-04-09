@@ -3,7 +3,7 @@
  * Offline support + cache strategi
  */
 
-const CACHE_NAME = 'strukku-v1';
+const CACHE_NAME = 'strukku-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
