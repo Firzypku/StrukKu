@@ -74,9 +74,19 @@ export default function History() {
       }));
 
       const ws = XLSX.utils.json_to_sheet(data);
+      
+      // Mengatur lebar kolom agar tidak terlalu sempit (rapat) saat dibuka
+      ws['!cols'] = [
+        { wch: 12 }, // Tanggal
+        { wch: 25 }, // Keterangan
+        { wch: 15 }, // Kategori
+        { wch: 15 }, // Jumlah (Rp)
+        { wch: 30 }, // Catatan
+      ];
+
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Pengeluaran');
-      XLSX.writeFile(wb, `strukku_${new Date().toISOString().split('T')[0]}.xlsx`);
+      XLSX.writeFile(wb, `Riwayat_StrukKu_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (err) {
       alert('Gagal export: ' + err.message);
     }
