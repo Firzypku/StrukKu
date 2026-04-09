@@ -51,7 +51,10 @@ export default function Scan() {
         parseVoice(transcript);
         setListening(false);
       };
-      recognitionRef.current.onerror = () => setListening(false);
+      recognitionRef.current.onerror = (e) => {
+        setListening(false);
+        alert(`Mic Error: ${e.error}. Pastikan izin (permission) mikrofon aktif di browser Anda.`);
+      };
       recognitionRef.current.onend = () => setListening(false);
     }
   }, []);
@@ -80,6 +83,10 @@ export default function Scan() {
   };
 
   const startVoice = () => {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      alert('Maaf, browser Anda (misalnya Safari/iPhone jadul) tidak mendukung API Perekam Suara ini. Harap gunakan Chrome atau Android.');
+      return;
+    }
     if (recognitionRef.current) {
       setListening(true);
       setVoiceText('');
@@ -119,20 +126,26 @@ export default function Scan() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.title || !form.amount) return;
 
-    add({
-      title: form.title,
-      amount: parseFloat(form.amount),
-      category: form.category,
-      date: form.date,
-      note: form.note,
-      image: previewUrl || null,
-    });
+    try {
+      setSaved(null); // Loading state if you will
+      await add({
+        title: form.title,
+        amount: parseFloat(form.amount),
+        category: form.category,
+        date: form.date,
+        note: form.note,
+        image: previewUrl || null,
+      });
 
-    setSaved(true);
-    setTimeout(() => navigate('/dashboard'), 1500);
+      setSaved(true);
+      setTimeout(() => navigate('/dashboard'), 1500);
+    } catch (err) {
+      console.error(err);
+      alert('Gagal menyimpan pengeluaran. Pastikan koneksi dan database Anda aktif.');
+    }
   };
 
   const handleChange = (field, value) => {

@@ -14,6 +14,7 @@ import History from './pages/History';
 import Budget from './pages/Budget';
 import Hemat from './pages/Hemat';
 import Social from './pages/Social';
+import Profile from './pages/Profile';
 
 // Wrapper untuk melarang akses bagi yang belum login
 const ProtectedRoute = ({ children }) => {
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
             <Route path="/hemat" element={<ProtectedRoute><Hemat /></ProtectedRoute>} />
             <Route path="/social" element={<ProtectedRoute><Social /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -26,14 +26,6 @@ export default function Dashboard() {
     setPrediction(predictEndOfMonth(thisMonth));
   }, [thisMonth]);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const budgetStatus = getStatus(stats.thisMonthTotal);
 
@@ -68,17 +60,10 @@ export default function Dashboard() {
         <div className="relative z-10 flex items-center justify-between mb-4">
           <div>
             <p className="text-white/60 text-sm">{greeting},</p>
-            <h1 className="text-xl font-bold text-white truncate max-w-[200px]">
+            <h1 className="text-xl font-bold text-white truncate max-w-[250px]">
               {user?.user_metadata?.full_name || 'Mahasiswa'} 🎓
             </h1>
           </div>
-          <button
-            onClick={handleLogout}
-            className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center text-lg hover:bg-red-500/40 border border-red-500/30 transition-all text-white"
-            title="Keluar"
-          >
-            👋
-          </button>
         </div>
 
         {/* Total bulan ini */}
