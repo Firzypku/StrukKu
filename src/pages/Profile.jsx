@@ -229,6 +229,26 @@ export default function Profile() {
           </button>
         </div>
 
+        {/* Bantuan & Keluhan Pengguna */}
+        <div className="bg-white rounded-2xl p-4 shadow-card border border-gray-100">
+          <h2 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-2">Bantuan & Keluhan</h2>
+          <a
+            href="https://wa.me/6281251152940?text=Halo%20Firzy%2C%20saya%20pengguna%20StrukKu%20ingin%20menyampaikan%20keluhan%2Fkendala%3A"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-emerald-900 font-bold bg-emerald-50/80 hover:bg-emerald-100/80 transition-all border border-emerald-200/80 active:scale-95 text-xs"
+          >
+            <span className="flex items-center gap-2.5">
+              <span className="text-xl">💬</span>
+              <div>
+                <span className="block text-emerald-950 font-bold">Chat WhatsApp Langsung</span>
+                <span className="text-[10px] text-emerald-600 font-normal">0812-5115-2940 (Firzy) • Siap bantu keluhan & ide</span>
+              </div>
+            </span>
+            <span className="text-emerald-700 font-black">→</span>
+          </a>
+        </div>
+
         {/* Keamanan & Logout */}
         <div className="bg-white rounded-2xl p-4 shadow-card border border-gray-100">
           <h2 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3">Keamanan</h2>
