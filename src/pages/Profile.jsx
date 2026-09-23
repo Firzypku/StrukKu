@@ -141,41 +141,59 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Akses Cepat Menu Fitur Mahasiswa */}
+        {/* Menu Utama Akun */}
         <div className="bg-white rounded-2xl p-4 shadow-card border border-gray-100 space-y-2">
-          <h2 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3">Fitur Finansial</h2>
+          <h2 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3">Pengaturan & Fitur</h2>
 
+          {/* 1. Ubah Nama */}
+          <button
+            onClick={() => {
+              setNameInput(currentDisplayName);
+              setIsEditingName(true);
+            }}
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+          >
+            <span className="flex items-center gap-2.5">
+              <span>✏️</span>
+              Ubah Nama Akun
+            </span>
+            <span className="text-gray-400 font-normal">Edit →</span>
+          </button>
+
+          {/* 2. Budget Bulanan */}
           <button
             onClick={() => navigate('/budget')}
-            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>🎯</span>
-              Siklus Uang Saku & Jatah Harian
+              Budget Bulanan & Jatah Harian
             </span>
-            <span className="text-gray-400">→</span>
+            <span className="text-gray-400">/budget →</span>
           </button>
 
+          {/* 3. Riwayat & Export Excel */}
           <button
             onClick={() => navigate('/history')}
-            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>📊</span>
-              Riwayat Kalender & Ekspor Excel
+              Riwayat Transaksi & Export Excel
             </span>
-            <span className="text-gray-400">→</span>
+            <span className="text-gray-400">/history →</span>
           </button>
 
+          {/* Fitur Sosial / Split Bill */}
           <button
             onClick={() => navigate('/social')}
-            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>🍕</span>
               Patungan & Split Bill (Satu Scan)
             </span>
-            <span className="text-gray-400">→</span>
+            <span className="text-gray-400">/social →</span>
           </button>
 
           <button

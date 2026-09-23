@@ -57,8 +57,8 @@ const NAV_ITEMS = [
 export default function Navbar() {
   const location = useLocation();
 
-  // Sembunyikan navbar di landing, login, dan register
-  const HIDE_NAVBAR_PATHS = ['/', '/login', '/register'];
+  // Sembunyikan navbar di landing, login, register, dan reset-password
+  const HIDE_NAVBAR_PATHS = ['/', '/login', '/register', '/reset-password'];
   if (HIDE_NAVBAR_PATHS.includes(location.pathname)) return null;
 
   return (

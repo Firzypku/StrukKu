@@ -81,7 +81,6 @@ const TIPS_DATABASE = {
     { tip: '📊 Catat setiap pengeluaran agar lebih sadar pola belanjamu', icon: '📊' },
     { tip: '🎯 Set budget harian Rp 50.000 dan coba patuhi seminggu', icon: '🎯' },
     { tip: '💡 Aturan 50-30-20: 50% kebutuhan, 30% keinginan, 20% tabungan', icon: '💡' },
-    { tip: '🔔 Aktifkan notifikasi StrukKu agar selalu ingat catat pengeluaran', icon: '🔔' },
     { tip: '🏆 Bergabung tantangan hemat untuk motivasi lebih!', icon: '🏆' },
   ],
 };

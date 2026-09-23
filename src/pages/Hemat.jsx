@@ -1,45 +1,33 @@
 /**
- * Hemat.jsx — Tantangan hemat, tips, dan rekomendasi resep
+ * Hemat.jsx — Tantangan hemat otomatis, tips, dan rekomendasi resep
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getChallenges, updateChallenge } from '../utils/storage';
 import { generateMultipleTips, RECIPE_RECOMMENDATIONS, formatRupiah } from '../utils/prediction';
 import { useExpenses } from '../hooks/useExpenses';
+import { useBudget } from '../hooks/useBudget';
+import { getAutomaticChallenges } from '../utils/challenges';
 import { ChallengeProgressBar } from '../components/ProgressBar';
 import { TipCard } from '../components/FeatureCard';
 
 export default function Hemat() {
   const navigate = useNavigate();
-  const { thisMonth } = useExpenses();
-  const [challenges, setChallenges] = useState([]);
-  const [tips, setTips] = useState([]);
+  const { expenses, thisMonth } = useExpenses();
+  const { budget } = useBudget();
   const [activeTab, setActiveTab] = useState('tantangan');
   const [showRecipe, setShowRecipe] = useState(null);
 
+  // Perhitungan progres tantangan secara otomatis berdasarkan data transaksi riil
+  const challenges = useMemo(() => {
+    return getAutomaticChallenges(expenses, budget);
+  }, [expenses, budget]);
+
+  const [tips, setTips] = useState([]);
+
   useEffect(() => {
-    const fetchChallenges = async () => {
-      const ch = await getChallenges();
-      setChallenges(ch);
-    };
-    fetchChallenges();
     setTips(generateMultipleTips(thisMonth, 4));
   }, [thisMonth]);
-
-  const handleChallengeProgress = async (challenge) => {
-    const newProgress = Math.min(challenge.progress + 1, challenge.target);
-    const completed = newProgress >= challenge.target;
-    await updateChallenge(challenge.id, { progress: newProgress, completed });
-    const updated = await getChallenges();
-    setChallenges(updated);
-  };
-
-  const resetChallenge = async (id) => {
-    await updateChallenge(id, { progress: 0, completed: false });
-    const updated = await getChallenges();
-    setChallenges(updated);
-  };
 
   const completedCount = challenges.filter((c) => c.completed).length;
 
@@ -117,23 +105,16 @@ export default function Hemat() {
                     badge=""
                   />
 
-                  <div className="flex gap-2 mt-3">
-                    {!ch.completed && (
-                      <button
-                        id={`btn-progress-${ch.id}`}
-                        onClick={() => handleChallengeProgress(ch)}
-                        className="flex-1 py-2.5 bg-success text-white rounded-xl text-sm font-bold hover:bg-success-dark active:scale-95 transition-all"
-                      >
-                        + Tambah Progress
-                      </button>
-                    )}
-                    <button
-                      id={`btn-reset-${ch.id}`}
-                      onClick={() => resetChallenge(ch.id)}
-                      className="px-3 py-2.5 bg-gray-50 text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-100 active:scale-95 transition-all"
-                    >
-                      Reset
-                    </button>
+                  <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100 text-xs">
+                    <span className="text-gray-400 font-medium flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${ch.completed ? 'bg-success' : 'bg-primary animate-pulse'}`} />
+                      Progres Otomatis:
+                    </span>
+                    <span className={`font-bold px-2.5 py-1 rounded-lg ${
+                      ch.completed ? 'bg-green-100 text-success' : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {ch.metricLabel}
+                    </span>
                   </div>
                 </div>
               ))}

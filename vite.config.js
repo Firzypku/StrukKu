@@ -12,6 +12,7 @@ export default defineConfig({
         name: 'StrukKu - Kelola Pengeluaran',
         short_name: 'StrukKu',
         description: 'Aplikasi manajemen pengeluaran mahasiswa dari struk belanja',
+        lang: 'id',
         theme_color: '#185FA5',
         background_color: '#f0f4f8',
         display: 'standalone',

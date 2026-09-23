@@ -267,6 +267,7 @@ export default function Social() {
           {[
             { id: 'itemized', label: '🍕 Split per Item' },
             { id: 'quick', label: '⚡ Bagi Rata' },
+            { id: 'circle', label: '👥 Circle' },
             { id: 'campus', label: '📍 Peta Hemat' },
           ].map((tab) => (
             <button
@@ -653,7 +654,52 @@ export default function Social() {
           </div>
         )}
 
-        {/* TAB 3: PETA HEMAT KAMPUS (BENCHMARK HARGA MAHASISWA) */}
+        {/* TAB 3: CIRCLE LEADERBOARD TEASER */}
+        {activeTab === 'circle' && (
+          <div className="bg-white rounded-3xl p-6 shadow-card border border-white/60 text-center space-y-4">
+            <div className="w-16 h-16 bg-gradient-to-tr from-purple-500 to-indigo-600 text-white rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-md">
+              👥
+            </div>
+            <div>
+              <span className="inline-block bg-purple-100 text-purple-700 font-bold text-[11px] px-3 py-1 rounded-full mb-2">
+                ✨ Fitur Mendatang
+              </span>
+              <h2 className="text-base font-extrabold text-gray-800 leading-snug">
+                Segera Hadir: bandingkan hematmu dengan teman satu Circle
+              </h2>
+              <p className="text-xs text-gray-500 mt-2 leading-relaxed max-w-xs mx-auto">
+                Bukan leaderboard publik palsu! Buat Circle privat bareng teman kos atau sahabat kampus untuk saling pantau disiplin budget secara seru dan transparan.
+              </p>
+            </div>
+
+            {/* Preview Mockup UI */}
+            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 space-y-2.5 text-left opacity-80 pointer-events-none select-none">
+              <div className="flex items-center justify-between text-[11px] font-bold text-gray-400">
+                <span>Circle Kos Lavender (4/5)</span>
+                <span className="text-purple-600">Bulan Ini</span>
+              </div>
+              {[
+                { name: 'Kamu', pct: '88% di bawah budget', rank: '1 👑', color: 'text-yellow-600' },
+                { name: 'Teman Circle 1', pct: '79% di bawah budget', rank: '2', color: 'text-gray-500' },
+                { name: 'Teman Circle 2', pct: '65% di bawah budget', rank: '3', color: 'text-amber-700' },
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-gray-100 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className={`font-black text-xs ${item.color}`}>#{item.rank}</span>
+                    <span className="font-semibold text-gray-700">{item.name}</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-emerald-600">{item.pct}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 text-xs text-purple-900 leading-relaxed text-left">
+              🔒 <strong>Privasi Terjamin:</strong> Teman satu circle hanya melihat persentase kedisiplinan hemat, bukan nominal saldo rekening atau detail transaksi pribadimu.
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: PETA HEMAT KAMPUS (BENCHMARK HARGA MAHASISWA) */}
         {activeTab === 'campus' && (
           <div className="space-y-4">
             <div className="bg-white rounded-2xl p-5 shadow-card border border-white/60">
