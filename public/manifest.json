@@ -1,12 +1,12 @@
 {
-  "name": "StrukKu - Kelola Pengeluaran",
+  "name": "StrukKu - Kelola Pengeluaran Mahasiswa",
   "short_name": "StrukKu",
-  "description": "Aplikasi manajemen pengeluaran mahasiswa dari struk belanja",
+  "description": "Aplikasi manajemen uang saku, scan struk belanja, dan split bill cerdas mahasiswa",
   "theme_color": "#185FA5",
   "background_color": "#F0F4F8",
   "display": "standalone",
   "orientation": "portrait",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "scope": "/",
   "icons": [
     {
@@ -20,6 +20,29 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Scan Struk",
+      "short_name": "Scan",
+      "description": "Pindai foto struk belanja dengan AI",
+      "url": "/scan",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Catat Cepat",
+      "short_name": "Catat",
+      "description": "Input transaksi manual dalam 3 detik",
+      "url": "/scan?mode=manual",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Siklus Uang Saku",
+      "short_name": "Jatah",
+      "description": "Cek jatah harian dan tanggal uang habis",
+      "url": "/budget",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
     }
   ]
 }
