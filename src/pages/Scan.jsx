@@ -10,7 +10,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { scanReceipt, detectCategory, CATEGORY_ICONS } from '../utils/ocr';
 import { useExpenses } from '../hooks/useExpenses';
 import { useAuth } from '../context/AuthContext';
-import { formatRupiah } from '../utils/prediction';
+import { formatRupiah, parseVoiceInput } from '../utils/prediction';
 import { todayLocal } from '../utils/date';
 import { useToast } from '../context/ToastContext';
 import { preprocessImageForOcr, uploadReceiptToStorage } from '../utils/imageProcess';
@@ -76,24 +76,12 @@ export default function Scan() {
   }, []);
 
   const parseVoice = (transcript) => {
-    const text = transcript.toLowerCase().trim();
-    const amountMatch = text.match(/(\d[\d.,]*)\s*(?:ribu|rb|k|juta)?/);
-    let amount = '';
-    let title = text;
-
-    if (amountMatch) {
-      let raw = parseFloat(amountMatch[1].replace(/[.,]/g, ''));
-      if (text.includes('ribu') || text.includes(' rb') || text.endsWith('k')) raw *= 1000;
-      if (text.includes('juta')) raw *= 1000000;
-      amount = raw.toString();
-      title = text.replace(amountMatch[0], '').trim();
-    }
-
+    const parsed = parseVoiceInput(transcript);
     setForm((f) => ({
       ...f,
-      title: title || f.title,
-      amount: amount || f.amount,
-      category: detectCategory(title),
+      title: parsed.title || f.title,
+      amount: parsed.amount ? parsed.amount.toString() : f.amount,
+      category: parsed.category || f.category,
     }));
     setFieldConfidence({});
     setMode('manual');

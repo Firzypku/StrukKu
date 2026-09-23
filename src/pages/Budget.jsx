@@ -2,13 +2,15 @@
  * Budget.jsx — Siklus Uang Saku Mahasiswa, Jatah Harian Aman, Simulasi Belanja, Rekap Ortu & Budget Kalender
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBudget } from '../hooks/useBudget';
 import { useExpenses } from '../hooks/useExpenses';
+import { useAuth } from '../context/AuthContext';
 import { formatRupiah } from '../utils/prediction';
 import {
   getAllowanceConfig,
+  fetchAllowanceConfigFromSupabase,
   saveAllowanceConfig,
   calculateAllowanceCycle,
   simulatePurchase,
@@ -22,15 +24,29 @@ export default function Budget() {
   const navigate = useNavigate();
   const { budget, updateBudget, getStatus } = useBudget();
   const { stats, expenses, allExpenses } = useExpenses();
+  const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState('cycle'); // 'cycle' | 'simulation' | 'parent' | 'standard'
 
-  // Allowance Cycle State
+  // Allowance Cycle State (Sinkron ke Supabase allowances & localStorage)
   const [allowanceConfig, setAllowanceConfig] = useState(getAllowanceConfig);
   const [editAllowance, setEditAllowance] = useState(false);
   const [inputAllowanceAmount, setInputAllowanceAmount] = useState(allowanceConfig.monthlyAmount.toString());
   const [inputPayDay, setInputPayDay] = useState(allowanceConfig.payDay.toString());
   const [configSaved, setConfigSaved] = useState(false);
+
+  // Ambil data uang saku dari Supabase saat user login
+  useEffect(() => {
+    if (user?.id) {
+      fetchAllowanceConfigFromSupabase(user.id).then((cfg) => {
+        if (cfg) {
+          setAllowanceConfig(cfg);
+          setInputAllowanceAmount(cfg.monthlyAmount.toString());
+          setInputPayDay(cfg.payDay.toString());
+        }
+      });
+    }
+  }, [user?.id]);
 
   // Simulation State
   const [simItemName, setSimItemName] = useState('');
@@ -53,11 +69,11 @@ export default function Budget() {
   const budgetStatus = getStatus(stats.thisMonthTotal);
 
   // Handle Simpan Konfigurasi Siklus Uang Saku
-  const handleSaveAllowanceConfig = () => {
+  const handleSaveAllowanceConfig = async () => {
     const amt = parseFloat(inputAllowanceAmount) || 0;
     const day = parseInt(inputPayDay, 10) || 1;
     if (amt <= 0) return;
-    const newCfg = saveAllowanceConfig(amt, day);
+    const newCfg = await saveAllowanceConfig(amt, day, user?.id);
     setAllowanceConfig(newCfg);
     setEditAllowance(false);
     setConfigSaved(true);
@@ -157,7 +173,7 @@ export default function Budget() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              className={`flex-shrink-0 sm:flex-1 py-2 px-3 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                 activeTab === tab.id
                   ? 'bg-white text-primary shadow-sm'
                   : 'text-white/70 hover:text-white'
@@ -312,6 +328,22 @@ export default function Budget() {
                   ✅ Pengaturan uang saku berhasil disimpan!
                 </p>
               )}
+            </div>
+
+            {/* Info Edukasi: Perbedaan Uang Saku & Budget Limit */}
+            <div className="bg-blue-50/80 border border-blue-100 rounded-2xl p-4 text-xs space-y-2">
+              <div className="flex items-center gap-1.5 font-bold text-primary">
+                <span>💡</span>
+                <span>Pahami Pengelolaan Keuanganmu:</span>
+              </div>
+              <div className="space-y-1.5 text-gray-600 leading-relaxed text-[11px]">
+                <p>
+                  • <strong className="text-gray-800">Uang Saku (Pemasukan per Siklus):</strong> Nominal total kiriman yang kamu terima (dari ortu/beasiswa) dihitung dari tanggal kiriman bulan ini sampai kiriman berikutnya untuk membagi <em>Jatah Harian Aman</em>.
+                </p>
+                <p>
+                  • <strong className="text-gray-800">Budget Limit (Batas Belanja):</strong> Target batas maksimal pengeluaran bulanan yang kamu tetapkan sendiri di tab <em>Budget Limit</em> agar ada sisa uang saku untuk ditabung.
+                </p>
+              </div>
             </div>
           </>
         )}

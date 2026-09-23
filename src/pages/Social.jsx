@@ -14,17 +14,20 @@ export default function Social() {
   const [activeTab, setActiveTab] = useState('itemized'); // 'itemized' | 'quick' | 'campus'
 
   // ── State Split Bill Itemized ("Satu Scan, Semua Tercatat") ────────────────
-  const [placeName, setPlaceName] = useState('Makan Bersama');
-  const [friends, setFriends] = useState(['Kamu', 'Budi', 'Siti']);
-  const [newFriendName, setNewFriendName] = useState('');
-
-  const [items, setItems] = useState([
+  const EXAMPLE_FRIENDS = ['Kamu', 'Budi', 'Siti'];
+  const EXAMPLE_ITEMS = [
     { id: 1, name: 'Ayam Geprek Sambal Bawang', price: 18000, assignedTo: ['Kamu'] },
     { id: 2, name: 'Es Teh Manis Jumbo', price: 5000, assignedTo: ['Kamu'] },
     { id: 3, name: 'Nasi Goreng Spesial', price: 22000, assignedTo: ['Budi'] },
     { id: 4, name: 'Mie Nyemek Telur', price: 17000, assignedTo: ['Siti'] },
     { id: 5, name: 'Gorengan Tempe (Piring Bersama)', price: 12000, assignedTo: ['Kamu', 'Budi', 'Siti'] },
-  ]);
+  ];
+
+  const [placeName, setPlaceName] = useState('');
+  const [friends, setFriends] = useState(['Kamu']);
+  const [newFriendName, setNewFriendName] = useState('');
+  const [items, setItems] = useState([]);
+  const [isExample, setIsExample] = useState(false);
 
   const [newItemName, setNewItemName] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
@@ -133,6 +136,24 @@ export default function Social() {
   // Hapus Item
   const handleRemoveItem = (id) => {
     setItems(items.filter((i) => i.id !== id));
+  };
+
+  // Muat contoh data Split Bill
+  const handleLoadExample = () => {
+    setPlaceName('Kantin Bersama');
+    setFriends(EXAMPLE_FRIENDS);
+    setItems(EXAMPLE_ITEMS);
+    setIsExample(true);
+    toast.info('Contoh data split bill dimuat.');
+  };
+
+  // Kosongkan Split Bill
+  const handleClearSplit = () => {
+    setPlaceName('');
+    setFriends(['Kamu']);
+    setItems([]);
+    setIsExample(false);
+    toast.info('Split bill dikosongkan.');
   };
 
   // Toggle penugasan teman di item baru
@@ -289,6 +310,46 @@ export default function Social() {
         {/* TAB 1: SPLIT PER ITEM ("SATU SCAN, SEMUA TERCATAT") */}
         {activeTab === 'itemized' && (
           <>
+            {/* Banner Mode Contoh */}
+            {isExample && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-center justify-between animate-fade-in">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🏷️</span>
+                  <div>
+                    <p className="text-xs font-bold text-amber-900">Data Contoh Split Bill</p>
+                    <p className="text-[11px] text-amber-700">Ini adalah contoh perhitungan. Kamu bisa edit atau kosongkan.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleClearSplit}
+                  className="text-xs font-bold text-amber-900 bg-white border border-amber-300 px-2.5 py-1 rounded-lg hover:bg-amber-100/60 transition-all active:scale-95"
+                >
+                  Mulai Kosong
+                </button>
+              </div>
+            )}
+
+            {/* Empty State Banner ketika belum ada item */}
+            {items.length === 0 && !isExample && (
+              <div className="bg-white rounded-2xl p-6 shadow-card border border-dashed border-purple-200 text-center space-y-2.5 animate-fade-in">
+                <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mx-auto">
+                  🍕
+                </div>
+                <h3 className="font-bold text-gray-800 text-sm">Split Bill Masih Kosong</h3>
+                <p className="text-xs text-gray-500 max-w-xs mx-auto">
+                  Masukkan nama tempat, teman patungan, dan pesananmu di bawah, atau klik tombol untuk melihat contoh perhitungannya.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleLoadExample}
+                  className="inline-flex items-center gap-1.5 py-2 px-3.5 bg-purple-50 border border-purple-200 text-purple-700 font-bold text-xs rounded-xl hover:bg-purple-100 transition-all active:scale-95 mt-1"
+                >
+                  <span>💡</span> Lihat Contoh
+                </button>
+              </div>
+            )}
+
             {/* Header Acara & Teman */}
             <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60 space-y-3">
               <div>
@@ -706,8 +767,15 @@ export default function Social() {
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">📍</span>
                 <div>
-                  <h2 className="font-bold text-gray-800 text-sm">Peta Hemat Kampus & Sekitar Kos</h2>
-                  <p className="text-xs text-gray-400">Data acuan harga rata-rata mahasiswa Telkom & Surabaya</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="font-bold text-gray-800 text-sm">Peta Kisaran Harga Kampus</h2>
+                    <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">
+                      Contoh kisaran harga (bukan data pengguna)
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Contoh estimasi harga referensi kebutuhan mahasiswa. Fitur data komunitas berbasis struk teranonimkan segera hadir.
+                  </p>
                 </div>
               </div>
 

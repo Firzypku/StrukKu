@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseReceiptText } from './receiptParser';
+import { parseVoiceInput } from './prediction';
 
 describe('receiptParser — Precision Tests', () => {
   it('1. ignores TUNAI and KEMBALI and picks TOTAL correctly', () => {
@@ -72,3 +73,31 @@ describe('receiptParser — Precision Tests', () => {
     expect(result.fieldConfidence.amount).toBe('high');
   });
 });
+
+describe('parseVoiceInput — Voice Parsing Precision Tests', () => {
+  it('parses decimal millions correctly (1,5 juta -> 1500000)', () => {
+    const result = parseVoiceInput('beli sepatu 1,5 juta');
+    expect(result.amount).toBe(1500000);
+    expect(result.title).toBe('Sepatu');
+  });
+
+  it('prioritizes number with monetary unit over quantity (2 mie ayam 30 ribu -> 30000)', () => {
+    const result = parseVoiceInput('beli 2 mie ayam 30 ribu');
+    expect(result.amount).toBe(30000);
+    expect(result.title).toBe('2 mie ayam');
+    expect(result.category).toBe('Makanan');
+  });
+
+  it('handles shorthand rb/k and clean numbers (kopi 25rb -> 25000)', () => {
+    const result = parseVoiceInput('kopi kenangan 25rb');
+    expect(result.amount).toBe(25000);
+    expect(result.title).toBe('Kopi kenangan');
+  });
+
+  it('handles plain numeric voice input (makan siang 20000)', () => {
+    const result = parseVoiceInput('makan siang 20000');
+    expect(result.amount).toBe(20000);
+    expect(result.title).toBe('Makan siang');
+  });
+});
+

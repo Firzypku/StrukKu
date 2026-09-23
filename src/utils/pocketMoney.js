@@ -1,9 +1,11 @@
 /**
  * pocketMoney.js — Mesin perhitungan Siklus Uang Saku, Jatah Harian Aman, dan Simulasi Belanja
  * Dirancang khusus mengikuti ritme keuangan mahasiswa rantau Indonesia.
+ * Terintegrasi dengan database cloud Supabase 'allowances' dan cache lokal localStorage.
  */
 
 import { toLocalDateString } from './date';
+import { supabase } from './supabase';
 
 const STORAGE_KEY = 'strukku_allowance_config';
 
@@ -13,7 +15,7 @@ export const DEFAULT_ALLOWANCE_CONFIG = {
 };
 
 /**
- * Mengambil konfigurasi uang saku pengguna
+ * Mengambil konfigurasi uang saku dari localStorage (Sinkron, untuk render awal instan)
  */
 export const getAllowanceConfig = () => {
   try {
@@ -30,14 +32,82 @@ export const getAllowanceConfig = () => {
 };
 
 /**
- * Menyimpan konfigurasi uang saku
+ * Mengambil konfigurasi uang saku dari Supabase 'allowances' & otomatis migrasi dari localStorage
+ * @param {string} userId
+ * @returns {Promise<{monthlyAmount: number, payDay: number}>}
  */
-export const saveAllowanceConfig = (monthlyAmount, payDay) => {
+export const fetchAllowanceConfigFromSupabase = async (userId) => {
+  if (!userId) return getAllowanceConfig();
+
+  try {
+    const { data, error } = await supabase
+      .from('allowances')
+      .select('monthly_amount, pay_day')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Tabel allowances belum aktif atau error jaringan, menggunakan localStorage:', error.message);
+      return getAllowanceConfig();
+    }
+
+    if (data) {
+      const config = {
+        monthlyAmount: parseFloat(data.monthly_amount) || DEFAULT_ALLOWANCE_CONFIG.monthlyAmount,
+        payDay: parseInt(data.pay_day, 10) || DEFAULT_ALLOWANCE_CONFIG.payDay,
+      };
+      // Sinkronkan ke localStorage sebagai cache offline
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      return config;
+    }
+
+    // Jika belum ada data di Supabase, migrasikan data yang ada di localStorage saat pertama login
+    const localConfig = getAllowanceConfig();
+    try {
+      await supabase.from('allowances').upsert({
+        user_id: userId,
+        monthly_amount: localConfig.monthlyAmount,
+        pay_day: localConfig.payDay,
+      }, { onConflict: 'user_id' });
+    } catch (upsertErr) {
+      console.warn('Gagal migrasi otomatis uang saku ke Supabase:', upsertErr);
+    }
+
+    return localConfig;
+  } catch (err) {
+    console.warn('Gagal memuat uang saku dari Supabase:', err);
+    return getAllowanceConfig();
+  }
+};
+
+/**
+ * Menyimpan konfigurasi uang saku ke localStorage dan cloud Supabase
+ * @param {number} monthlyAmount
+ * @param {number} payDay
+ * @param {string|null} userId
+ */
+export const saveAllowanceConfig = async (monthlyAmount, payDay, userId = null) => {
   const config = {
     monthlyAmount: Math.max(0, parseFloat(monthlyAmount) || 0),
     payDay: Math.min(31, Math.max(1, parseInt(payDay, 10) || 1)),
   };
+
+  // Simpan segera ke localStorage (optimistic update)
   localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+
+  // Simpan ke Supabase jika user sedang login
+  if (userId) {
+    try {
+      await supabase.from('allowances').upsert({
+        user_id: userId,
+        monthly_amount: config.monthlyAmount,
+        pay_day: config.payDay,
+      }, { onConflict: 'user_id' });
+    } catch (err) {
+      console.warn('Gagal menyimpan uang saku ke database cloud Supabase:', err);
+    }
+  }
+
   return config;
 };
 

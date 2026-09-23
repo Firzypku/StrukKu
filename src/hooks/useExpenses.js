@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { supabase } from '../utils/supabase';
 import {
   getExpenses,
   addExpense,
@@ -163,15 +164,42 @@ export const useExpenses = () => {
     }
   };
 
-  // Reset/Hapus semua transaksi pada bulan yang sedang dipilih
+  // Reset/Hapus semua transaksi pada bulan yang sedang dipilih dengan backup untuk Undo
   const resetSelectedMonth = async (targetYear = selectedYear, targetMonth = selectedMonth) => {
+    const backupExpenses = [...selectedMonthExpenses];
     setLoading(true);
     try {
       await deleteExpensesByMonth(targetYear, targetMonth);
       await refresh();
-      return true;
+      return backupExpenses;
     } catch (e) {
       console.error('Error resetting month:', e);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mengembalikan transaksi yang baru saja di-reset (Undo)
+  const undoResetMonth = async (backupExpenses) => {
+    if (!backupExpenses || backupExpenses.length === 0) return false;
+    setLoading(true);
+    try {
+      const itemsToRestore = backupExpenses.map((e) => ({
+        user_id: e.user_id,
+        title: e.title,
+        amount: e.amount,
+        category: e.category,
+        date: e.date,
+        note: e.note || null,
+        image: e.image || null,
+      }));
+      const { error } = await supabase.from('expenses').insert(itemsToRestore);
+      if (error) throw error;
+      await refresh();
+      return true;
+    } catch (e) {
+      console.error('Error restoring reset month:', e);
       throw e;
     } finally {
       setLoading(false);
@@ -213,6 +241,7 @@ export const useExpenses = () => {
     setMonthYear,
     goToCurrentMonth,
     resetSelectedMonth,
+    undoResetMonth,
     add,
     update,
     remove,

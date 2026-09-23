@@ -29,6 +29,7 @@ export default function History() {
     setMonthYear,
     goToCurrentMonth,
     resetSelectedMonth,
+    undoResetMonth,
   } = useExpenses();
 
   const [view, setView] = useState('list'); // list | calendar
@@ -209,6 +210,7 @@ export default function History() {
           goToCurrentMonth={goToCurrentMonth}
           availableMonths={availableMonths}
           onResetMonth={resetSelectedMonth}
+          onUndoResetMonth={undoResetMonth}
           totalExpense={stats.thisMonthTotal}
           transactionCount={stats.thisMonthCount}
           showResetButton={true}

@@ -239,21 +239,72 @@ const detectVoiceCategory = (text) => {
 };
 
 export const parseVoiceInput = (transcript) => {
+  if (!transcript) return { title: 'Pengeluaran', amount: null, category: 'Lainnya' };
   const text = transcript.toLowerCase().trim();
 
-  // Cari angka + suffix opsional
-  const amountMatch = text.match(/(\d[\d.,]*)\s*(?:ribu|rb|k|juta)?/);
   let amount = null;
-  let title = text;
+  let matchedSnippet = '';
 
-  if (amountMatch) {
-    let rawAmount = parseFloat(amountMatch[1].replace(/[.,]/g, ''));
-    if (text.includes('ribu') || text.includes(' rb') || text.endsWith('k')) rawAmount *= 1000;
-    if (text.includes('juta')) rawAmount *= 1_000_000;
-    amount = rawAmount;
-    title = text.replace(amountMatch[0], '').trim();
+  // 1. Prioritas Utama: Cari angka yang secara eksplisit diikuti satuan mata uang: juta, jt, ribu, rb, k, rupiah
+  // atau diawali rp (misal: "1,5 juta", "30 ribu", "25rb", "Rp 50.000")
+  const unitRegex = /(?:rp\.?\s*)?(\d+(?:[.,]\d+)?)\s*(juta|jt|ribu|rb|k|rupiah|perak)\b/gi;
+  const unitMatches = [...text.matchAll(unitRegex)];
+
+  if (unitMatches.length > 0) {
+    // Ambil match terakhir yang memiliki satuan (misal "beli 2 nasi ayam 30 ribu" -> pilih 30 ribu)
+    const targetMatch = unitMatches[unitMatches.length - 1];
+    matchedSnippet = targetMatch[0];
+    const numPart = targetMatch[1].replace(',', '.');
+    const unitPart = (targetMatch[2] || '').toLowerCase();
+    let val = parseFloat(numPart);
+
+    if (unitPart.startsWith('j')) {
+      // juta / jt
+      val = Math.round(val * 1000000);
+    } else if (unitPart.startsWith('r') || unitPart === 'k') {
+      // ribu / rb / k
+      val = Math.round(val * 1000);
+    }
+
+    if (!isNaN(val) && val > 0) {
+      amount = val;
+    }
+  }
+
+  // 2. Prioritas Kedua: Jika tidak ada satuan, cari nominal angka uang realistis (misal "makan 25000" atau "rp 25000")
+  if (!amount) {
+    const rawNumRegex = /(?:rp\.?\s*)?(\b\d{1,3}(?:[.,]\d{3})+\b|\b\d{4,}\b)/gi;
+    const rawMatches = [...text.matchAll(rawNumRegex)];
+    if (rawMatches.length > 0) {
+      const targetMatch = rawMatches[rawMatches.length - 1];
+      matchedSnippet = targetMatch[0];
+      const cleanNum = targetMatch[1].replace(/[.,]/g, '');
+      const val = parseInt(cleanNum, 10);
+      if (!isNaN(val) && val >= 100) {
+        amount = val;
+      }
+    }
+  }
+
+  // Bersihkan judul transaksi dari potongan angka/uang yang cocok
+  let title = text;
+  if (matchedSnippet) {
+    title = title.replace(matchedSnippet, '').trim();
+  }
+
+  // Bersihkan kata-kata pengantar suara umum seperti "beli", "tadi", "bayar", "buat" di awal
+  title = title
+    .replace(/^(?:beli|bayar|tadi beli|buat|untuk)\s+/i, '')
+    .replace(/[.,]$/, '')
+    .trim();
+
+  // Kapitalisasi huruf pertama
+  if (title) {
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+  } else {
+    title = 'Pengeluaran';
   }
 
   const category = detectVoiceCategory(title);
-  return { title: title || 'Pengeluaran', amount, category };
+  return { title, amount, category };
 };

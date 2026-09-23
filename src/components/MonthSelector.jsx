@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { formatRupiah } from '../utils/prediction';
 import { useToast } from '../context/ToastContext';
 
 /**
- * MonthSelector.jsx — Komponen pemilih bulan, navigasi riwayat bulan lampau, dan fitur reset bulan.
+ * MonthSelector.jsx — Komponen pemilih bulan, navigasi riwayat bulan lampau,
+ * dan fitur reset bulan aman dengan konfirmasi ketik nama bulan di bottom sheet & Urungkan 10 detik.
  */
 export default function MonthSelector({
   selectedYear,
@@ -16,6 +17,7 @@ export default function MonthSelector({
   goToCurrentMonth,
   availableMonths = [],
   onResetMonth,
+  onUndoResetMonth,
   totalExpense = 0,
   transactionCount = 0,
   showResetButton = true,
@@ -23,20 +25,67 @@ export default function MonthSelector({
   const toast = useToast();
   const [showPickerModal, setShowPickerModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [typedMonth, setTypedMonth] = useState('');
   const [isResetting, setIsResetting] = useState(false);
 
+  // Undo (Urungkan) State — 10 detik countdown
+  const [undoState, setUndoState] = useState(null); // { backup: [...], monthName: string, secondsLeft: number }
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (undoState && undoState.secondsLeft > 0) {
+      timerRef.current = setTimeout(() => {
+        setUndoState((prev) => {
+          if (!prev || prev.secondsLeft <= 1) return null;
+          return { ...prev, secondsLeft: prev.secondsLeft - 1 };
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [undoState]);
+
+  const isConfirmationMatched = typedMonth.trim().toLowerCase() === selectedMonthName.toLowerCase();
+
+  const handleOpenResetModal = () => {
+    setTypedMonth('');
+    setShowResetModal(true);
+  };
+
   const handleConfirmReset = async () => {
-    if (!onResetMonth) return;
+    if (!onResetMonth || !isConfirmationMatched) return;
     setIsResetting(true);
     try {
-      await onResetMonth();
+      const backup = await onResetMonth();
       setShowResetModal(false);
-      toast.success('Bulan berhasil direset.');
+      setTypedMonth('');
+
+      if (backup && backup.length > 0) {
+        setUndoState({
+          backup,
+          monthName: `${selectedMonthName} ${selectedYear}`,
+          secondsLeft: 10,
+        });
+      }
+      toast.success(`Data bulan ${selectedMonthName} berhasil direset.`);
     } catch (err) {
       console.error(err);
       toast.error('Gagal mereset bulan: ' + (err.message || 'Terjadi kesalahan'));
     } finally {
       setIsResetting(false);
+    }
+  };
+
+  const handleUndoReset = async () => {
+    if (!undoState || !onUndoResetMonth) return;
+    try {
+      await onUndoResetMonth(undoState.backup);
+      setUndoState(null);
+      toast.success('Reset berhasil diurungkan! Data transaksi telah kembali.');
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal mengurungkan reset.');
     }
   };
 
@@ -100,7 +149,7 @@ export default function MonthSelector({
 
           {showResetButton && (
             <button
-              onClick={() => setShowResetModal(true)}
+              onClick={handleOpenResetModal}
               disabled={transactionCount === 0}
               className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-all active:scale-95 ${
                 transactionCount > 0
@@ -115,7 +164,7 @@ export default function MonthSelector({
         </div>
       </div>
 
-      {/* Modal Pemilih Bulan Lampau & Tahun */}
+      {/* MODAL PEMILIH BULAN LAMPAU & TAHUN */}
       {showPickerModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
           <div className="bg-white rounded-3xl p-5 max-w-sm w-full shadow-2xl border border-gray-100 max-h-[85vh] flex flex-col">
@@ -193,45 +242,88 @@ export default function MonthSelector({
         </div>
       )}
 
-      {/* Modal Konfirmasi Reset Bulan */}
+      {/* BOTTOM SHEET KONFIRMASI RESET BULAN (Ketik Nama Bulan) */}
       {showResetModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-red-100 text-center animate-bounce-in">
-            <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 mx-auto flex items-center justify-center text-3xl mb-4 shadow-inner">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-fade-in">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-red-100 text-center animate-slide-up sm:animate-bounce-in">
+            {/* Grab handle bar untuk mobile bottom sheet */}
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 sm:hidden" />
+
+            <div className="w-14 h-14 rounded-full bg-red-100 text-red-500 mx-auto flex items-center justify-center text-2xl mb-3 shadow-inner">
               ⚠️
             </div>
 
             <h3 className="font-black text-gray-800 text-lg">
-              Reset Bulan {selectedMonthName} {selectedYear}?
+              Reset Bulan {selectedMonthName} {selectedYear}
             </h3>
-            
+
             <p className="text-xs text-gray-500 mt-2 leading-relaxed">
-              Tindakan ini akan <strong>menghapus seluruh {transactionCount} transaksi pengeluaran</strong> di bulan{' '}
-              <span className="text-gray-800 font-bold">{selectedMonthName} {selectedYear}</span> senilai{' '}
-              <span className="text-red-500 font-bold">{formatRupiah(totalExpense)}</span> dari database.
+              Tindakan ini akan menghapus <strong>{transactionCount} transaksi</strong> di bulan{' '}
+              <strong className="text-gray-800">{selectedMonthName}</strong> senilai{' '}
+              <strong className="text-red-500">{formatRupiah(totalExpense)}</strong>.
             </p>
 
-            <div className="bg-red-50 text-red-600 rounded-xl p-3 my-4 text-[11px] text-left font-medium border border-red-100">
-              💡 <em>Catatan:</em> Saldo pengeluaran bulan ini akan kembali menjadi <strong>Rp 0</strong>. Riwayat bulan lainnya tidak akan terhapus.
+            <div className="bg-red-50 border border-red-100 rounded-xl p-3 my-3 text-left">
+              <label className="text-[11px] font-bold text-gray-700 block mb-1.5">
+                Ketik nama bulan "<span className="text-red-600 underline">{selectedMonthName}</span>" untuk konfirmasi:
+              </label>
+              <input
+                type="text"
+                value={typedMonth}
+                onChange={(e) => setTypedMonth(e.target.value)}
+                placeholder={`Ketik "${selectedMonthName}"`}
+                className="w-full bg-white border border-red-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-400"
+                autoFocus
+              />
             </div>
 
-            <div className="flex gap-2.5">
+            <div className="flex gap-2.5 mt-4">
               <button
-                onClick={() => setShowResetModal(false)}
+                type="button"
+                onClick={() => {
+                  setShowResetModal(false);
+                  setTypedMonth('');
+                }}
                 disabled={isResetting}
                 className="flex-1 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs transition-all active:scale-95"
               >
                 Batal
               </button>
               <button
+                type="button"
                 onClick={handleConfirmReset}
-                disabled={isResetting}
-                className="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs transition-all active:scale-95 shadow-md shadow-red-500/20"
+                disabled={isResetting || !isConfirmationMatched}
+                className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all active:scale-95 shadow-md ${
+                  isConfirmationMatched && !isResetting
+                    ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-500/20'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
               >
-                {isResetting ? 'Mereset...' : 'Ya, Hapus Semua'}
+                {isResetting ? 'Mereset...' : 'Ya, Reset Bulan'}
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* SNACKBAR URUNGKAN (UNDO) 10 DETIK */}
+      {undoState && (
+        <div className="fixed bottom-20 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 sm:max-w-md z-50 bg-gray-900/95 text-white rounded-2xl p-4 shadow-2xl backdrop-blur-md flex items-center justify-between gap-3 animate-slide-up border border-gray-700">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs flex-shrink-0">
+              {undoState.secondsLeft}s
+            </div>
+            <div>
+              <p className="font-bold text-xs text-white">Bulan {undoState.monthName} direset</p>
+              <p className="text-[11px] text-gray-300">Data tersimpan sementara ({undoState.backup.length} transaksi)</p>
+            </div>
+          </div>
+          <button
+            onClick={handleUndoReset}
+            className="px-3.5 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md flex-shrink-0"
+          >
+            ↩️ Urungkan ({undoState.secondsLeft}s)
+          </button>
         </div>
       )}
     </>
