@@ -51,7 +51,7 @@ export const addExpense = async (expense) => {
     .from('expenses')
     .insert([newExpense])
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('Error adding expense:', error);
@@ -66,7 +66,7 @@ export const updateExpense = async (id, updates) => {
     .update(updates)
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('Error updating expense:', error);

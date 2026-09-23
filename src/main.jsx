@@ -1,7 +1,23 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-import './index.css'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.jsx';
+import './index.css';
+
+// Tangani vite:preloadError saat versi baru di-deploy dan chunk lama tidak ditemukan
+window.addEventListener('vite:preloadError', (event) => {
+  try {
+    const hasReloaded = sessionStorage.getItem('vite_preload_reloaded');
+    if (!hasReloaded) {
+      sessionStorage.setItem('vite_preload_reloaded', 'true');
+      window.location.reload();
+    } else {
+      sessionStorage.removeItem('vite_preload_reloaded');
+      console.error('Preload error loop dicegah:', event);
+    }
+  } catch {
+    window.location.reload();
+  }
+});
 
 // Register service worker for PWA
 if ('serviceWorker' in navigator) {
@@ -16,4 +32,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
-)
+);

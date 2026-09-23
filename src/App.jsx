@@ -2,25 +2,28 @@
  * App.jsx — Router utama StrukKu dengan Lazy Loading & Route Guarding
  */
 
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ToastContainer from './components/Toast';
 import Navbar from './components/Navbar';
+import FloatingWhatsApp from './components/FloatingWhatsApp';
+import PwaUpdater from './components/PwaUpdater';
+import { lazyWithRetry } from './utils/lazyWithRetry';
 
-// Lazy load semua halaman untuk memangkas ukuran bundle awal
-const Landing = lazy(() => import('./pages/Landing'));
-const Login = lazy(() => import('./pages/Login'));
-const Register = lazy(() => import('./pages/Register'));
-const ResetPassword = lazy(() => import('./pages/ResetPassword'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Scan = lazy(() => import('./pages/Scan'));
-const History = lazy(() => import('./pages/History'));
-const Budget = lazy(() => import('./pages/Budget'));
-const Hemat = lazy(() => import('./pages/Hemat'));
-const Social = lazy(() => import('./pages/Social'));
-const Profile = lazy(() => import('./pages/Profile'));
+// Lazy load semua halaman dengan proteksi retry jika chunk lama di-deploy ulang
+const Landing = lazyWithRetry(() => import('./pages/Landing'));
+const Login = lazyWithRetry(() => import('./pages/Login'));
+const Register = lazyWithRetry(() => import('./pages/Register'));
+const ResetPassword = lazyWithRetry(() => import('./pages/ResetPassword'));
+const Dashboard = lazyWithRetry(() => import('./pages/Dashboard'));
+const Scan = lazyWithRetry(() => import('./pages/Scan'));
+const History = lazyWithRetry(() => import('./pages/History'));
+const Budget = lazyWithRetry(() => import('./pages/Budget'));
+const Hemat = lazyWithRetry(() => import('./pages/Hemat'));
+const Social = lazyWithRetry(() => import('./pages/Social'));
+const Profile = lazyWithRetry(() => import('./pages/Profile'));
 
 // Loading fallback yang ringan
 const PageLoader = () => (
@@ -62,6 +65,7 @@ export default function App() {
           {/* Max width mobile-first wrapper */}
           <div className="max-w-md mx-auto min-h-screen relative bg-surface">
             <ToastContainer />
+            <PwaUpdater />
             <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public Routes */}
@@ -83,6 +87,7 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
+          <FloatingWhatsApp />
           <Navbar />
         </div>
       </BrowserRouter>
