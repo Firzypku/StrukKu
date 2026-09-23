@@ -3,6 +3,7 @@
  * Fungsionalitas Async CRUD untuk database Expenses, Budgets, dan Challenges
  */
 import { supabase } from './supabase';
+import { getLocalDateString } from './dateHelper';
 
 /**
  * Mendapatkan User ID dari sesi aktif
@@ -42,7 +43,7 @@ export const addExpense = async (expense) => {
     title: expense.title,
     amount: expense.amount,
     category: expense.category || 'Lainnya',
-    date: expense.date || new Date().toISOString().split('T')[0],
+    date: expense.date || getLocalDateString(),
     note: expense.note || null,
   };
 
@@ -139,7 +140,7 @@ export const getBudget = async () => {
     .from('budgets')
     .select('monthly_limit')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
   // Jika tidak ketemu/belum diset
   if (error || !data) return 0;
@@ -155,7 +156,7 @@ export const setBudget = async (amount) => {
     .from('budgets')
     .select('id')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
   if (existing) {
     const { error } = await supabase
@@ -218,7 +219,7 @@ export const updateChallenge = async (id, updates) => {
     .select('id')
     .eq('user_id', userId)
     .eq('challenge_id', id)
-    .single();
+    .maybeSingle();
 
   if (existing) {
     await supabase

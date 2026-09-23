@@ -7,6 +7,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { scanReceipt, detectCategory, CATEGORY_ICONS } from '../utils/ocr';
 import { useExpenses } from '../hooks/useExpenses';
 import { formatRupiah } from '../utils/prediction';
+import { getLocalDateString } from '../utils/dateHelper';
 
 const CATEGORIES = ['Makanan', 'Minuman', 'Transport', 'Belanja', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Fashion', 'Lainnya'];
 
@@ -14,7 +15,7 @@ const INITIAL_FORM = {
   title: '',
   amount: '',
   category: 'Makanan',
-  date: new Date().toISOString().split('T')[0],
+  date: getLocalDateString(),
   note: '',
 };
 
@@ -115,7 +116,7 @@ export default function Scan() {
         title: result.storeName || 'Struk Belanja',
         amount: result.amount?.toString() || '',
         category: result.category || 'Lainnya',
-        date: result.date || new Date().toISOString().split('T')[0],
+        date: result.date || getLocalDateString(),
         note: `OCR confidence: ${result.confidence}%`,
       });
       setMode('manual');
@@ -127,15 +128,23 @@ export default function Scan() {
   };
 
   const handleSave = async () => {
-    if (!form.title || !form.amount) return;
+    const parsedAmount = parseFloat(form.amount);
+    if (!form.title.trim()) {
+      alert('Mohon masukkan keterangan pengeluaran.');
+      return;
+    }
+    if (!form.amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      alert('Jumlah pengeluaran harus berupa angka lebih besar dari 0.');
+      return;
+    }
 
     try {
-      setSaved(null); // Loading state if you will
+      setSaved(null);
       await add({
-        title: form.title,
-        amount: parseFloat(form.amount),
+        title: form.title.trim(),
+        amount: parsedAmount,
         category: form.category,
-        date: form.date,
+        date: form.date || getLocalDateString(),
         note: form.note,
         image: previewUrl || null,
       });

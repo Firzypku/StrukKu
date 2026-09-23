@@ -67,9 +67,9 @@ export default function Landing() {
       <div className="mx-4 mb-6">
         <div className="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 grid grid-cols-3 gap-4">
           {[
-            { num: '10K+', label: 'Pengguna' },
-            { num: '99%', label: 'Akurasi OCR' },
-            { num: '100%', label: 'Gratis' },
+            { num: '100%', label: 'Khusus Mhs' },
+            { num: 'AI', label: 'OCR & Suara' },
+            { num: 'Gratis', label: 'Tanpa Iklan' },
           ].map(({ num, label }) => (
             <div key={label} className="text-center">
               <p className="text-2xl font-black text-green-300">{num}</p>

@@ -3,6 +3,8 @@
  * Dirancang khusus mengikuti ritme keuangan mahasiswa rantau Indonesia.
  */
 
+import { getLocalDateString } from './dateHelper';
+
 const STORAGE_KEY = 'strukku_allowance_config';
 
 export const DEFAULT_ALLOWANCE_CONFIG = {
@@ -63,10 +65,9 @@ export const calculateAllowanceCycle = (expenses = [], config = null) => {
     nextPayDate = new Date(currentYear, currentMonth, cfg.payDay);
   }
 
-  // Format ISO strings untuk perbandingan (YYYY-MM-DD)
-  const formatISO = (d) => d.toISOString().split('T')[0];
-  const startStr = formatISO(cycleStartDate);
-  const nextPayStr = formatISO(nextPayDate);
+  // Format string tanggal lokal (YYYY-MM-DD) untuk perbandingan
+  const startStr = getLocalDateString(cycleStartDate);
+  const nextPayStr = getLocalDateString(nextPayDate);
 
   // Filter pengeluaran yang masuk ke siklus berjalan
   const cycleExpenses = expenses.filter((e) => {

@@ -9,6 +9,7 @@ import { useBudget } from '../hooks/useBudget';
 import { useAuth } from '../context/AuthContext';
 import { predictEndOfMonth, generateTip, formatRupiah } from '../utils/prediction';
 import { CATEGORY_ICONS } from '../utils/ocr';
+import { getLocalDateString } from '../utils/dateHelper';
 import ProgressBar from '../components/ProgressBar';
 import { ExpenseBarChart } from '../components/Chart';
 
@@ -47,7 +48,7 @@ export default function Dashboard() {
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(d);
         const dayExpenses = thisMonth.filter((e) => e.date === dateStr);
         const total = dayExpenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
         result.push({

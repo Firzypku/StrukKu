@@ -5,6 +5,7 @@
 import { useState, useMemo } from 'react';
 import { useExpenses } from '../hooks/useExpenses';
 import { formatRupiah } from '../utils/prediction';
+import { getLocalDateString } from '../utils/dateHelper';
 
 export default function Social() {
   const { add } = useExpenses();
@@ -157,7 +158,7 @@ export default function Social() {
         title: `Patungan di ${placeName || 'Resto'}`,
         amount: myAmount,
         category: 'Makanan',
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalDateString(),
         note: `Split bill bersama ${friends.filter((f) => f !== 'Kamu').join(', ')}`,
       });
       setSavedPortion(true);
@@ -189,14 +190,33 @@ export default function Social() {
     window.open(`https://wa.me/?text=${encoded}`, '_blank');
   };
 
-  // Hitung Quick Split
+  // Hitung Quick Split dengan pembagian presisi (bebas selisih pembulatan)
   const handleCalculateQuick = () => {
-    const total = parseFloat(quickTotal) || 0;
-    const people = parseInt(quickPeople, 10) || 2;
-    if (total <= 0 || people <= 0) return;
+    const total = parseFloat(quickTotal);
+    const people = parseInt(quickPeople, 10);
+    if (!quickTotal || isNaN(total) || total <= 0) {
+      alert('Total tagihan harus berupa angka positif lebih dari 0.');
+      return;
+    }
+    if (isNaN(people) || people <= 0) {
+      alert('Jumlah orang minimal 1.');
+      return;
+    }
+
+    const baseAmount = Math.floor(total / people);
+    const remainder = Math.round(total % people);
+    const higherAmount = baseAmount + 1;
+    const higherCount = remainder;
+    const baseCount = people - remainder;
+
     setQuickResult({
       total,
       people,
+      baseAmount,
+      higherAmount,
+      baseCount,
+      higherCount,
+      isEven: remainder === 0,
       perPerson: Math.ceil(total / people),
     });
   };
@@ -546,10 +566,34 @@ export default function Social() {
 
             {quickResult && (
               <div className="bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-2xl p-5 shadow-lg animate-bounce-in text-center">
-                <p className="text-xs text-white/70">Masing-masing orang membayar:</p>
-                <p className="text-3xl font-black my-1">{formatRupiah(quickResult.perPerson)}</p>
-                <p className="text-[11px] text-white/60">
-                  Total {formatRupiah(quickResult.total)} dibagi {quickResult.people} orang
+                <p className="text-xs text-white/70">Pembagian Tagihan:</p>
+                {quickResult.isEven ? (
+                  <>
+                    <p className="text-3xl font-black my-1">{formatRupiah(quickResult.perPerson)}</p>
+                    <p className="text-[11px] text-white/80">
+                      Rata pas: {quickResult.people} orang × {formatRupiah(quickResult.perPerson)}
+                    </p>
+                  </>
+                ) : (
+                  <div className="my-2 space-y-1.5 bg-white/10 p-3 rounded-xl border border-white/20 text-left text-xs">
+                    <p className="font-extrabold text-center text-sm text-yellow-300">
+                      Pembagian Pas ({formatRupiah(quickResult.total)}):
+                    </p>
+                    <div className="flex justify-between font-bold">
+                      <span>• {quickResult.baseCount} orang membayar:</span>
+                      <span className="text-white">{formatRupiah(quickResult.baseAmount)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold">
+                      <span>• {quickResult.higherCount} orang membayar:</span>
+                      <span className="text-yellow-200">{formatRupiah(quickResult.higherAmount)}</span>
+                    </div>
+                    <p className="text-[10px] text-white/70 text-center pt-1 border-t border-white/15">
+                      💡 Bebas selisih! Total pas 100% tanpa ada yang menalangi kelebihan receh.
+                    </p>
+                  </div>
+                )}
+                <p className="text-[10px] text-white/60 mt-2">
+                  Total Tagihan: {formatRupiah(quickResult.total)}
                 </p>
               </div>
             )}

@@ -1,6 +1,7 @@
 {
   "name": "StrukKu - Kelola Pengeluaran Mahasiswa",
   "short_name": "StrukKu",
+  "lang": "id",
   "description": "Aplikasi manajemen uang saku, scan struk belanja, dan split bill cerdas mahasiswa",
   "theme_color": "#185FA5",
   "background_color": "#F0F4F8",

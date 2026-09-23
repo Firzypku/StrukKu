@@ -39,8 +39,8 @@ export function ExpenseBarChart({ data, height = 200 }) {
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <BarChart data={data} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+      <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
         <XAxis
           dataKey="name"
           tick={{ fontSize: 10, fill: '#9ca3af' }}
@@ -51,8 +51,8 @@ export function ExpenseBarChart({ data, height = 200 }) {
           tick={{ fontSize: 10, fill: '#9ca3af' }}
           axisLine={false}
           tickLine={false}
-          tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
-          width={32}
+          tickFormatter={(v) => (v <= 0 ? '0' : `${(v / 1000).toFixed(0)}k`)}
+          width={38}
         />
         <Tooltip content={<CustomTooltip />} />
         <Bar dataKey="value" fill="#185FA5" radius={[6, 6, 0, 0]}>
@@ -124,15 +124,15 @@ export function ExpenseLineChart({ data, height = 180 }) {
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <LineChart data={data} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+      <LineChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
         <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
         <YAxis
           tick={{ fontSize: 10, fill: '#9ca3af' }}
           axisLine={false}
           tickLine={false}
-          tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
-          width={32}
+          tickFormatter={(v) => (v <= 0 ? '0' : `${(v / 1000).toFixed(0)}k`)}
+          width={38}
         />
         <Tooltip content={<CustomTooltip />} />
         <Line
