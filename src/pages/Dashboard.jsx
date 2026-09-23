@@ -1,8 +1,8 @@
 /**
- * Dashboard.jsx — Halaman utama dengan ringkasan pengeluaran
+ * Dashboard.jsx — Halaman utama dengan ringkasan pengeluaran & navigasi bulan
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useExpenses } from '../hooks/useExpenses';
 import { useBudget } from '../hooks/useBudget';
@@ -14,9 +14,21 @@ import { ExpenseBarChart } from '../components/Chart';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { thisMonth, stats, expenses } = useExpenses();
+  const {
+    thisMonth,
+    stats,
+    expenses,
+    selectedYear,
+    selectedMonth,
+    selectedMonthName,
+    isCurrentMonth,
+    prevMonth,
+    nextMonth,
+    goToCurrentMonth,
+  } = useExpenses();
+
   const { budget, getStatus } = useBudget();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   
   const [tip, setTip] = useState(null);
   const [prediction, setPrediction] = useState(null);
@@ -26,25 +38,43 @@ export default function Dashboard() {
     setPrediction(predictEndOfMonth(thisMonth));
   }, [thisMonth]);
 
-
   const budgetStatus = getStatus(stats.thisMonthTotal);
 
-  // Siapkan data chart 7 hari terakhir
-  const last7Days = (() => {
-    const result = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      const dayExpenses = thisMonth.filter((e) => e.date === dateStr);
-      const total = dayExpenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-      result.push({
-        name: d.toLocaleDateString('id-ID', { weekday: 'short' }),
-        value: total,
+  // Siapkan data chart: 7 hari terakhir jika bulan sekarang, atau 4 minggu jika bulan lampau
+  const chartData = useMemo(() => {
+    if (isCurrentMonth) {
+      const result = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const dayExpenses = thisMonth.filter((e) => e.date === dateStr);
+        const total = dayExpenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+        result.push({
+          name: d.toLocaleDateString('id-ID', { weekday: 'short' }),
+          value: total,
+        });
+      }
+      return result;
+    } else {
+      // Pembagian minggu untuk bulan lampau
+      const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+      const weeks = [
+        { name: 'Mgg 1 (1-7)', start: 1, end: 7, value: 0 },
+        { name: 'Mgg 2 (8-14)', start: 8, end: 14, value: 0 },
+        { name: 'Mgg 3 (15-21)', start: 15, end: 21, value: 0 },
+        { name: `Mgg 4 (22-${daysInMonth})`, start: 22, end: daysInMonth, value: 0 },
+      ];
+      thisMonth.forEach((e) => {
+        if (!e.date) return;
+        const day = parseInt(e.date.split('-')[2], 10);
+        const amt = parseFloat(e.amount) || 0;
+        const w = weeks.find((wk) => day >= wk.start && day <= wk.end);
+        if (w) w.value += amt;
       });
+      return weeks;
     }
-    return result;
-  })();
+  }, [thisMonth, isCurrentMonth, selectedYear, selectedMonth]);
 
   const greetingHour = new Date().getHours();
   const greeting =
@@ -64,11 +94,44 @@ export default function Dashboard() {
               {user?.user_metadata?.full_name || 'Mahasiswa'} 🎓
             </h1>
           </div>
+
+          {/* Quick Month Navigator Badge */}
+          <div className="flex items-center gap-1 bg-white/15 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20 text-xs">
+            <button
+              onClick={prevMonth}
+              className="text-white/80 hover:text-white px-1 font-bold active:scale-95"
+              title="Bulan sebelumnya"
+            >
+              ◀
+            </button>
+            <span className="text-white font-extrabold text-[11px] px-1 whitespace-nowrap">
+              {stats.selectedMonthShort} {selectedYear}
+            </span>
+            <button
+              onClick={nextMonth}
+              className="text-white/80 hover:text-white px-1 font-bold active:scale-95"
+              title="Bulan selanjutnya"
+            >
+              ▶
+            </button>
+          </div>
         </div>
 
-        {/* Total bulan ini */}
+        {/* Total pengeluaran bulan aktif */}
         <div className="relative z-10">
-          <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Pengeluaran Bulan Ini</p>
+          <div className="flex items-center justify-between">
+            <p className="text-white/70 text-xs font-medium uppercase tracking-wider">
+              {isCurrentMonth ? 'Total Pengeluaran Bulan Ini' : `Pengeluaran ${selectedMonthName} ${selectedYear}`}
+            </p>
+            {!isCurrentMonth && (
+              <button
+                onClick={goToCurrentMonth}
+                className="text-[10px] bg-green-400 text-green-950 font-bold px-2 py-0.5 rounded-full shadow-sm hover:bg-green-300 transition-all active:scale-95"
+              >
+                Ke Bulan Ini ⚡
+              </button>
+            )}
+          </div>
           <p className="text-4xl font-black text-white mt-1">{formatRupiah(stats.thisMonthTotal)}</p>
           {budget > 0 && (
             <p className={`text-sm mt-1 font-medium ${budgetStatus.status === 'safe' ? 'text-green-300' : budgetStatus.status === 'warning' ? 'text-yellow-300' : 'text-red-300'}`}>
@@ -91,7 +154,7 @@ export default function Dashboard() {
           },
           {
             icon: '🏆',
-            label: 'Kategori Top',
+            label: 'Top Kategori',
             value: stats.topCategory ? CATEGORY_ICONS[stats.topCategory] || '💳' : '—',
             gradient: 'from-success to-success-light',
           },
@@ -153,18 +216,25 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Chart 7 hari */}
+        {/* Chart Tren Pengeluaran */}
         <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="font-bold text-gray-800">7 Hari Terakhir</h2>
+            <div>
+              <h2 className="font-bold text-gray-800">
+                {isCurrentMonth ? 'Aktivitas 7 Hari Terakhir' : `Tren Mingguan ${selectedMonthName}`}
+              </h2>
+              <p className="text-[11px] text-gray-400">
+                {isCurrentMonth ? 'Pengeluaran harian terbaru' : 'Distribusi transaksi per minggu'}
+              </p>
+            </div>
             <button onClick={() => navigate('/history')} className="text-xs text-primary font-semibold">
-              Lihat semua →
+              Lihat Kalender →
             </button>
           </div>
-          <ExpenseBarChart data={last7Days} height={160} />
+          <ExpenseBarChart data={chartData} height={160} />
         </div>
 
-        {/* Prediksi Akhir Bulan */}
+        {/* Prediksi Akhir Bulan (atau Ringkasan jika bulan lampau) */}
         {prediction && prediction.predicted > 0 && (
           <div className={`rounded-2xl p-4 shadow-card border ${
             prediction.predicted > budget && budget > 0
@@ -174,13 +244,23 @@ export default function Dashboard() {
             <div className="flex items-start gap-3">
               <span className="text-2xl">{prediction.predicted > budget && budget > 0 ? '⚠️' : '🔮'}</span>
               <div>
-                <h3 className="font-bold text-gray-800 text-sm">Prediksi Akhir Bulan</h3>
-                <p className="text-xl font-black text-primary mt-1">{formatRupiah(prediction.predicted)}</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Berdasarkan rata-rata {formatRupiah(prediction.dailyAvg)}/hari selama {prediction.daysPassed} hari
-                  {prediction.confidence === 'low' && ' (data masih sedikit)'}
+                <h3 className="font-bold text-gray-800 text-sm">
+                  {isCurrentMonth ? 'Prediksi Akhir Bulan' : `Rekapitulasi ${selectedMonthName}`}
+                </h3>
+                <p className="text-xl font-black text-primary mt-1">
+                  {formatRupiah(isCurrentMonth ? prediction.predicted : stats.thisMonthTotal)}
                 </p>
-                {prediction.predicted > budget && budget > 0 && (
+                <p className="text-xs text-gray-400 mt-1">
+                  {isCurrentMonth ? (
+                    <>
+                      Berdasarkan rata-rata {formatRupiah(prediction.dailyAvg)}/hari selama {prediction.daysPassed} hari
+                      {prediction.confidence === 'low' && ' (data masih sedikit)'}
+                    </>
+                  ) : (
+                    <>Total tercatat selama bulan {selectedMonthName} {selectedYear} ({thisMonth.length} transaksi)</>
+                  )}
+                </p>
+                {prediction.predicted > budget && budget > 0 && isCurrentMonth && (
                   <p className="text-xs text-danger font-semibold mt-1">
                     ❌ Diprediksi over budget {formatRupiah(prediction.predicted - budget)}
                   </p>
@@ -210,9 +290,11 @@ export default function Dashboard() {
         {/* Kategori Terbesar */}
         {stats.byCategory.length > 0 && (
           <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60">
-            <h2 className="font-bold text-gray-800 mb-3">Pengeluaran per Kategori</h2>
+            <h2 className="font-bold text-gray-800 mb-3">
+              Pengeluaran per Kategori {selectedMonthName}
+            </h2>
             <div className="flex flex-col gap-2">
-              {stats.byCategory.slice(0, 4).map((cat, i) => {
+              {stats.byCategory.slice(0, 4).map((cat) => {
                 const pct = stats.thisMonthTotal > 0 ? (cat.value / stats.thisMonthTotal) * 100 : 0;
                 return (
                   <div key={cat.name}>
@@ -239,11 +321,13 @@ export default function Dashboard() {
         {thisMonth.length === 0 && (
           <div className="bg-white rounded-2xl p-8 shadow-card text-center border border-white/60">
             <span className="text-6xl block mb-4">🧾</span>
-            <h3 className="font-bold text-gray-700 text-lg">Belum ada pengeluaran</h3>
+            <h3 className="font-bold text-gray-700 text-lg">
+              Belum ada pengeluaran di {selectedMonthName} {selectedYear}
+            </h3>
             <p className="text-gray-400 text-sm mt-2 mb-5">Mulai scan struk atau input manual untuk memantau keuanganmu</p>
             <button
               onClick={() => navigate('/scan')}
-              className="bg-primary text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-primary-dark active:scale-95 transition-all"
+              className="bg-primary text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-primary-dark active:scale-95 transition-all shadow-md"
             >
               📸 Scan Struk Pertama
             </button>

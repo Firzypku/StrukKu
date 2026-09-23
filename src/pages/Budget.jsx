@@ -46,7 +46,12 @@ export default function Budget() {
       <div className="px-4 py-4 space-y-4">
         {/* Budget Input Card */}
         <div className="bg-white rounded-2xl p-5 shadow-card border border-white/60">
-          <h2 className="font-bold text-gray-800 mb-4">Set Budget Bulan Ini</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-gray-800">Set Budget Bulanan</h2>
+            <span className="text-xs bg-primary/10 text-primary font-bold px-2.5 py-1 rounded-full">
+              {stats.selectedMonthName} {stats.selectedYear}
+            </span>
+          </div>
 
           <div className="relative mb-3">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">Rp</span>

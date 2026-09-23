@@ -86,6 +86,32 @@ export const deleteExpense = async (id) => {
   }
 };
 
+/**
+ * Menghapus seluruh pengeluaran untuk user pada bulan dan tahun tertentu
+ * @param {number} year - contoh 2026
+ * @param {number} month - 0 untuk Jan, 11 untuk Des
+ */
+export const deleteExpensesByMonth = async (year, month) => {
+  const userId = await getCurrentUserId();
+  if (!userId) throw new Error("Not authenticated");
+
+  const start = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const end = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+  const { error } = await supabase
+    .from('expenses')
+    .delete()
+    .eq('user_id', userId)
+    .gte('date', start)
+    .lte('date', end);
+
+  if (error) {
+    console.error('Error deleting expenses by month:', error);
+    throw error;
+  }
+};
+
 export const getThisMonthExpenses = async () => {
   const expenses = await getExpenses();
   const now = new Date();
