@@ -1,158 +1,76 @@
 /**
- * ocr.js — OCR wrapper menggunakan Tesseract.js
- * Extract teks dari gambar struk belanja
+ * ocr.js — OCR engine menggunakan Tesseract.js (Singleton Worker)
+ * Terintegrasi dengan receiptParser presisi tinggi untuk data struk Indonesia
  */
 
 import Tesseract from 'tesseract.js';
+import { parseReceiptText, detectCategoryFromText } from './receiptParser';
 import { todayLocal } from './date';
 
-/**
- * Kategori sederhana berdasarkan keyword
- */
-export const CATEGORIES = {
-  makanan: ['makan', 'nasi', 'ayam', 'bakso', 'mie', 'soto', 'warteg', 'restoran', 'cafe', 'kopi', 'minuman', 'snack', 'indomie', 'burger', 'pizza', 'gorengan', 'pecel'],
-  minuman: ['aqua', 'air', 'teh', 'kopi', 'jus', 'susu', 'boba', 'thai tea'],
-  transport: ['grab', 'gojek', 'ojek', 'bensin', 'parkir', 'busway', 'kereta', 'krl', 'mrt', 'bbm', 'pertamax', 'pertalite'],
-  belanja: ['indomaret', 'alfamart', 'minimarket', 'supermarket', 'hypermart', 'giant', 'carrefour', 'toko'],
-  hiburan: ['cinema', 'bioskop', 'netflix', 'spotify', 'game', 'tiket', 'konser'],
-  kesehatan: ['apotek', 'obat', 'klinik', 'dokter', 'vitamin', 'masker', 'kimia farma'],
-  pendidikan: ['buku', 'fotokopi', 'print', 'atk', 'alat tulis', 'kampus'],
-  fashion: ['baju', 'celana', 'sepatu', 'tas', 'pakaian', 'distro'],
-};
+// Singleton worker instance & callback listener
+let workerInstance = null;
+let currentProgressCallback = null;
 
 /**
- * Deteksi kategori dari teks OCR atau judul
- * @param {string} text
- * @returns {string} kategori
+ * Inisialisasi atau ambil instance worker Tesseract singleton
  */
-export const detectCategory = (text) => {
-  const lower = text.toLowerCase();
-  for (const [cat, keywords] of Object.entries(CATEGORIES)) {
-    if (keywords.some((kw) => lower.includes(kw))) {
-      return cat.charAt(0).toUpperCase() + cat.slice(1);
-    }
-  }
-  return 'Lainnya';
-};
-
-/**
- * Extract harga dari teks (cari angka terbesar sebagai total)
- * @param {string} text
- * @returns {number|null}
- */
-export const extractAmount = (text) => {
-  // Pattern: Rp 15.000, 15000, 15,000, Total: 85000
-  const patterns = [
-    /(?:total|jumlah|bayar|tunai|grand total)[^\d]*(\d[\d.,]+)/gi,
-    /rp\.?\s*(\d[\d.,]+)/gi,
-    /(\d{4,})/g,
-  ];
-
-  for (const pattern of patterns) {
-    const matches = [...text.matchAll(pattern)];
-    if (matches.length > 0) {
-      // Ambil nilai terbesar dari match pattern ini
-      const values = matches.map((m) => {
-        const raw = m[1].replace(/[.,]/g, '').replace(/\./g, '');
-        return parseInt(raw, 10);
-      }).filter((v) => !isNaN(v) && v >= 100 && v <= 100_000_000);
-
-      if (values.length > 0) {
-        return Math.max(...values);
-      }
-    }
-  }
-  return null;
-};
-
-/**
- * Extract tanggal dari teks struk
- * @param {string} text
- * @returns {string|null} format YYYY-MM-DD
- */
-export const extractDate = (text) => {
-  // Pattern: DD/MM/YYYY, DD-MM-YYYY, DD MM YYYY
-  const patterns = [
-    /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/,
-    /(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/,
-  ];
-
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) {
-      try {
-        let year, month, day;
-        if (match[3] && match[3].length === 4) {
-          // DD-MM-YYYY
-          day = parseInt(match[1]);
-          month = parseInt(match[2]);
-          year = parseInt(match[3]);
-        } else {
-          // YYYY-MM-DD
-          year = parseInt(match[1]);
-          month = parseInt(match[2]);
-          day = parseInt(match[3]);
-        }
-        if (year > 2000 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-          return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        }
-      } catch {
-        continue;
-      }
-    }
-  }
-  return todayLocal();
-};
-
-/**
- * Extract nama toko dari baris pertama struk
- * @param {string} text
- * @returns {string}
- */
-export const extractStoreName = (text) => {
-  const lines = text.split('\n').map((l) => l.trim()).filter((l) => l.length > 2);
-  // Biasanya nama toko ada di 3 baris pertama
-  if (lines.length > 0) {
-    return lines[0].replace(/[^a-zA-Z\s]/g, '').trim() || 'Toko';
-  }
-  return 'Toko';
-};
-
-/**
- * Main OCR function — scan gambar struk
- * @param {File|string} imageSource - File object atau URL
- * @param {Function} onProgress - callback progress (0-100)
- * @returns {Promise<{text, amount, date, category, storeName, confidence}>}
- */
-export const scanReceipt = async (imageSource, onProgress = () => {}) => {
-  try {
-    const result = await Tesseract.recognize(imageSource, 'ind+eng', {
+export async function getTesseractWorker() {
+  if (!workerInstance) {
+    workerInstance = await Tesseract.createWorker(['ind', 'eng'], Tesseract.OEM.LSTM_ONLY, {
       logger: (m) => {
-        if (m.status === 'recognizing text') {
-          onProgress(Math.round(m.progress * 100));
+        if (m.status === 'recognizing text' && typeof currentProgressCallback === 'function') {
+          currentProgressCallback(Math.round(m.progress * 100));
         }
       },
     });
+  }
+  return workerInstance;
+}
 
-    const text = result.data.text;
-    const confidence = result.data.confidence;
+/**
+ * Hentikan worker Tesseract jika diperlukan (misal saat unmount)
+ */
+export async function terminateTesseractWorker() {
+  if (workerInstance) {
+    try {
+      await workerInstance.terminate();
+    } catch (e) {
+      console.warn('Error terminating Tesseract worker:', e);
+    }
+    workerInstance = null;
+    currentProgressCallback = null;
+  }
+}
 
-    const amount = extractAmount(text);
-    const date = extractDate(text);
-    const storeName = extractStoreName(text);
-    const category = detectCategory(text + ' ' + storeName);
+/**
+ * Wrapper scanReceipt — memproses gambar struk dengan Tesseract.js
+ * @param {string|File|Blob|HTMLCanvasElement} imageSource - Gambar terproses atau Canvas
+ * @param {Function} onProgress - Callback persentase progress (0-100)
+ * @returns {Promise<object>} Hasil parse terstruktur
+ */
+export const scanReceipt = async (imageSource, onProgress = () => {}) => {
+  try {
+    currentProgressCallback = onProgress;
+    const worker = await getTesseractWorker();
+
+    const result = await worker.recognize(imageSource);
+    const rawText = result?.data?.text || '';
+    const parsed = parseReceiptText(rawText);
 
     return {
-      text,
-      amount,
-      date,
-      category,
-      storeName,
-      confidence: Math.round(confidence),
-      success: true,
+      text: rawText,
+      amount: parsed.amount,
+      date: parsed.date || todayLocal(),
+      category: parsed.category,
+      storeName: parsed.merchant,
+      confidence: parsed.confidence,
+      fieldConfidence: parsed.fieldConfidence,
+      success: parsed.amount > 0 || (rawText.trim().length > 10),
     };
   } catch (error) {
     console.error('OCR Error:', error);
+    // Reset worker jika terjadi error fatal
+    terminateTesseractWorker();
     return {
       text: '',
       amount: null,
@@ -160,10 +78,18 @@ export const scanReceipt = async (imageSource, onProgress = () => {}) => {
       category: 'Lainnya',
       storeName: '',
       confidence: 0,
+      fieldConfidence: { amount: 'low', date: 'low', merchant: 'low', category: 'low' },
       success: false,
       error: error.message,
     };
   }
+};
+
+/**
+ * Helper deteksi kategori (backward compatible)
+ */
+export const detectCategory = (text) => {
+  return detectCategoryFromText(text).category;
 };
 
 /**

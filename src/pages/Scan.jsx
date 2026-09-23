@@ -1,14 +1,19 @@
 /**
- * Scan.jsx — Scan struk dengan OCR Tesseract.js + input manual + input suara
+ * Scan.jsx — Scan struk dengan OCR Tesseract.js singleton + input manual + input suara
+ * Dilengkapi konversi HEIC otomatis, preprocessing gambar canvas (grayscale + kontras),
+ * validasi ukuran file, pemisahan input Kamera & Galeri, deteksi confidence field,
+ * dan penyimpanan gambar struk terkompresi ke Supabase Storage.
  */
 
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { scanReceipt, detectCategory, CATEGORY_ICONS } from '../utils/ocr';
 import { useExpenses } from '../hooks/useExpenses';
+import { useAuth } from '../context/AuthContext';
 import { formatRupiah } from '../utils/prediction';
 import { todayLocal } from '../utils/date';
 import { useToast } from '../context/ToastContext';
+import { preprocessImageForOcr, uploadReceiptToStorage } from '../utils/imageProcess';
 
 const CATEGORIES = ['Makanan', 'Minuman', 'Transport', 'Belanja', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Fashion', 'Lainnya'];
 
@@ -24,20 +29,27 @@ export default function Scan() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { add } = useExpenses();
+  const { user } = useAuth();
   const toast = useToast();
 
   const [mode, setMode] = useState(searchParams.get('mode') === 'manual' ? 'manual' : 'scan');
   const [scanning, setScanning] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
   const [ocrResult, setOcrResult] = useState(null);
+  const [ocrFailed, setOcrFailed] = useState(false);
+  const [fieldConfidence, setFieldConfidence] = useState({});
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [rawFile, setRawFile] = useState(null);
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [listening, setListening] = useState(false);
   const [voiceText, setVoiceText] = useState('');
 
-  const fileInputRef = useRef(null);
+  // Dua input terpisah untuk Kamera dan Galeri / Screenshot
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
   const recognitionRef = useRef(null);
 
   // Setup Web Speech API
@@ -83,6 +95,7 @@ export default function Scan() {
       amount: amount || f.amount,
       category: detectCategory(title),
     }));
+    setFieldConfidence({});
     setMode('manual');
   };
 
@@ -98,33 +111,105 @@ export default function Scan() {
     }
   };
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
+  const resetScan = () => {
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(null);
+    setRawFile(null);
+    setOcrResult(null);
+    setOcrFailed(false);
+    setFieldConfidence({});
+    setOcrProgress(0);
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+    if (galleryInputRef.current) galleryInputRef.current.value = '';
+  };
+
+  const handleFileSelected = async (file) => {
     if (!file) return;
 
-    // Preview
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    // 1. Validasi ukuran file (maksimal 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Ukuran file maksimal 10MB ya! Mohon pilih foto lain.');
+      return;
+    }
+
+    resetScan();
     setScanning(true);
-    setOcrProgress(0);
-    setOcrResult(null);
-    setSaved(false);
+    setOcrProgress(5);
+
+    let processedBlob = file;
+
+    // 2. Dukungan format HEIC/HEIF dari iPhone
+    const isHeic =
+      file.name.toLowerCase().endsWith('.heic') ||
+      file.name.toLowerCase().endsWith('.heif') ||
+      file.type === 'image/heic' ||
+      file.type === 'image/heif';
+
+    if (isHeic) {
+      try {
+        toast.info('Mengonversi foto iPhone (HEIC)...');
+        const heic2any = (await import('heic2any')).default;
+        const converted = await heic2any({
+          blob: file,
+          toType: 'image/jpeg',
+          quality: 0.85,
+        });
+        processedBlob = Array.isArray(converted) ? converted[0] : converted;
+      } catch (err) {
+        console.error('Gagal membaca format HEIC:', err);
+        setScanning(false);
+        toast.error('Gagal memproses format HEIC. Coba gunakan foto berformat JPG atau PNG.');
+        return;
+      }
+    }
+
+    // Buat URL pratinjau
+    const localUrl = URL.createObjectURL(processedBlob);
+    setPreviewUrl(localUrl);
+    setRawFile(processedBlob);
 
     try {
-      const result = await scanReceipt(file, (p) => setOcrProgress(p));
-      setOcrResult(result);
+      setOcrProgress(15);
+      // 3. Pre-process gambar di canvas (resize max 1600px, grayscale, kontras diperjelas)
+      const optimizedImage = await preprocessImageForOcr(processedBlob);
+      setOcrProgress(30);
 
-      // Pre-fill form
-      setForm({
-        title: result.storeName || 'Struk Belanja',
-        amount: result.amount?.toString() || '',
-        category: result.category || 'Lainnya',
-        date: result.date || getLocalDateString(),
-        note: `OCR confidence: ${result.confidence}%`,
+      // 4. OCR dengan Tesseract singleton
+      const result = await scanReceipt(optimizedImage, (p) => {
+        // Skala 30% ke 95%
+        const normalized = 30 + Math.round(p * 0.65);
+        setOcrProgress(Math.min(95, normalized));
       });
-      setMode('manual');
+
+      setOcrProgress(100);
+
+      // 5. Cek apakah hasil pembacaan masuk akal
+      const hasContent = result.success && (result.amount > 0 || (result.text && result.text.trim().length >= 10));
+
+      if (!hasContent) {
+        setOcrFailed(true);
+        setOcrResult(null);
+      } else {
+        setOcrFailed(false);
+        setOcrResult(result);
+        setFieldConfidence(result.fieldConfidence || {});
+
+        // Pre-fill form (Catatan dibiarkan kosong, BUKAN teks OCR confidence!)
+        setForm({
+          title: result.storeName && result.storeName !== 'Toko / Resto' && result.storeName !== 'Toko'
+            ? result.storeName
+            : 'Struk Belanja',
+          amount: result.amount ? result.amount.toString() : '',
+          category: result.category || 'Makanan',
+          date: result.date || todayLocal(),
+          note: '',
+        });
+      }
     } catch (err) {
-      console.error(err);
+      console.error('OCR scanning error:', err);
+      setOcrFailed(true);
     } finally {
       setScanning(false);
     }
@@ -154,24 +239,36 @@ export default function Scan() {
     }
 
     setErrors({});
+    setSaving(true);
 
     try {
-      setSaved(null);
+      // Unggah gambar struk ke Supabase Storage (jika ada file struk)
+      let storageImageUrl = null;
+      if (rawFile && user?.id) {
+        try {
+          storageImageUrl = await uploadReceiptToStorage(rawFile, user.id);
+        } catch (uploadErr) {
+          console.warn('Lewati upload gambar struk:', uploadErr);
+        }
+      }
+
       await add({
         title: form.title.trim(),
         amount: parsedAmount,
         category: form.category,
         date: form.date || todayStr,
-        note: form.note,
-        image: previewUrl || null,
+        note: form.note || null,
+        image: storageImageUrl || null,
       });
 
       setSaved(true);
       toast.success('Pengeluaran berhasil disimpan!');
-      setTimeout(() => navigate('/dashboard'), 1200);
+      setTimeout(() => navigate('/dashboard'), 1000);
     } catch (err) {
       console.error(err);
-      toast.error('Gagal menyimpan pengeluaran. Periksa koneksi database Anda.');
+      toast.error('Gagal menyimpan pengeluaran. Periksa koneksi internet Anda.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -180,6 +277,10 @@ export default function Scan() {
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
+    // Jika pengguna sudah mengedit, hilangkan peringatan 'Cek lagi ya' untuk field tersebut
+    if (fieldConfidence[field]) {
+      setFieldConfidence((prev) => ({ ...prev, [field]: 'high' }));
+    }
   };
 
   return (
@@ -187,7 +288,10 @@ export default function Scan() {
       {/* Header */}
       <div className="bg-gradient-to-br from-primary to-primary-dark px-4 pt-12 pb-6">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95"
+          >
             ←
           </button>
           <h1 className="text-xl font-bold text-white">Catat Pengeluaran</h1>
@@ -203,7 +307,10 @@ export default function Scan() {
             <button
               key={tab.id}
               id={`tab-${tab.id}`}
-              onClick={() => setMode(tab.id)}
+              onClick={() => {
+                setMode(tab.id);
+                setOcrFailed(false);
+              }}
               className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
                 mode === tab.id ? 'bg-white text-primary shadow-sm' : 'text-white/70 hover:text-white'
               }`}
@@ -215,74 +322,147 @@ export default function Scan() {
       </div>
 
       <div className="px-4 py-4 space-y-4">
-        {/* Scan Mode */}
+        {/* SCAN MODE */}
         {mode === 'scan' && (
           <div className="space-y-4">
+            {/* Hidden Inputs Terpisah: Kamera & Galeri */}
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => handleFileSelected(e.target.files?.[0])}
+            />
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+              className="hidden"
+              onChange={(e) => handleFileSelected(e.target.files?.[0])}
+            />
+
             {!previewUrl ? (
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="bg-white rounded-2xl border-2 border-dashed border-primary/30 p-10 flex flex-col items-center gap-4 cursor-pointer hover:border-primary/60 hover:bg-blue-50/50 transition-all duration-200 active:scale-95"
-              >
-                <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center text-4xl">
-                  📸
+              <div className="bg-white rounded-2xl border-2 border-dashed border-primary/30 p-8 flex flex-col items-center gap-4 text-center">
+                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-3xl">
+                  🧾
                 </div>
-                <div className="text-center">
-                  <p className="font-bold text-gray-700">Upload atau Foto Struk</p>
-                  <p className="text-gray-400 text-sm mt-1">JPG, PNG, HEIC — max 10MB</p>
+                <div>
+                  <h3 className="font-bold text-gray-800 text-base">Ambil Foto atau Upload Struk</h3>
+                  <p className="text-gray-400 text-xs mt-1">Mendukung format JPG, PNG, HEIC iPhone (maks. 10MB)</p>
                 </div>
-                <div className="flex gap-3">
-                  <span className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-semibold">Pilih File</span>
-                  <span className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl text-sm font-semibold">Kamera</span>
+
+                <div className="grid grid-cols-2 gap-3 w-full pt-2">
+                  <button
+                    type="button"
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-primary text-white font-semibold text-sm shadow-sm hover:bg-primary-dark active:scale-95 transition-all"
+                  >
+                    <span>📸</span> Kamera
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => galleryInputRef.current?.click()}
+                    className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-blue-50 text-primary border border-primary/20 font-semibold text-sm hover:bg-blue-100 active:scale-95 transition-all"
+                  >
+                    <span>🖼️</span> Galeri / Screenshot
+                  </button>
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-2xl overflow-hidden shadow-card">
-                <img src={previewUrl} alt="Preview struk" className="w-full max-h-64 object-contain bg-gray-50" />
+              <div className="bg-white rounded-2xl p-3 shadow-card border border-white/60 space-y-3">
+                <div className="relative rounded-xl overflow-hidden bg-gray-900/5 max-h-60 flex items-center justify-center">
+                  <img
+                    src={previewUrl}
+                    alt="Preview struk"
+                    className="w-full max-h-60 object-contain"
+                  />
+                  {!scanning && (
+                    <button
+                      onClick={resetScan}
+                      className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white text-xs px-2.5 py-1.5 rounded-lg backdrop-blur-sm transition-all"
+                    >
+                      Ganti Foto ✕
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-
-            {/* OCR Progress */}
+            {/* Loading / OCR Progress */}
             {scanning && (
-              <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60">
+              <div className="bg-white rounded-2xl p-4 shadow-card border border-primary/20">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin flex-shrink-0" />
-                  <p className="font-semibold text-gray-700">Memproses struk... {ocrProgress}%</p>
+                  <div className="w-7 h-7 border-3 border-primary border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-800 text-sm">
+                      {ocrProgress < 25 ? 'Menyiapkan gambar...' : ocrProgress < 40 ? 'Menganalisis teks...' : 'Mengekstrak total & rincian...'}
+                    </p>
+                    <p className="text-xs text-primary font-medium">{ocrProgress}% selesai</p>
+                  </div>
                 </div>
-                <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className="h-3 bg-gradient-to-r from-primary to-primary-light rounded-full transition-all duration-300"
+                    className="h-full bg-gradient-to-r from-primary to-primary-light rounded-full transition-all duration-300"
                     style={{ width: `${ocrProgress}%` }}
                   />
                 </div>
-                <p className="text-xs text-gray-400 mt-2 text-center">AI sedang membaca strukmu 🤖</p>
               </div>
             )}
 
-            {/* OCR Success Info */}
-            {ocrResult && !scanning && (
-              <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">✅</span>
+            {/* OCR GAGAL — Pesan Ramah & 2 Tombol Tindakan */}
+            {ocrFailed && !scanning && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-3 text-center animate-fade-in">
+                <span className="text-3xl block">🔍</span>
+                <div>
+                  <h4 className="font-bold text-gray-800 text-sm">Struk kurang jelas terbaca</h4>
+                  <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                    Struk kurang jelas, coba foto ulang dengan pencahayaan cukup atau isi manual ya.
+                  </p>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={resetScan}
+                    className="flex-1 py-2.5 px-3 bg-white border border-amber-300 text-amber-900 rounded-xl text-xs font-semibold hover:bg-amber-100/50 transition-all active:scale-95"
+                  >
+                    🔄 Scan Ulang
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOcrFailed(false);
+                      setMode('manual');
+                    }}
+                    className="flex-1 py-2.5 px-3 bg-amber-600 text-white rounded-xl text-xs font-semibold hover:bg-amber-700 transition-all active:scale-95"
+                  >
+                    ✏️ Isi Manual
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* OCR Berhasil Info */}
+            {ocrResult && !scanning && !ocrFailed && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">✅</span>
                   <div>
-                    <p className="font-bold text-success text-sm">Struk berhasil dibaca!</p>
-                    <p className="text-xs text-gray-500 mt-1">Confidence: {ocrResult.confidence}% — Periksa data di bawah</p>
+                    <p className="font-bold text-emerald-800 text-xs">Struk berhasil dibaca!</p>
+                    <p className="text-[11px] text-emerald-600">Periksa detail di bawah sebelum menyimpan.</p>
                   </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={resetScan}
+                  className="text-xs text-emerald-700 hover:text-emerald-900 font-semibold px-2 py-1 bg-emerald-100/60 rounded-lg"
+                >
+                  Scan Lain
+                </button>
               </div>
             )}
           </div>
         )}
 
-        {/* Voice Mode */}
+        {/* VOICE MODE */}
         {mode === 'voice' && (
           <div className="space-y-4">
             <div className="bg-white rounded-2xl p-8 shadow-card border border-white/60 text-center">
@@ -313,23 +493,37 @@ export default function Scan() {
           </div>
         )}
 
-        {/* Manual Form (always shown after OCR or in manual mode) */}
-        {(mode === 'manual' || (ocrResult && mode === 'scan')) && (
-          <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60 space-y-4">
-            <h2 className="font-bold text-gray-800 text-base">Detail Pengeluaran</h2>
+        {/* FORM DETAIL PENGELUARAN */}
+        {(mode === 'manual' || (ocrResult && mode === 'scan' && !ocrFailed)) && (
+          <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60 space-y-4 animate-fade-in">
+            <div className="flex items-center justify-between pb-1 border-b border-gray-100">
+              <h2 className="font-bold text-gray-800 text-sm">Rincian Pengeluaran</h2>
+              {mode === 'scan' && (
+                <span className="text-[11px] text-gray-400 font-medium">Hasil Pembacaan Struk</span>
+              )}
+            </div>
 
-            {/* Judul */}
+            {/* Keterangan / Merchant */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 block mb-1.5">Keterangan *</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-gray-600">Keterangan / Toko *</label>
+                {fieldConfidence.merchant === 'low' && (
+                  <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1">
+                    ⚠️ Cek lagi ya
+                  </span>
+                )}
+              </div>
               <input
                 id="input-title"
                 type="text"
                 value={form.title}
                 onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Nama toko / keterangan"
+                placeholder="Contoh: Warung Bu Sri, Indomaret"
                 className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none transition-all bg-gray-50 ${
                   errors.title
                     ? 'border-danger focus:ring-2 focus:ring-danger/30'
+                    : fieldConfidence.merchant === 'low'
+                    ? 'border-amber-300 focus:ring-2 focus:ring-amber-200'
                     : 'border-gray-200 focus:ring-2 focus:ring-primary/30 focus:border-primary'
                 }`}
               />
@@ -340,9 +534,16 @@ export default function Scan() {
               )}
             </div>
 
-            {/* Jumlah */}
+            {/* Nominal / Jumlah */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 block mb-1.5">Jumlah (Rp) *</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-gray-600">Total Pengeluaran (Rp) *</label>
+                {fieldConfidence.amount === 'low' && (
+                  <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1">
+                    ⚠️ Cek lagi ya
+                  </span>
+                )}
+              </div>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold text-sm">Rp</span>
                 <input
@@ -356,6 +557,8 @@ export default function Scan() {
                   className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none transition-all bg-gray-50 font-bold text-gray-800 ${
                     errors.amount
                       ? 'border-danger focus:ring-2 focus:ring-danger/30'
+                      : fieldConfidence.amount === 'low'
+                      ? 'border-amber-300 focus:ring-2 focus:ring-amber-200'
                       : 'border-gray-200 focus:ring-2 focus:ring-primary/30 focus:border-primary'
                   }`}
                 />
@@ -366,18 +569,26 @@ export default function Scan() {
                 </p>
               ) : form.amount ? (
                 <p className="text-xs text-primary font-semibold mt-1 ml-1">
-                  {formatRupiah(parseFloat(form.amount))}
+                  {formatRupiah(parseFloat(form.amount) || 0)}
                 </p>
               ) : null}
             </div>
 
             {/* Kategori */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 block mb-1.5">Kategori</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-gray-600">Kategori</label>
+                {fieldConfidence.category === 'low' && (
+                  <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1">
+                    ⚠️ Cek lagi ya
+                  </span>
+                )}
+              </div>
               <div className="grid grid-cols-3 gap-2">
                 {CATEGORIES.map((cat) => (
                   <button
                     key={cat}
+                    type="button"
                     id={`cat-${cat.toLowerCase()}`}
                     onClick={() => handleChange('category', cat)}
                     className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-all duration-150 active:scale-95 ${
@@ -394,7 +605,14 @@ export default function Scan() {
 
             {/* Tanggal */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 block mb-1.5">Tanggal</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-gray-600">Tanggal Transaksi</label>
+                {fieldConfidence.date === 'low' && (
+                  <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1">
+                    ⚠️ Cek lagi ya
+                  </span>
+                )}
+              </div>
               <input
                 id="input-date"
                 type="date"
@@ -404,6 +622,8 @@ export default function Scan() {
                 className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none transition-all bg-gray-50 ${
                   errors.date
                     ? 'border-danger focus:ring-2 focus:ring-danger/30'
+                    : fieldConfidence.date === 'low'
+                    ? 'border-amber-300 focus:ring-2 focus:ring-amber-200'
                     : 'border-gray-200 focus:ring-2 focus:ring-primary/30 focus:border-primary'
                 }`}
               />
@@ -414,50 +634,62 @@ export default function Scan() {
               )}
             </div>
 
-            {/* Catatan */}
+            {/* Catatan (Hanya catatan asli pengguna, TIDAK dicemari teks OCR confidence) */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 block mb-1.5">Catatan (opsional)</label>
+              <label className="text-xs font-semibold text-gray-600 block mb-1.5">Catatan Tambahan (opsional)</label>
               <textarea
                 id="input-note"
                 value={form.note}
                 onChange={(e) => handleChange('note', e.target.value)}
-                placeholder="Tambah catatan..."
+                placeholder="Catatan kecil pengeluaran ini..."
                 rows={2}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all bg-gray-50 resize-none"
               />
             </div>
 
-            {/* Save Button */}
+            {/* Tombol Simpan */}
             {saved ? (
               <div className="bg-success rounded-2xl p-4 text-white text-center font-bold animate-bounce-in">
-                ✅ Tersimpan! Kembali ke dashboard...
+                ✅ Pengeluaran tersimpan! Mengalihkan...
               </div>
             ) : (
               <button
                 id="btn-simpan"
+                type="button"
                 onClick={handleSave}
-                disabled={!form.title || !form.amount}
-                className={`w-full py-4 rounded-2xl text-base font-bold transition-all duration-200 active:scale-95 ${
-                  form.title && form.amount
+                disabled={saving || !form.title || !form.amount}
+                className={`w-full py-4 rounded-2xl text-base font-bold transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 ${
+                  form.title && form.amount && !saving
                     ? 'bg-primary text-white shadow-md hover:bg-primary-dark'
-                    : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
-                💾 Simpan Pengeluaran
+                {saving ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Menyimpan...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>💾</span>
+                    <span>Simpan Pengeluaran</span>
+                  </>
+                )}
               </button>
             )}
           </div>
         )}
 
-        {/* Jika scan mode dan belum ada gambar, tampilkan tips */}
+        {/* Tips Scan Mahasiswa */}
         {mode === 'scan' && !previewUrl && !scanning && (
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-            <p className="text-xs font-semibold text-primary mb-2">💡 Tips Scan Terbaik</p>
-            <ul className="text-xs text-gray-500 space-y-1">
-              <li>• Pastikan struk terlihat jelas dan tidak buram</li>
-              <li>• Ambil di tempat dengan cahaya cukup</li>
-              <li>• Seluruh struk terlihat dalam foto</li>
-              <li>• Hindari pantulan cahaya di struk</li>
+          <div className="bg-blue-50/80 border border-blue-100 rounded-2xl p-4">
+            <p className="text-xs font-semibold text-primary mb-2 flex items-center gap-1.5">
+              <span>💡</span> Tips Scan Struk Jernih
+            </p>
+            <ul className="text-xs text-gray-600 space-y-1.5">
+              <li>• Letakkan struk di permukaan datar dengan pencahayaan terang.</li>
+              <li>• Pastikan bagian TOTAL atau rincian harga tidak terpotong.</li>
+              <li>• Untuk struk e-wallet (GoPay, OVO, ShopeePay), gunakan screenshot penuh.</li>
             </ul>
           </div>
         )}

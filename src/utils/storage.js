@@ -47,11 +47,28 @@ export const addExpense = async (expense) => {
     note: expense.note || null,
   };
 
-  const { data, error } = await supabase
+  if (expense.image) {
+    newExpense.image = expense.image;
+  }
+
+  let { data, error } = await supabase
     .from('expenses')
     .insert([newExpense])
     .select()
     .maybeSingle();
+
+  // Jika kolom 'image' belum ada di schema database Supabase pengguna, coba insert tanpa image
+  if (error && error.message && error.message.toLowerCase().includes('image')) {
+    console.warn("Kolom 'image' belum tersedia di tabel expenses, menyimpan tanpa kolom image.");
+    delete newExpense.image;
+    const retry = await supabase
+      .from('expenses')
+      .insert([newExpense])
+      .select()
+      .maybeSingle();
+    data = retry.data;
+    error = retry.error;
+  }
 
   if (error) {
     console.error('Error adding expense:', error);
