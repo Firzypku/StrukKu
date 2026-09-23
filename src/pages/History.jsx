@@ -8,9 +8,12 @@ import { useExpenses, MONTH_NAMES } from '../hooks/useExpenses';
 import { formatRupiah, formatDate } from '../utils/prediction';
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '../utils/ocr';
 import MonthSelector from '../components/MonthSelector';
+import { todayLocal } from '../utils/date';
+import { useToast } from '../context/ToastContext';
 
 export default function History() {
   const navigate = useNavigate();
+  const toast = useToast();
   const {
     expenses,
     thisMonth,
@@ -97,7 +100,7 @@ export default function History() {
       const dataToExport = exportScope === 'month' ? thisMonth : expenses;
 
       if (!dataToExport || dataToExport.length === 0) {
-        alert('Tidak ada data pengeluaran untuk diekspor.');
+        toast.warning('Tidak ada data pengeluaran untuk diekspor.');
         return;
       }
 
@@ -127,12 +130,13 @@ export default function History() {
       const fileName =
         exportScope === 'month'
           ? `Riwayat_StrukKu_${selectedMonthName}_${selectedYear}.xlsx`
-          : `Riwayat_StrukKu_Semua_${new Date().toISOString().split('T')[0]}.xlsx`;
+          : `Riwayat_StrukKu_Semua_${todayLocal()}.xlsx`;
 
       XLSX.writeFile(wb, fileName);
       setShowExportModal(false);
+      toast.success('File Excel berhasil diunduh!');
     } catch (err) {
-      alert('Gagal export: ' + err.message);
+      toast.error('Gagal export Excel: ' + err.message);
     }
   };
 

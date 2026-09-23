@@ -7,7 +7,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { scanReceipt, detectCategory, CATEGORY_ICONS } from '../utils/ocr';
 import { useExpenses } from '../hooks/useExpenses';
 import { formatRupiah } from '../utils/prediction';
-import { getLocalDateString } from '../utils/dateHelper';
+import { todayLocal } from '../utils/date';
+import { useToast } from '../context/ToastContext';
 
 const CATEGORIES = ['Makanan', 'Minuman', 'Transport', 'Belanja', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Fashion', 'Lainnya'];
 
@@ -15,7 +16,7 @@ const INITIAL_FORM = {
   title: '',
   amount: '',
   category: 'Makanan',
-  date: getLocalDateString(),
+  date: todayLocal(),
   note: '',
 };
 
@@ -23,6 +24,7 @@ export default function Scan() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { add } = useExpenses();
+  const toast = useToast();
 
   const [mode, setMode] = useState(searchParams.get('mode') === 'manual' ? 'manual' : 'scan');
   const [scanning, setScanning] = useState(false);
@@ -30,6 +32,7 @@ export default function Scan() {
   const [ocrResult, setOcrResult] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [form, setForm] = useState(INITIAL_FORM);
+  const [errors, setErrors] = useState({});
   const [saved, setSaved] = useState(false);
   const [listening, setListening] = useState(false);
   const [voiceText, setVoiceText] = useState('');
@@ -54,7 +57,7 @@ export default function Scan() {
       };
       recognitionRef.current.onerror = (e) => {
         setListening(false);
-        alert(`Mic Error: ${e.error}. Pastikan izin (permission) mikrofon aktif di browser Anda.`);
+        toast.error(`Mic Error: ${e.error}. Pastikan izin mikrofon aktif.`);
       };
       recognitionRef.current.onend = () => setListening(false);
     }
@@ -85,7 +88,7 @@ export default function Scan() {
 
   const startVoice = () => {
     if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-      alert('Maaf, browser Anda (misalnya Safari/iPhone jadul) tidak mendukung API Perekam Suara ini. Harap gunakan Chrome atau Android.');
+      toast.error('Browser ini belum mendukung Speech Recognition. Harap gunakan Chrome atau Android.');
       return;
     }
     if (recognitionRef.current) {
@@ -128,15 +131,29 @@ export default function Scan() {
   };
 
   const handleSave = async () => {
+    const newErrors = {};
     const parsedAmount = parseFloat(form.amount);
+
     if (!form.title.trim()) {
-      alert('Mohon masukkan keterangan pengeluaran.');
-      return;
+      newErrors.title = 'Keterangan pengeluaran wajib diisi.';
     }
+
     if (!form.amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      alert('Jumlah pengeluaran harus berupa angka lebih besar dari 0.');
+      newErrors.amount = 'Nominal harus berupa angka lebih besar dari 0.';
+    }
+
+    const todayStr = todayLocal();
+    if (form.date && form.date > todayStr) {
+      newErrors.date = 'Tanggal transaksi tidak boleh melebihi hari ini.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Mohon periksa kembali kolom yang bertanda merah.');
       return;
     }
+
+    setErrors({});
 
     try {
       setSaved(null);
@@ -144,21 +161,25 @@ export default function Scan() {
         title: form.title.trim(),
         amount: parsedAmount,
         category: form.category,
-        date: form.date || getLocalDateString(),
+        date: form.date || todayStr,
         note: form.note,
         image: previewUrl || null,
       });
 
       setSaved(true);
-      setTimeout(() => navigate('/dashboard'), 1500);
+      toast.success('Pengeluaran berhasil disimpan!');
+      setTimeout(() => navigate('/dashboard'), 1200);
     } catch (err) {
       console.error(err);
-      alert('Gagal menyimpan pengeluaran. Pastikan koneksi dan database Anda aktif.');
+      toast.error('Gagal menyimpan pengeluaran. Periksa koneksi database Anda.');
     }
   };
 
   const handleChange = (field, value) => {
     setForm((f) => ({ ...f, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
   };
 
   return (
@@ -306,8 +327,17 @@ export default function Scan() {
                 value={form.title}
                 onChange={(e) => handleChange('title', e.target.value)}
                 placeholder="Nama toko / keterangan"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all bg-gray-50"
+                className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none transition-all bg-gray-50 ${
+                  errors.title
+                    ? 'border-danger focus:ring-2 focus:ring-danger/30'
+                    : 'border-gray-200 focus:ring-2 focus:ring-primary/30 focus:border-primary'
+                }`}
               />
+              {errors.title && (
+                <p className="text-xs text-danger font-medium mt-1.5 flex items-center gap-1">
+                  ⚠️ {errors.title}
+                </p>
+              )}
             </div>
 
             {/* Jumlah */}
@@ -318,17 +348,27 @@ export default function Scan() {
                 <input
                   id="input-amount"
                   type="number"
+                  min="1"
+                  inputMode="numeric"
                   value={form.amount}
                   onChange={(e) => handleChange('amount', e.target.value)}
                   placeholder="0"
-                  className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all bg-gray-50 font-bold text-gray-800"
+                  className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none transition-all bg-gray-50 font-bold text-gray-800 ${
+                    errors.amount
+                      ? 'border-danger focus:ring-2 focus:ring-danger/30'
+                      : 'border-gray-200 focus:ring-2 focus:ring-primary/30 focus:border-primary'
+                  }`}
                 />
               </div>
-              {form.amount && (
+              {errors.amount ? (
+                <p className="text-xs text-danger font-medium mt-1.5 flex items-center gap-1">
+                  ⚠️ {errors.amount}
+                </p>
+              ) : form.amount ? (
                 <p className="text-xs text-primary font-semibold mt-1 ml-1">
                   {formatRupiah(parseFloat(form.amount))}
                 </p>
-              )}
+              ) : null}
             </div>
 
             {/* Kategori */}
@@ -358,10 +398,20 @@ export default function Scan() {
               <input
                 id="input-date"
                 type="date"
+                max={todayLocal()}
                 value={form.date}
                 onChange={(e) => handleChange('date', e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all bg-gray-50"
+                className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none transition-all bg-gray-50 ${
+                  errors.date
+                    ? 'border-danger focus:ring-2 focus:ring-danger/30'
+                    : 'border-gray-200 focus:ring-2 focus:ring-primary/30 focus:border-primary'
+                }`}
               />
+              {errors.date && (
+                <p className="text-xs text-danger font-medium mt-1.5 flex items-center gap-1">
+                  ⚠️ {errors.date}
+                </p>
+              )}
             </div>
 
             {/* Catatan */}

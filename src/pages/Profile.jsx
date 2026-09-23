@@ -5,11 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { formatRupiah } from '../utils/prediction';
 import { supabase } from '../utils/supabase';
+import { useToast } from '../context/ToastContext';
 
 export default function Profile() {
   const { user, logout } = useAuth();
   const { selectedMonthName, selectedYear, stats, resetSelectedMonth } = useExpenses();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [showResetModal, setShowResetModal] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -40,9 +42,9 @@ export default function Profile() {
       if (error) throw error;
       setCurrentDisplayName(trimmed);
       setIsEditingName(false);
-      alert('Nama akun berhasil diperbarui!');
+      toast.success('Nama akun berhasil diperbarui!');
     } catch (err) {
-      alert('Gagal memperbarui nama: ' + err.message);
+      toast.error('Gagal memperbarui nama: ' + err.message);
     } finally {
       setIsSavingName(false);
     }
@@ -53,9 +55,9 @@ export default function Profile() {
     try {
       await resetSelectedMonth();
       setShowResetModal(false);
-      alert(`Pengeluaran bulan ${selectedMonthName} ${selectedYear} berhasil direset!`);
+      toast.success(`Pengeluaran bulan ${selectedMonthName} ${selectedYear} berhasil direset!`);
     } catch (e) {
-      alert('Gagal mereset: ' + e.message);
+      toast.error('Gagal mereset: ' + e.message);
     } finally {
       setIsResetting(false);
     }

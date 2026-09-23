@@ -151,25 +151,13 @@ export const setBudget = async (amount) => {
   const userId = await getCurrentUserId();
   if (!userId) throw new Error("Not authenticated");
 
-  // Upsert style: cek apakah row budget sudah ada
-  const { data: existing } = await supabase
+  const { error } = await supabase
     .from('budgets')
-    .select('id')
-    .eq('user_id', userId)
-    .maybeSingle();
-
-  if (existing) {
-    const { error } = await supabase
-      .from('budgets')
-      .update({ monthly_limit: amount })
-      .eq('user_id', userId);
-    if (error) throw error;
-  } else {
-    const { error } = await supabase
-      .from('budgets')
-      .insert([{ user_id: userId, monthly_limit: amount }]);
-    if (error) throw error;
-  }
+    .upsert(
+      { user_id: userId, monthly_limit: amount },
+      { onConflict: 'user_id' }
+    );
+  if (error) throw error;
 };
 
 // ── Challenges ────────────────────────────────────────────────────────────────
@@ -214,23 +202,13 @@ export const updateChallenge = async (id, updates) => {
   const userId = await getCurrentUserId();
   if (!userId) return;
 
-  const { data: existing } = await supabase
+  const { error } = await supabase
     .from('challenges_progress')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('challenge_id', id)
-    .maybeSingle();
-
-  if (existing) {
-    await supabase
-      .from('challenges_progress')
-      .update({ progress: updates.progress })
-      .eq('id', existing.id);
-  } else {
-    await supabase
-      .from('challenges_progress')
-      .insert([{ user_id: userId, challenge_id: id, progress: updates.progress }]);
-  }
+    .upsert(
+      { user_id: userId, challenge_id: id, progress: updates.progress },
+      { onConflict: 'user_id,challenge_id' }
+    );
+  if (error) console.error("Error updating challenge progress:", error);
 };
 
 // ── Stats helpers (Synchronous) ──────────────────────────────────────────────

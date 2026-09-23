@@ -4,6 +4,7 @@
  */
 
 import Tesseract from 'tesseract.js';
+import { todayLocal } from './date';
 
 /**
  * Kategori sederhana berdasarkan keyword
@@ -100,7 +101,7 @@ export const extractDate = (text) => {
       }
     }
   }
-  return new Date().toISOString().split('T')[0];
+  return todayLocal();
 };
 
 /**
@@ -155,7 +156,7 @@ export const scanReceipt = async (imageSource, onProgress = () => {}) => {
     return {
       text: '',
       amount: null,
-      date: new Date().toISOString().split('T')[0],
+      date: todayLocal(),
       category: 'Lainnya',
       storeName: '',
       confidence: 0,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatRupiah } from '../utils/prediction';
+import { useToast } from '../context/ToastContext';
 
 /**
  * MonthSelector.jsx — Komponen pemilih bulan, navigasi riwayat bulan lampau, dan fitur reset bulan.
@@ -19,6 +20,7 @@ export default function MonthSelector({
   transactionCount = 0,
   showResetButton = true,
 }) {
+  const toast = useToast();
   const [showPickerModal, setShowPickerModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -29,9 +31,10 @@ export default function MonthSelector({
     try {
       await onResetMonth();
       setShowResetModal(false);
+      toast.success('Bulan berhasil direset.');
     } catch (err) {
       console.error(err);
-      alert('Gagal mereset bulan: ' + (err.message || 'Terjadi kesalahan'));
+      toast.error('Gagal mereset bulan: ' + (err.message || 'Terjadi kesalahan'));
     } finally {
       setIsResetting(false);
     }

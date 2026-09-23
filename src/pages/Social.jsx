@@ -5,10 +5,12 @@
 import { useState, useMemo } from 'react';
 import { useExpenses } from '../hooks/useExpenses';
 import { formatRupiah } from '../utils/prediction';
-import { getLocalDateString } from '../utils/dateHelper';
+import { todayLocal } from '../utils/date';
+import { useToast } from '../context/ToastContext';
 
 export default function Social() {
   const { add } = useExpenses();
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState('itemized'); // 'itemized' | 'quick' | 'campus'
 
   // ── State Split Bill Itemized ("Satu Scan, Semua Tercatat") ────────────────
@@ -41,6 +43,7 @@ export default function Social() {
   const [quickTotal, setQuickTotal] = useState('');
   const [quickPeople, setQuickPeople] = useState('3');
   const [quickResult, setQuickResult] = useState(null);
+  const [quickError, setQuickError] = useState('');
 
   // ── Perhitungan Itemized Split Bill ─────────────────────────────────────────
   const itemizedSummary = useMemo(() => {
@@ -151,24 +154,28 @@ export default function Social() {
   // Simpan bagian sendiri ke database StrukKu
   const handleSaveMyPortionToExpenses = async () => {
     const myAmount = itemizedSummary.myPortion;
-    if (myAmount <= 0) return;
+    if (myAmount <= 0) {
+      toast.warning('Belum ada bagian pengeluaran untuk disimpan.');
+      return;
+    }
 
     try {
       await add({
         title: `Patungan di ${placeName || 'Resto'}`,
         amount: myAmount,
         category: 'Makanan',
-        date: getLocalDateString(),
+        date: todayLocal(),
         note: `Split bill bersama ${friends.filter((f) => f !== 'Kamu').join(', ')}`,
       });
       setSavedPortion(true);
+      toast.success('Bagianmu berhasil dicatat ke pengeluaran!');
       setTimeout(() => setSavedPortion(false), 3000);
     } catch (e) {
-      alert('Gagal menyimpan bagian ke pengeluaran: ' + e.message);
+      toast.error('Gagal menyimpan bagian ke pengeluaran: ' + e.message);
     }
   };
 
-  // Share Rincian ke WhatsApp
+  // Share Rincian Itemized ke WhatsApp
   const handleShareToWhatsApp = () => {
     let text = `🧾 *TAGIHAN SPLIT BILL — ${placeName.toUpperCase()}*\n`;
     text += `Total Seluruh Tagihan: ${formatRupiah(itemizedSummary.finalTotal)}\n`;
@@ -195,13 +202,15 @@ export default function Social() {
     const total = parseFloat(quickTotal);
     const people = parseInt(quickPeople, 10);
     if (!quickTotal || isNaN(total) || total <= 0) {
-      alert('Total tagihan harus berupa angka positif lebih dari 0.');
+      setQuickError('Total tagihan harus berupa angka positif lebih dari 0.');
       return;
     }
     if (isNaN(people) || people <= 0) {
-      alert('Jumlah orang minimal 1.');
+      setQuickError('Jumlah orang minimal 1.');
       return;
     }
+
+    setQuickError('');
 
     const baseAmount = Math.floor(total / people);
     const remainder = Math.round(total % people);
@@ -219,6 +228,30 @@ export default function Social() {
       isEven: remainder === 0,
       perPerson: Math.ceil(total / people),
     });
+  };
+
+  // Share Quick Split ke WhatsApp dengan detail presisi
+  const handleShareQuickToWhatsApp = () => {
+    if (!quickResult) return;
+    let text = `🧾 *TAGIHAN SPLIT BILL (BAGI RATA)*\n`;
+    text += `Total Tagihan: *${formatRupiah(quickResult.total)}* (${quickResult.people} orang)\n`;
+    text += `--------------------------------\n\n`;
+    text += `*Rincian Pembagian Pas (100% Tepat):*\n`;
+    if (quickResult.isEven) {
+      text += `👉 ${quickResult.people} orang masing-masing: *${formatRupiah(quickResult.baseAmount)}*\n`;
+    } else {
+      text += `👉 ${quickResult.baseCount} orang masing-masing: *${formatRupiah(quickResult.baseAmount)}*\n`;
+      text += `👉 ${quickResult.higherCount} orang masing-masing: *${formatRupiah(quickResult.higherAmount)}*\n`;
+      text += `_(Bebas selisih desimal, total pas 100% tanpa nombok)_\n`;
+    }
+    text += `\n--------------------------------\n`;
+    if (paymentInfo.accountNumber) {
+      text += `💳 *Pembayaran via:*\n${paymentInfo.method}\nNo/Rek: *${paymentInfo.accountNumber}*\n\n`;
+    }
+    text += `_Dihitung otomatis tanpa pusing pakai StrukKu_ 🧾✨`;
+
+    const encoded = encodeURIComponent(text);
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
   };
 
   return (
@@ -514,20 +547,32 @@ export default function Social() {
             <h2 className="font-bold text-gray-800 text-sm">Bagi Rata Cepat (Quick Split)</h2>
 
             <div>
-              <label className="text-xs font-semibold text-gray-500 block mb-1.5">Total Tagihan (Rp)</label>
+              <label className="text-xs font-semibold text-gray-500 block mb-1.5">Total Tagihan (Rp) *</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">Rp</span>
                 <input
                   type="number"
+                  min="1"
+                  inputMode="numeric"
                   value={quickTotal}
                   onChange={(e) => {
                     setQuickTotal(e.target.value);
                     setQuickResult(null);
+                    if (quickError) setQuickError('');
                   }}
                   placeholder="0"
-                  className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-lg font-bold text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className={`w-full border rounded-xl pl-10 pr-4 py-3 text-lg font-bold text-gray-800 bg-gray-50 focus:outline-none transition-all ${
+                    quickError
+                      ? 'border-danger focus:ring-2 focus:ring-danger/20'
+                      : 'border-gray-200 focus:ring-2 focus:ring-primary/20'
+                  }`}
                 />
               </div>
+              {quickError && (
+                <p className="text-xs text-danger font-medium mt-1.5 flex items-center gap-1">
+                  ⚠️ {quickError}
+                </p>
+              )}
             </div>
 
             <div>
@@ -565,7 +610,7 @@ export default function Social() {
             </button>
 
             {quickResult && (
-              <div className="bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-2xl p-5 shadow-lg animate-bounce-in text-center">
+              <div className="bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-2xl p-5 shadow-lg animate-bounce-in text-center space-y-3">
                 <p className="text-xs text-white/70">Pembagian Tagihan:</p>
                 {quickResult.isEven ? (
                   <>
@@ -576,23 +621,31 @@ export default function Social() {
                   </>
                 ) : (
                   <div className="my-2 space-y-1.5 bg-white/10 p-3 rounded-xl border border-white/20 text-left text-xs">
-                    <p className="font-extrabold text-center text-sm text-yellow-300">
+                    <p className="font-extrabold text-center text-sm text-yellow-300 mb-1">
                       Pembagian Pas ({formatRupiah(quickResult.total)}):
                     </p>
                     <div className="flex justify-between font-bold">
-                      <span>• {quickResult.baseCount} orang membayar:</span>
+                      <span>• {quickResult.baseCount} orang bayar:</span>
                       <span className="text-white">{formatRupiah(quickResult.baseAmount)}</span>
                     </div>
                     <div className="flex justify-between font-bold">
-                      <span>• {quickResult.higherCount} orang membayar:</span>
+                      <span>• {quickResult.higherCount} orang bayar:</span>
                       <span className="text-yellow-200">{formatRupiah(quickResult.higherAmount)}</span>
                     </div>
                     <p className="text-[10px] text-white/70 text-center pt-1 border-t border-white/15">
-                      💡 Bebas selisih! Total pas 100% tanpa ada yang menalangi kelebihan receh.
+                      💡 Bebas selisih! {quickResult.baseCount} orang {formatRupiah(quickResult.baseAmount)}, {quickResult.higherCount} orang {formatRupiah(quickResult.higherAmount)}. Total tepat {formatRupiah(quickResult.total)}.
                     </p>
                   </div>
                 )}
-                <p className="text-[10px] text-white/60 mt-2">
+
+                <button
+                  onClick={handleShareQuickToWhatsApp}
+                  className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition-all"
+                >
+                  <span>📱</span> Bagikan Rincian ke WhatsApp
+                </button>
+
+                <p className="text-[10px] text-white/60">
                   Total Tagihan: {formatRupiah(quickResult.total)}
                 </p>
               </div>

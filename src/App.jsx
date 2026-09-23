@@ -5,6 +5,8 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import ToastContainer from './components/Toast';
 import Navbar from './components/Navbar';
 
 // Lazy load semua halaman untuk memangkas ukuran bundle awal
@@ -54,10 +56,12 @@ const RootRoute = () => {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        {/* Max width mobile-first wrapper */}
-        <div className="max-w-md mx-auto min-h-screen relative bg-surface">
-          <Suspense fallback={<PageLoader />}>
+      <ToastProvider>
+        <BrowserRouter>
+          {/* Max width mobile-first wrapper */}
+          <div className="max-w-md mx-auto min-h-screen relative bg-surface">
+            <ToastContainer />
+            <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<RootRoute />} />
@@ -80,6 +84,7 @@ export default function App() {
           <Navbar />
         </div>
       </BrowserRouter>
+      </ToastProvider>
     </AuthProvider>
   );
 }
