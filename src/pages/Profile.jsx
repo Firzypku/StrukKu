@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useExpenses } from '../hooks/useExpenses';
 import { useNavigate } from 'react-router-dom';
 import { formatRupiah } from '../utils/prediction';
 import { supabase } from '../utils/supabase';
 import { useToast } from '../context/ToastContext';
+import { uploadAvatarToStorage } from '../utils/imageProcess';
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -23,6 +24,67 @@ export default function Profile() {
   const [currentDisplayName, setCurrentDisplayName] = useState(
     initialName || user?.email?.split('@')[0] || 'Mahasiswa'
   );
+
+  // Avatar Photo State
+  const fileInputRef = useRef(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(
+    user?.user_metadata?.avatar_url || (user?.id ? localStorage.getItem(`user_avatar_${user.id}`) : null)
+  );
+
+  const handleAvatarFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Harap pilih file gambar (JPG/PNG/WEBP).');
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    try {
+      const uploadedUrl = await uploadAvatarToStorage(file, user?.id);
+      if (!uploadedUrl) {
+        throw new Error('Gagal memproses foto profil.');
+      }
+
+      setAvatarUrl(uploadedUrl);
+      if (user?.id) {
+        localStorage.setItem(`user_avatar_${user.id}`, uploadedUrl);
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        data: { avatar_url: uploadedUrl },
+      });
+      if (error) throw error;
+
+      toast.success('Foto profil berhasil dipasang! 📸');
+    } catch (err) {
+      toast.error('Gagal memperbarui foto: ' + err.message);
+    } finally {
+      setIsUploadingPhoto(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    if (!avatarUrl) return;
+    setIsUploadingPhoto(true);
+    try {
+      setAvatarUrl(null);
+      if (user?.id) {
+        localStorage.removeItem(`user_avatar_${user.id}`);
+      }
+      await supabase.auth.updateUser({
+        data: { avatar_url: null },
+      });
+      toast.success('Foto profil dihapus.');
+    } catch (err) {
+      toast.error('Gagal menghapus foto: ' + err.message);
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -66,13 +128,43 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-surface pb-24">
+      {/* Hidden File Input for Avatar */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleAvatarFileSelect}
+        className="hidden"
+      />
+
       {/* Header Profil */}
       <div className="bg-gradient-to-br from-primary to-primary-dark pt-12 pb-8 rounded-b-[2rem] px-6 text-white shadow-lg">
         <h1 className="text-xl font-bold mb-4">Profil Akun</h1>
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl font-black border-2 border-white/40 shadow-inner flex-shrink-0">
-            {avatarInitial}
+          {/* Avatar with Camera Overlay */}
+          <div className="relative group flex-shrink-0">
+            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/60 shadow-md bg-white/20 flex items-center justify-center">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={currentDisplayName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-3xl font-black text-white">{avatarInitial}</span>
+              )}
+            </div>
+
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingPhoto}
+              className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white rounded-full flex items-center justify-center text-xs shadow-md border border-white"
+              title="Ganti Foto Profil"
+            >
+              {isUploadingPhoto ? '⏳' : '📷'}
+            </button>
           </div>
+
           <div className="min-w-0 flex-1">
             {isEditingName ? (
               <form onSubmit={handleSaveName} className="flex items-center gap-1.5 mt-1">
@@ -115,9 +207,19 @@ export default function Profile() {
               </div>
             )}
             <p className="text-white/75 text-xs truncate mt-0.5">{user?.email || 'mahasiswa@kampus.id'}</p>
-            <span className="inline-block text-[10px] bg-white/15 px-2 py-0.5 rounded-full mt-1.5 font-bold">
-              🎓 Mahasiswa StrukKu
-            </span>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="inline-block text-[10px] bg-white/15 px-2 py-0.5 rounded-full font-bold">
+                🎓 Mahasiswa StrukKu
+              </span>
+              {avatarUrl && (
+                <button
+                  onClick={handleRemovePhoto}
+                  className="text-[10px] text-white/60 hover:text-white underline decoration-white/30"
+                >
+                  Hapus Foto
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -143,6 +245,19 @@ export default function Profile() {
         {/* Menu Utama Akun */}
         <div className="bg-white rounded-2xl p-4 shadow-card border border-gray-100 space-y-2">
           <h2 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3">Pengaturan & Fitur</h2>
+
+          {/* 0. Ubah Foto Profil */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploadingPhoto}
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+          >
+            <span className="flex items-center gap-2.5">
+              <span>📷</span>
+              {isUploadingPhoto ? 'Mengunggah Foto...' : 'Ganti Foto Profil'}
+            </span>
+            <span className="text-gray-400 font-normal">Pilih Foto →</span>
+          </button>
 
           {/* 1. Ubah Nama */}
           <button

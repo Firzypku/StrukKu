@@ -81,6 +81,9 @@ export default function Dashboard() {
   const greeting =
     greetingHour < 11 ? 'Selamat Pagi' : greetingHour < 15 ? 'Selamat Siang' : greetingHour < 18 ? 'Selamat Sore' : 'Selamat Malam';
 
+  const userAvatarUrl =
+    user?.user_metadata?.avatar_url || (user?.id ? localStorage.getItem(`user_avatar_${user.id}`) : null);
+
   return (
     <div className="min-h-screen bg-surface pb-28">
       {/* Header */}
@@ -89,11 +92,26 @@ export default function Dashboard() {
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -translate-x-1/3 translate-y-1/3" />
 
         <div className="relative z-10 flex items-center justify-between mb-4">
-          <div>
-            <p className="text-white/60 text-sm">{greeting},</p>
-            <h1 className="text-xl font-bold text-white truncate max-w-[250px]">
-              {user?.user_metadata?.full_name || 'Mahasiswa'} 🎓
-            </h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/profile')}
+              className="w-11 h-11 rounded-full overflow-hidden border-2 border-white/50 bg-white/20 flex items-center justify-center flex-shrink-0 shadow-md hover:scale-105 active:scale-95 transition-transform"
+              title="Buka Profil"
+            >
+              {userAvatarUrl ? (
+                <img src={userAvatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-lg font-bold text-white">
+                  {(user?.user_metadata?.full_name || 'M').charAt(0).toUpperCase()}
+                </span>
+              )}
+            </button>
+            <div>
+              <p className="text-white/60 text-xs font-medium">{greeting},</p>
+              <h1 className="text-lg font-bold text-white truncate max-w-[170px] sm:max-w-[220px]">
+                {user?.user_metadata?.full_name || 'Mahasiswa'} 🎓
+              </h1>
+            </div>
           </div>
 
           {/* Quick Month Navigator Badge */}

@@ -171,3 +171,54 @@ export async function uploadReceiptToStorage(fileOrBlob, userId) {
     return null;
   }
 }
+
+/**
+ * Unggah atau proses foto profil avatar pengguna
+ * Mengompresi hingga maks 360x360 JPEG, mengunggah ke bucket 'receipts'
+ * atau fallback ke dataURL jika storage bucket belum disetting public policy
+ * @param {File|Blob|string} fileOrBlob
+ * @param {string} userId
+ * @returns {Promise<string|null>}
+ */
+export async function uploadAvatarToStorage(fileOrBlob, userId) {
+  if (!fileOrBlob || !userId) return null;
+
+  try {
+    const compressedBlob = await compressImageForUpload(fileOrBlob, 360, 0.82);
+    const fileName = `${userId}/avatar-${Date.now()}.jpg`;
+
+    const { error } = await supabase.storage
+      .from('receipts')
+      .upload(fileName, compressedBlob, {
+        contentType: 'image/jpeg',
+        upsert: true,
+      });
+
+    if (!error) {
+      const { data: pubData } = supabase.storage.from('receipts').getPublicUrl(fileName);
+      if (pubData?.publicUrl) {
+        return pubData.publicUrl;
+      }
+    }
+
+    // Fallback cepat: encode sebagai lightweight base64 data URL
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(compressedBlob);
+    });
+  } catch (err) {
+    console.warn('Fallback error saat upload avatar:', err);
+    try {
+      const compressedBlob = await compressImageForUpload(fileOrBlob, 360, 0.82);
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(compressedBlob);
+      });
+    } catch {
+      return null;
+    }
+  }
+}
+

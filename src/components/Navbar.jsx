@@ -3,6 +3,7 @@
  */
 
 import { NavLink, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const NAV_ITEMS = [
   {
@@ -56,6 +57,9 @@ const NAV_ITEMS = [
 
 export default function Navbar() {
   const location = useLocation();
+  const { user } = useAuth();
+  const avatarUrl =
+    user?.user_metadata?.avatar_url || (user?.id ? localStorage.getItem(`user_avatar_${user.id}`) : null);
 
   // Sembunyikan navbar di landing, login, register, dan reset-password
   const HIDE_NAVBAR_PATHS = ['/', '/login', '/register', '/reset-password'];
@@ -84,7 +88,17 @@ export default function Navbar() {
             >
               {({ isActive }) => (
                 <>
-                  {item.icon(isActive || item.special)}
+                  {item.to === '/profile' && avatarUrl ? (
+                    <div
+                      className={`w-5 h-5 rounded-full overflow-hidden border ${
+                        isActive ? 'border-primary ring-2 ring-primary/30' : 'border-gray-300'
+                      }`}
+                    >
+                      <img src={avatarUrl} alt="Profil" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    item.icon(isActive || item.special)
+                  )}
                   <span className={`text-[10px] font-semibold leading-tight ${item.special ? 'text-white' : ''}`}>
                     {item.label}
                   </span>
@@ -97,3 +111,4 @@ export default function Navbar() {
     </nav>
   );
 }
+
