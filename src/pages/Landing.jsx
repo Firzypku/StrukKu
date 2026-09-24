@@ -1,130 +1,167 @@
 /**
- * Landing.jsx — Halaman landing page StrukKu
+ * Landing.jsx — Landing page modern, jujur & student-centric untuk StrukKu
+ * Dibuat khusus menjawab kebutuhan nyata mahasiswa rantau Indonesia.
  */
 
 import { useNavigate } from 'react-router-dom';
 
-const FEATURES = [
-  { icon: '📸', title: 'Scan Struk', desc: 'OCR otomatis extract total & detail struk belanja' },
-  { icon: '📊', title: 'Dashboard Cerdas', desc: 'Visualisasi pengeluaran dengan grafik interaktif' },
-  { icon: '💰', title: 'Kelola Budget', desc: 'Set budget bulanan dan pantau sisa dengan real-time' },
-  { icon: '🏆', title: 'Tantangan Hemat', desc: 'Kompetisi hemat dengan teman, raih badge seru' },
-  { icon: '🤝', title: 'Split Bill', desc: 'Hitung dan bagikan tagihan ke teman lewat WhatsApp' },
-  { icon: '🎙️', title: 'Input Suara', desc: 'Catat pengeluaran cukup dengan bicara' },
+const VALUE_PROPS = [
+  {
+    icon: '🛡️',
+    title: 'Jatah Harian Aman',
+    desc: 'Hitung otomatis batas belanja per hari agar uang saku cukup sampai tanggal kiriman berikutnya tanpa panik di akhir bulan.',
+    badge: 'Fitur Utama',
+  },
+  {
+    icon: '🧾',
+    title: 'Scan Struk & Bukti QRIS',
+    desc: 'Tesseract OCR presisi yang cerdas: otomatis baca total belanja, abaikan uang kembalian dan nomor nota transaksi.',
+    badge: 'Otomatis',
+  },
+  {
+    icon: '🍕',
+    title: 'Patungan Tanpa Nombok',
+    desc: 'Split bill per makanan yang dipesan masing-masing, bagi piring bersama, dan kirim rincian 100% pas ke WhatsApp.',
+    badge: 'Bebas Selisih',
+  },
+  {
+    icon: '👨‍👩‍👦',
+    title: 'Rekap Kiriman Ortu',
+    desc: 'Buat laporan uang saku transparan satu klik untuk Ayah & Ibu dengan 3 pilihan keterbukaan (ringkas, kategori, atau detail).',
+    badge: 'Satu Klik',
+  },
 ];
 
 export default function Landing() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f2a4a] via-[#185FA5] to-[#1D9E75] text-white overflow-hidden">
-      {/* Hero Section */}
-      <div className="relative px-6 pt-16 pb-12 text-center">
-        {/* Decorative blobs */}
-        <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl" />
-        <div className="absolute top-20 right-0 w-48 h-48 bg-success/20 rounded-full translate-x-1/3 blur-2xl" />
+    <div className="min-h-screen bg-gradient-to-b from-[#0B1E36] via-[#123E6B] to-[#0A2540] text-white overflow-hidden pb-12">
+      {/* Decorative Glow Blobs */}
+      <div className="relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-40 right-0 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Logo */}
-        <div className="relative z-10 mb-6">
-          <div className="inline-flex w-24 h-24 rounded-3xl bg-white/15 backdrop-blur-sm items-center justify-center text-5xl animate-bounce-in border border-white/20 shadow-2xl mb-4">
-            🧾
+        {/* HERO SECTION */}
+        <div className="relative z-10 px-5 pt-12 pb-8 text-center max-w-md mx-auto">
+          {/* Student Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold mb-6 shadow-sm">
+            <span className="text-emerald-400">🎓</span>
+            <span className="text-white/90">Aplikasi Keuangan Mahasiswa Rantau</span>
           </div>
-          <h1 className="text-5xl font-black tracking-tight">
-            Struk<span className="text-green-300">Ku</span>
-          </h1>
-          <p className="text-white/70 text-sm mt-1 font-medium">strukku.vercel.app</p>
-        </div>
 
-        {/* Headline */}
-        <p className="text-xl font-bold leading-snug mb-3 relative z-10">
-          Kelola pengeluaran mahasiswa<br/>
-          <span className="text-green-300">lebih cerdas & hemat</span> 🎓
-        </p>
-        <p className="text-white/60 text-sm max-w-xs mx-auto leading-relaxed mb-8 relative z-10">
-          Scan struk, pantau budget, dan tantang dirimu hemat lebih banyak setiap bulan.
-        </p>
-
-        {/* CTA Buttons */}
-        <div className="flex flex-col gap-3 max-w-xs mx-auto relative z-10">
-          <button
-            id="btn-mulai-sekarang"
-            onClick={() => navigate('/dashboard')}
-            className="w-full py-4 bg-white text-primary font-bold text-base rounded-2xl shadow-2xl hover:bg-gray-50 active:scale-95 transition-all duration-200"
-          >
-            🚀 Mulai Sekarang — Gratis!
-          </button>
-          <button
-            id="btn-scan-struk"
-            onClick={() => navigate('/scan')}
-            className="w-full py-4 bg-white/15 text-white font-semibold text-base rounded-2xl border border-white/30 backdrop-blur hover:bg-white/20 active:scale-95 transition-all duration-200"
-          >
-            📸 Scan Struk Pertama
-          </button>
-        </div>
-      </div>
-
-      {/* Stats Banner */}
-      <div className="mx-4 mb-6">
-        <div className="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 grid grid-cols-3 gap-4">
-          {[
-            { num: '100%', label: 'Khusus Mhs' },
-            { num: 'AI', label: 'OCR & Suara' },
-            { num: 'Gratis', label: 'Tanpa Iklan' },
-          ].map(({ num, label }) => (
-            <div key={label} className="text-center">
-              <p className="text-2xl font-black text-green-300">{num}</p>
-              <p className="text-xs text-white/60 font-medium">{label}</p>
+          {/* Logo Brand */}
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary to-emerald-400 flex items-center justify-center text-3xl shadow-xl shadow-primary/30">
+              🧾
             </div>
-          ))}
+            <h1 className="text-3xl font-black tracking-tight text-white">
+              Struk<span className="text-emerald-400">Ku</span>
+            </h1>
+          </div>
+
+          {/* Main Headline */}
+          <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight tracking-tight text-white mb-3">
+            Uang saku cukup sampai kiriman berikutnya.
+          </h2>
+
+          {/* Subheadline */}
+          <p className="text-sm text-white/75 leading-relaxed max-w-sm mx-auto mb-8 font-normal">
+            Scan struk fisik atau bukti QRIS, pantau jatah harian amanmu, dan patungan split bill tanpa drama nombok.
+          </p>
+
+          {/* Call to Action Buttons */}
+          <div className="flex flex-col gap-3 max-w-xs mx-auto">
+            <button
+              onClick={() => navigate('/register')}
+              className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-gray-950 font-black text-sm rounded-2xl shadow-xl shadow-emerald-500/25 transition-all duration-200"
+            >
+              🚀 Mulai Sekarang — Gratis!
+            </button>
+            <button
+              onClick={() => navigate('/login')}
+              className="w-full py-3.5 bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-xs rounded-2xl border border-white/20 backdrop-blur-md transition-all duration-200"
+            >
+              Sudah punya akun? Masuk →
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Features Grid */}
-      <div className="px-4 pb-6">
-        <h2 className="text-lg font-bold text-center mb-4 text-white/90">Fitur Lengkap untuk Mahasiswa</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {FEATURES.map(({ icon, title, desc }) => (
-            <div key={title} className="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-200">
-              <span className="text-3xl block mb-2">{icon}</span>
-              <h3 className="text-sm font-bold mb-1">{title}</h3>
-              <p className="text-xs text-white/50 leading-relaxed">{desc}</p>
+      {/* 3 PILAR KEPERCAYAAN */}
+      <div className="px-5 mb-8 max-w-md mx-auto">
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 grid grid-cols-3 gap-2 text-center">
+          <div className="p-1">
+            <span className="text-xl block mb-1">🎓</span>
+            <p className="text-[11px] font-bold text-white">100% Gratis</p>
+            <p className="text-[9px] text-white/50 mt-0.5 leading-tight">Khusus mahasiswa</p>
+          </div>
+          <div className="p-1 border-x border-white/10">
+            <span className="text-xl block mb-1">🔒</span>
+            <p className="text-[11px] font-bold text-white">Data Aman</p>
+            <p className="text-[9px] text-white/50 mt-0.5 leading-tight">Proteksi RLS Supabase</p>
+          </div>
+          <div className="p-1">
+            <span className="text-xl block mb-1">📍</span>
+            <p className="text-[11px] font-bold text-white">Telkom Univ</p>
+            <p className="text-[9px] text-white/50 mt-0.5 leading-tight">Surabaya</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 4 FITUR UTAMA MAHASISWA */}
+      <div className="px-5 space-y-3 max-w-md mx-auto mb-10">
+        <div className="text-center mb-4">
+          <h3 className="text-base font-bold text-white">Fitur yang Memang Kamu Butuhkan</h3>
+          <p className="text-xs text-white/60 mt-0.5">Bukan sekadar pencatat uang biasa</p>
+        </div>
+
+        {VALUE_PROPS.map(({ icon, title, desc, badge }) => (
+          <div
+            key={title}
+            className="bg-white/5 hover:bg-white/10 transition-all border border-white/10 rounded-2xl p-4 flex items-start gap-3.5"
+          >
+            <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-2xl flex-shrink-0">
+              {icon}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* How it works */}
-      <div className="px-4 pb-8">
-        <h2 className="text-lg font-bold text-center mb-4 text-white/90">Cara Pakai</h2>
-        <div className="flex flex-col gap-3">
-          {[
-            { step: '1', icon: '📸', text: 'Foto struk belanjaanmu' },
-            { step: '2', icon: '🤖', text: 'AI extract total & tanggal otomatis' },
-            { step: '3', icon: '📊', text: 'Lihat laporan & tips hematmu' },
-          ].map(({ step, icon, text }) => (
-            <div key={step} className="flex items-center gap-4 bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-black text-lg flex-shrink-0">
-                {step}
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <h4 className="font-bold text-sm text-white">{title}</h4>
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-semibold">
+                  {badge}
+                </span>
               </div>
-              <span className="text-2xl">{icon}</span>
-              <p className="text-sm font-medium text-white/80">{text}</p>
+              <p className="text-xs text-white/60 leading-relaxed font-normal">{desc}</p>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
-      {/* Footer CTA */}
-      <div className="px-4 pb-16 text-center">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="w-full max-w-xs mx-auto block py-4 bg-green-400 text-green-900 font-black text-base rounded-2xl shadow-2xl hover:bg-green-300 active:scale-95 transition-all duration-200"
-        >
-          Mulai Hemat Sekarang! 🏆
-        </button>
-        <p className="text-white/30 text-[10px] mt-6 px-4 leading-relaxed font-medium">
-          Dibuat oleh <span className="font-bold">Muhammad Firzy Islami Fathi</span><br/>
-          Mahasiswa Universitas Telkom Surabaya Jurusan Bisnis Digital
-        </p>
+      {/* BANTUAN WHATSAPP & PENGEMBANG */}
+      <div className="px-5 max-w-md mx-auto text-center space-y-6">
+        <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 rounded-2xl p-5 text-center">
+          <span className="text-3xl block mb-2">💬</span>
+          <h4 className="font-bold text-sm text-white">Ada Masukan atau Kendala?</h4>
+          <p className="text-xs text-white/70 mt-1 leading-relaxed">
+            StrukKu dikembangkan terbuka untuk mendengar masukan teman-teman mahasiswa.
+          </p>
+          <a
+            href="https://wa.me/6281251152940?text=Halo%20Firzy,%20saya%20mau%20kasih%20masukan/tanya%20tentang%20StrukKu"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 mt-3.5 px-4 py-2.5 rounded-xl bg-emerald-500 text-gray-950 font-bold text-xs hover:bg-emerald-400 active:scale-95 transition-all shadow-md"
+          >
+            <span>📱</span> Hubungi Firzy (081251152940)
+          </a>
+        </div>
+
+        {/* Footer Credit */}
+        <div className="pt-2 text-white/40 text-[11px] leading-relaxed">
+          <p>
+            Dibuat oleh <strong className="text-white/70">Muhammad Firzy Islami Fathi</strong>
+          </p>
+          <p>Mahasiswa Universitas Telkom Surabaya · Bisnis Digital</p>
+        </div>
       </div>
     </div>
   );

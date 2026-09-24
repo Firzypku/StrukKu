@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useExpenses } from '../hooks/useExpenses';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
 import { formatRupiah } from '../utils/prediction';
 import { supabase } from '../utils/supabase';
 import { useToast } from '../context/ToastContext';
@@ -312,8 +311,6 @@ export default function Profile() {
           </div>
         </div>
       )}
-
-      <Navbar />
     </div>
   );
 }
