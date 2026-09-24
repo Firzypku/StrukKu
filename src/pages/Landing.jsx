@@ -106,7 +106,7 @@ export default function Landing() {
   const [activeFaq, setActiveFaq] = useState(null);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white overflow-x-hidden w-full">
       {/* Logged in notification banner */}
       {user && (
         <div className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white text-xs font-semibold py-2.5 px-4 text-center flex items-center justify-center gap-3">
@@ -124,7 +124,7 @@ export default function Landing() {
       {/* 1. TOP NAVIGATION BAR */}
       {/* ========================================================================= */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 transition-all">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           {/* Logo Brand */}
           <div
             onClick={() => navigate('/')}
@@ -208,7 +208,7 @@ export default function Landing() {
               </div>
 
               {/* Main Headline */}
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-[1.12] mb-6">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-[1.15] mb-5">
                 Kelola Uang Saku Mahasiswa dengan{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600">
                   Presisi Finansial.
@@ -216,7 +216,7 @@ export default function Landing() {
               </h1>
 
               {/* Subheadline */}
-              <p className="text-base sm:text-lg text-slate-600 font-normal leading-relaxed max-w-xl mx-auto lg:mx-0 mb-8">
+              <p className="text-sm sm:text-lg text-slate-600 font-normal leading-relaxed max-w-xl mx-auto lg:mx-0 mb-7">
                 Bukan sekadar pencatat uang biasa. StrukKu menghitung otomatis{' '}
                 <strong className="text-slate-900 font-semibold">Jatah Harian Aman</strong>,
                 memindai struk fisik & QRIS tanpa selisih, split bill per makanan, dan rekap
@@ -224,23 +224,23 @@ export default function Landing() {
               </p>
 
               {/* Fast Action Container */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start max-w-md mx-auto lg:mx-0 mb-8">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 justify-center lg:justify-start max-w-md mx-auto lg:mx-0 mb-8">
                 <button
                   onClick={() => navigate(user ? '/dashboard' : '/register')}
-                  className="w-full sm:w-auto px-7 py-4 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-extrabold text-sm sm:text-base rounded-2xl shadow-xl shadow-blue-600/30 transition-all duration-200 text-center"
+                  className="w-full sm:w-auto px-7 py-3.5 sm:py-4 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-extrabold text-sm sm:text-base rounded-2xl shadow-xl shadow-blue-600/30 transition-all duration-200 text-center"
                 >
                   {user ? '🚀 Buka Dashboard Saya' : '🚀 Buat Akun Gratis Sekarang'}
                 </button>
                 <a
                   href="#fitur"
-                  className="w-full sm:w-auto px-6 py-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-bold text-sm sm:text-base rounded-2xl shadow-sm transition-all text-center"
+                  className="w-full sm:w-auto px-6 py-3.5 sm:py-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-bold text-sm sm:text-base rounded-2xl shadow-sm transition-all text-center"
                 >
                   Lihat Fitur Inti ↓
                 </a>
               </div>
 
               {/* Trust Badges */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs font-semibold text-slate-500 pt-2 border-t border-slate-200/70">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 text-xs font-semibold text-slate-500 pt-2 border-t border-slate-200/70">
                 <div className="flex items-center gap-1.5">
                   <span className="text-emerald-600 font-bold">✓</span> 100% Gratis Tanpa Iklan
                 </div>
@@ -254,14 +254,14 @@ export default function Landing() {
             </div>
 
             {/* Right Hero Visual Column (3D Geometric Composition) */}
-            <div className="lg:col-span-5 relative">
+            <div className="lg:col-span-5 relative mt-4 lg:mt-0">
               <div className="relative mx-auto max-w-md lg:max-w-none">
                 {/* 3D Geometric Card Container */}
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-blue-900/15 border-4 border-white bg-slate-900 group">
                   <img
                     src="/images/hero-3d.jpg"
                     alt="Komposisi 3D Arsitektur StrukKu"
-                    className="w-full h-[380px] sm:h-[460px] object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                    className="w-full h-[260px] sm:h-[420px] object-cover object-center group-hover:scale-105 transition-transform duration-700"
                     loading="eager"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
@@ -369,19 +369,19 @@ export default function Landing() {
             {CORE_SOLUTIONS.map((sol) => (
               <div
                 key={sol.step}
-                className="bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-blue-500/40 rounded-3xl p-6 sm:p-8 transition-all duration-300"
+                className="bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-blue-500/40 rounded-3xl p-5 sm:p-8 transition-all duration-300"
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-start sm:items-center gap-4 sm:gap-6">
-                    <span className="text-sm font-mono font-bold text-blue-400 bg-blue-500/20 px-3 py-1 rounded-xl">
+                  <div className="flex items-start sm:items-center gap-3.5 sm:gap-6">
+                    <span className="text-sm font-mono font-bold text-blue-400 bg-blue-500/20 px-2.5 py-1 rounded-xl flex-shrink-0">
                       {sol.step}
                     </span>
                     <div>
-                      <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
+                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
                         <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
                           {sol.title}
                         </h3>
-                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                           {sol.tag}
                         </span>
                       </div>
@@ -392,8 +392,8 @@ export default function Landing() {
                   </div>
 
                   <button
-                    onClick={() => navigate('/register')}
-                    className="self-start md:self-center px-4 py-2 text-xs font-bold text-white/90 hover:text-white bg-white/10 hover:bg-blue-600 rounded-xl transition-all whitespace-nowrap"
+                    onClick={() => navigate(user ? '/dashboard' : '/register')}
+                    className="w-full md:w-auto px-4 py-2.5 text-xs font-bold text-white/90 hover:text-white bg-white/10 hover:bg-blue-600 rounded-xl transition-all whitespace-nowrap text-center"
                   >
                     Coba Fitur →
                   </button>
@@ -403,7 +403,7 @@ export default function Landing() {
           </div>
 
           {/* Blue Ribbon Banner — Direct Contact to Developer */}
-          <div className="mt-12 rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 p-6 sm:p-8 shadow-xl shadow-blue-900/40 border border-blue-400/30 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="mt-10 sm:mt-12 rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 p-5 sm:p-8 shadow-xl shadow-blue-900/40 border border-blue-400/30 flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6">
             <div className="text-center md:text-left">
               <span className="text-xs font-bold uppercase tracking-wider text-blue-200">
                 Pintu Terbuka untuk Ide & Masukan
@@ -419,7 +419,7 @@ export default function Landing() {
               href="https://wa.me/6281251152940?text=Halo%20Firzy,%20saya%20pengguna%20StrukKu%20ingin%20berbagi%20masukan/tanya:"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-3.5 bg-white text-slate-950 hover:bg-slate-100 active:scale-95 text-xs sm:text-sm font-black rounded-xl shadow-lg transition-all flex items-center gap-2 whitespace-nowrap"
+              className="w-full sm:w-auto px-6 py-3.5 bg-white text-slate-950 hover:bg-slate-100 active:scale-95 text-xs sm:text-sm font-black rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 whitespace-nowrap text-center"
             >
               <span>💬</span> Chat WA Firzy (081251152940)
             </a>
@@ -439,7 +439,7 @@ export default function Landing() {
                 <img
                   src="/images/abstract-orb.jpg"
                   alt="Abstract 3D Orb Visual StrukKu"
-                  className="w-full h-[360px] sm:h-[440px] object-cover group-hover:scale-105 transition-transform duration-700"
+                  className="w-full h-[260px] sm:h-[440px] object-cover group-hover:scale-105 transition-transform duration-700"
                   loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
@@ -490,7 +490,7 @@ export default function Landing() {
       <section className="py-16 sm:py-20 bg-slate-50 border-b border-slate-200/60">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-xl grid grid-cols-1 lg:grid-cols-12 items-center">
-            <div className="lg:col-span-6 p-8 sm:p-12">
+            <div className="lg:col-span-6 p-5 sm:p-12">
               <span className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2 block">
                 PROGRESSIVE WEB APP (PWA)
               </span>
@@ -515,14 +515,14 @@ export default function Landing() {
               </div>
 
               <button
-                onClick={() => navigate('/register')}
-                className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-blue-600/20 transition-all"
+                onClick={() => navigate(user ? '/dashboard' : '/register')}
+                className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-blue-600/20 transition-all text-center justify-center"
               >
-                Pasang Sekarang di HP →
+                {user ? '🚀 Buka Dashboard Saya' : 'Pasang Sekarang di HP →'}
               </button>
             </div>
 
-            <div className="lg:col-span-6 h-full min-h-[300px] bg-slate-100 flex items-center justify-center p-4 sm:p-8">
+            <div className="lg:col-span-6 h-full min-h-[220px] sm:min-h-[300px] bg-slate-100 flex items-center justify-center p-4 sm:p-8">
               <img
                 src="/images/fintech-banner.jpg"
                 alt="Fintech Banner Showcase"
@@ -552,7 +552,7 @@ export default function Landing() {
             {TESTIMONIALS.map((t) => (
               <div
                 key={t.name}
-                className="bg-slate-50 border border-slate-200/80 rounded-3xl p-6 sm:p-7 flex flex-col justify-between"
+                className="bg-slate-50 border border-slate-200/80 rounded-3xl p-5 sm:p-7 flex flex-col justify-between"
               >
                 <div>
                   <div className="text-amber-500 text-sm mb-3">{t.rating}</div>
@@ -578,7 +578,7 @@ export default function Landing() {
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-3xl mx-auto mb-6 shadow-xl shadow-blue-500/20">
             🎓
           </div>
-          <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white mb-4">
+          <h2 className="text-2xl sm:text-5xl font-black tracking-tight text-white mb-4">
             Kendalikan Finansial Kuliahmu Mulai Hari Ini.
           </h2>
           <p className="text-sm sm:text-base text-slate-300 max-w-lg mx-auto mb-8 font-normal leading-relaxed">
@@ -587,16 +587,16 @@ export default function Landing() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-sm mx-auto mb-12">
             <button
-              onClick={() => navigate('/register')}
-              className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-blue-600/30 transition-all"
+              onClick={() => navigate(user ? '/dashboard' : '/register')}
+              className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-blue-600/30 transition-all text-center"
             >
-              Daftar Sekarang (100% Gratis)
+              {user ? '🚀 Buka Dashboard Saya' : 'Daftar Sekarang (100% Gratis)'}
             </button>
             <button
-              onClick={() => navigate('/login')}
-              className="w-full sm:w-auto px-6 py-4 bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-2xl border border-white/20 transition-all"
+              onClick={() => navigate(user ? '/dashboard' : '/login')}
+              className="w-full sm:w-auto px-6 py-4 bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-2xl border border-white/20 transition-all text-center"
             >
-              Masuk Akun
+              {user ? 'Ke Beranda' : 'Masuk Akun'}
             </button>
           </div>
 

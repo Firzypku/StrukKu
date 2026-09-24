@@ -62,7 +62,7 @@ export default function Navbar() {
     user?.user_metadata?.avatar_url || (user?.id ? localStorage.getItem(`user_avatar_${user.id}`) : null);
 
   // Sembunyikan navbar di landing, login, register, dan reset-password
-  const HIDE_NAVBAR_PATHS = ['/', '/login', '/register', '/reset-password'];
+  const HIDE_NAVBAR_PATHS = ['/', '/landing', '/login', '/register', '/reset-password'];
   if (HIDE_NAVBAR_PATHS.includes(location.pathname)) return null;
 
   return (

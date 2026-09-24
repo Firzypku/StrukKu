@@ -8,7 +8,7 @@ export default function FloatingWhatsApp() {
   // URL WhatsApp langsung ke Firzy
   const waUrl = 'https://wa.me/6281251152940?text=Halo%20Firzy%2C%20saya%20pengguna%20StrukKu%20ingin%20menyampaikan%20keluhan%2Fkendala%3A';
 
-  const isBottomNavVisible = !['/', '/login', '/register', '/reset-password'].includes(location.pathname);
+  const isBottomNavVisible = !['/', '/landing', '/login', '/register', '/reset-password'].includes(location.pathname);
 
   return (
     <div

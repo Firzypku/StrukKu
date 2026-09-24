@@ -340,20 +340,20 @@ export default function Scan() {
                   <p className="text-gray-400 text-xs mt-1">Mendukung format JPG, PNG, HEIC iPhone (maks. 10MB)</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 w-full pt-2">
+                <div className="grid grid-cols-2 gap-2.5 w-full pt-2">
                   <button
                     type="button"
                     onClick={() => cameraInputRef.current?.click()}
-                    className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-primary text-white font-semibold text-sm shadow-sm hover:bg-primary-dark active:scale-95 transition-all"
+                    className="flex items-center justify-center gap-1.5 py-3 px-2 sm:px-4 rounded-xl bg-primary text-white font-semibold text-xs sm:text-sm shadow-sm hover:bg-primary-dark active:scale-95 transition-all"
                   >
-                    <span>📸</span> Kamera
+                    <span>📸</span> <span>Foto Struk</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => galleryInputRef.current?.click()}
-                    className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-blue-50 text-primary border border-primary/20 font-semibold text-sm hover:bg-blue-100 active:scale-95 transition-all"
+                    className="flex items-center justify-center gap-1.5 py-3 px-2 sm:px-4 rounded-xl bg-blue-50 text-primary border border-primary/20 font-semibold text-xs sm:text-sm hover:bg-blue-100 active:scale-95 transition-all"
                   >
-                    <span>🖼️</span> Galeri / Screenshot
+                    <span>🖼️</span> <span>Galeri / File</span>
                   </button>
                 </div>
               </div>

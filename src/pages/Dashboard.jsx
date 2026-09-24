@@ -163,7 +163,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="px-4 -mt-8 relative z-10 grid grid-cols-3 gap-3 mb-4">
+      <div className="px-3 sm:px-4 -mt-8 relative z-10 grid grid-cols-3 gap-2 sm:gap-3 mb-4">
         {[
           {
             icon: '📋',
@@ -184,12 +184,12 @@ export default function Dashboard() {
             gradient: 'from-violet-600 to-purple-600',
           },
         ].map((item) => (
-          <div key={item.label} className="bg-white rounded-2xl p-3 shadow-md border border-slate-100 text-center">
-            <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center text-base text-white mx-auto mb-2 shadow-sm`}>
+          <div key={item.label} className="bg-white rounded-2xl p-2 sm:p-3 shadow-md border border-slate-100 text-center">
+            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center text-sm sm:text-base text-white mx-auto mb-1.5 sm:mb-2 shadow-sm`}>
               {item.icon}
             </div>
-            <p className="text-[11px] text-slate-400 font-semibold">{item.label}</p>
-            <p className="text-sm sm:text-base font-black text-slate-800 mt-0.5">{item.value}</p>
+            <p className="text-[10px] sm:text-[11px] text-slate-400 font-semibold">{item.label}</p>
+            <p className="text-xs sm:text-base font-black text-slate-800 mt-0.5 truncate">{item.value}</p>
           </div>
         ))}
       </div>
