@@ -274,6 +274,18 @@ export default function Profile() {
             <span className="text-gray-400 font-normal">Edit →</span>
           </button>
 
+          {/* 1.5 Lihat Homepage & Panduan */}
+          <button
+            onClick={() => navigate('/landing')}
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-blue-900 font-bold bg-blue-50/70 hover:bg-blue-100/70 transition-colors border border-blue-200/60 text-xs"
+          >
+            <span className="flex items-center gap-2.5">
+              <span>🌐</span>
+              Lihat Homepage & Panduan Fitur
+            </span>
+            <span className="text-blue-600 font-bold">Buka →</span>
+          </button>
+
           {/* 2. Budget Bulanan */}
           <button
             onClick={() => navigate('/budget')}

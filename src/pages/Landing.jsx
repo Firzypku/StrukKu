@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const PROBLEMS = [
   {
@@ -101,10 +102,24 @@ const TESTIMONIALS = [
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeFaq, setActiveFaq] = useState(null);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white">
+      {/* Logged in notification banner */}
+      {user && (
+        <div className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white text-xs font-semibold py-2.5 px-4 text-center flex items-center justify-center gap-3">
+          <span>👋 Halo <strong>{user?.user_metadata?.full_name || 'Mahasiswa'}</strong>! Akunmu sedang aktif.</span>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="px-3 py-1 bg-white text-blue-900 rounded-lg font-bold text-xs hover:bg-blue-50 active:scale-95 transition-all shadow-sm"
+          >
+            Buka Dashboard 🚀
+          </button>
+        </div>
+      )}
+
       {/* ========================================================================= */}
       {/* 1. TOP NAVIGATION BAR */}
       {/* ========================================================================= */}
@@ -146,18 +161,30 @@ export default function Landing() {
 
           {/* Action CTAs */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              onClick={() => navigate('/login')}
-              className="px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 rounded-xl transition-all"
-            >
-              Masuk
-            </button>
-            <button
-              onClick={() => navigate('/register')}
-              className="px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-xl shadow-md shadow-blue-600/20 transition-all"
-            >
-              Mulai Gratis →
-            </button>
+            {user ? (
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-xl shadow-md shadow-blue-600/20 transition-all flex items-center gap-1.5"
+              >
+                <span>Dashboard</span>
+                <span>🚀</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 rounded-xl transition-all"
+                >
+                  Masuk
+                </button>
+                <button
+                  onClick={() => navigate('/register')}
+                  className="px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-xl shadow-md shadow-blue-600/20 transition-all"
+                >
+                  Mulai Gratis →
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -199,10 +226,10 @@ export default function Landing() {
               {/* Fast Action Container */}
               <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start max-w-md mx-auto lg:mx-0 mb-8">
                 <button
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate(user ? '/dashboard' : '/register')}
                   className="w-full sm:w-auto px-7 py-4 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-extrabold text-sm sm:text-base rounded-2xl shadow-xl shadow-blue-600/30 transition-all duration-200 text-center"
                 >
-                  🚀 Buat Akun Gratis Sekarang
+                  {user ? '🚀 Buka Dashboard Saya' : '🚀 Buat Akun Gratis Sekarang'}
                 </button>
                 <a
                   href="#fitur"

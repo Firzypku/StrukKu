@@ -49,11 +49,8 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-// Route untuk "/" — jika sudah login, langsung ke /dashboard (Bug 13)
+// Route untuk "/" — menampilkan Landing page
 const RootRoute = () => {
-  const { user, loading } = useAuth();
-  if (loading) return <PageLoader />;
-  if (user) return <Navigate to="/dashboard" replace />;
   return <Landing />;
 };
 
@@ -62,35 +59,35 @@ export default function App() {
     <AuthProvider>
       <ToastProvider>
         <BrowserRouter>
-          {/* Max width mobile-first wrapper */}
-          <div className="max-w-md mx-auto min-h-screen relative bg-surface">
+          <div className="min-h-screen relative bg-[#F8FAFC]">
             <ToastContainer />
             <PwaUpdater />
             <Suspense fallback={<PageLoader />}>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<RootRoute />} />
-              <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-              <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-              <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
-              
-              {/* Protected Routes */}
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/scan" element={<ProtectedRoute><Scan /></ProtectedRoute>} />
-              <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-              <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
-              <Route path="/hemat" element={<ProtectedRoute><Hemat /></ProtectedRoute>} />
-              <Route path="/social" element={<ProtectedRoute><Social /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-          <FloatingWhatsApp />
-          <Navbar />
-        </div>
-      </BrowserRouter>
+              <Routes>
+                {/* Public & Landing Routes */}
+                <Route path="/" element={<RootRoute />} />
+                <Route path="/landing" element={<Landing />} />
+                <Route path="/login" element={<PublicRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><Login /></div></PublicRoute>} />
+                <Route path="/register" element={<PublicRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><Register /></div></PublicRoute>} />
+                <Route path="/reset-password" element={<PublicRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><ResetPassword /></div></PublicRoute>} />
+                
+                {/* Protected Routes */}
+                <Route path="/dashboard" element={<ProtectedRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><Dashboard /></div></ProtectedRoute>} />
+                <Route path="/scan" element={<ProtectedRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><Scan /></div></ProtectedRoute>} />
+                <Route path="/history" element={<ProtectedRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><History /></div></ProtectedRoute>} />
+                <Route path="/budget" element={<ProtectedRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><Budget /></div></ProtectedRoute>} />
+                <Route path="/hemat" element={<ProtectedRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><Hemat /></div></ProtectedRoute>} />
+                <Route path="/social" element={<ProtectedRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><Social /></div></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><Profile /></div></ProtectedRoute>} />
+                
+                {/* Fallback */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+            <FloatingWhatsApp />
+            <Navbar />
+          </div>
+        </BrowserRouter>
       </ToastProvider>
     </AuthProvider>
   );
