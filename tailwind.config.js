@@ -8,28 +8,28 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#185FA5',
-          light: '#2B7DC8',
-          dark: '#0F4070',
+          DEFAULT: '#2563EB',
+          light: '#3B82F6',
+          dark: '#1D4ED8',
         },
         success: {
-          DEFAULT: '#1D9E75',
-          light: '#2DC99A',
-          dark: '#157354',
+          DEFAULT: '#10B981',
+          light: '#34D399',
+          dark: '#059669',
         },
         danger: {
-          DEFAULT: '#E24B4A',
-          light: '#F07170',
-          dark: '#B83534',
+          DEFAULT: '#EF4444',
+          light: '#F87171',
+          dark: '#DC2626',
         },
         warn: {
           DEFAULT: '#F59E0B',
           light: '#FBD07A',
         },
         surface: {
-          DEFAULT: '#F0F4F8',
+          DEFAULT: '#F8FAFC',
           card: '#FFFFFF',
-          dark: '#1A2332',
+          dark: '#0A1128',
         }
       },
       fontFamily: {

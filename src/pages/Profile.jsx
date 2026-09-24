@@ -138,9 +138,11 @@ export default function Profile() {
       />
 
       {/* Header Profil */}
-      <div className="bg-gradient-to-br from-primary to-primary-dark pt-12 pb-8 rounded-b-[2rem] px-6 text-white shadow-lg">
-        <h1 className="text-xl font-bold mb-4">Profil Akun</h1>
-        <div className="flex items-center gap-4">
+      <div className="bg-gradient-to-br from-[#0B1E36] via-[#123E6B] to-[#1E40AF] pt-12 pb-8 rounded-b-[2.5rem] px-6 text-white shadow-lg relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-44 h-44 bg-blue-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
+        <div className="relative z-10">
+          <h1 className="text-xl font-black mb-4 tracking-tight">Profil Akun</h1>
+          <div className="flex items-center gap-4">
           {/* Avatar with Camera Overlay */}
           <div className="relative group flex-shrink-0">
             <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/60 shadow-md bg-white/20 flex items-center justify-center">
@@ -223,6 +225,7 @@ export default function Profile() {
           </div>
         </div>
       </div>
+    </div>
 
       <div className="px-5 mt-6 space-y-4">
         {/* Ringkasan Akun & Status */}

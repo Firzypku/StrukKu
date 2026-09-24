@@ -49,8 +49,11 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-// Route untuk "/" — menampilkan Landing page
+// Route untuk "/" — jika sudah login langsung ke /dashboard, jika belum tampilkan Landing
 const RootRoute = () => {
+  const { user, loading } = useAuth();
+  if (loading) return <PageLoader />;
+  if (user) return <Navigate to="/dashboard" replace />;
   return <Landing />;
 };
 

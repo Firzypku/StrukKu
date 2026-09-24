@@ -13,8 +13,8 @@ export default defineConfig({
         short_name: 'StrukKu',
         description: 'Aplikasi manajemen pengeluaran mahasiswa dari struk belanja',
         lang: 'id',
-        theme_color: '#185FA5',
-        background_color: '#f0f4f8',
+        theme_color: '#0B1E36',
+        background_color: '#F8FAFC',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
@@ -34,7 +34,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
