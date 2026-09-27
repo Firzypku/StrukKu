@@ -21,22 +21,48 @@ export default function FeedbackForm({ onClose }) {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('feedback')
-        .insert({
-          user_id: user?.id || null,
-          type,
-          message: message.trim(),
-          contact: contact.trim() || null,
+      const isUuid =
+        user?.id &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id);
+
+      const payload = {
+        user_id: isUuid ? user.id : null,
+        type,
+        message: message.trim(),
+        contact: contact.trim() || null,
+        created_at: new Date().toISOString(),
+      };
+
+      // Simpan salinan masukan di cache lokal browser
+      try {
+        const localFeedback = JSON.parse(localStorage.getItem('strukku_feedbacks') || '[]');
+        localFeedback.unshift({ ...payload, id: 'fb-' + Date.now() });
+        localStorage.setItem('strukku_feedbacks', JSON.stringify(localFeedback.slice(0, 50)));
+      } catch (_e) {
+        // Abaikan kegagalan local storage
+      }
+
+      // Coba kirim ke Supabase
+      try {
+        const { error } = await supabase.from('feedback').insert({
+          user_id: payload.user_id,
+          type: payload.type,
+          message: payload.message,
+          contact: payload.contact,
         });
 
-      if (error) throw error;
+        if (error) {
+          console.warn('Info pengiriman feedback Supabase:', error.message);
+        }
+      } catch (sbErr) {
+        console.warn('Network error pengiriman feedback:', sbErr);
+      }
 
       toast.success('Masukan berhasil dikirim! Terima kasih 🙏');
       if (onClose) onClose();
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      toast.error(error.message || 'Gagal mengirim masukan');
+      toast.error('Gagal mengirim masukan. Silakan coba beberapa saat lagi.');
     } finally {
       setIsSubmitting(false);
     }

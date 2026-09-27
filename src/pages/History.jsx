@@ -33,6 +33,8 @@ export default function History() {
     nextMonth,
     setMonthYear,
     goToCurrentMonth,
+    resetSelectedMonth,
+    undoResetMonth,
   } = useExpenses();
 
   const [loadingSamples, setLoadingSamples] = useState(false);
@@ -331,10 +333,18 @@ export default function History() {
           <MonthSelector
             selectedYear={selectedYear}
             selectedMonth={selectedMonth}
-            onSelect={setMonthYear}
-            onPrev={prevMonth}
-            onNext={nextMonth}
+            selectedMonthName={selectedMonthName}
+            isCurrentMonth={isCurrentMonth}
+            prevMonth={prevMonth}
+            nextMonth={nextMonth}
+            setMonthYear={setMonthYear}
+            goToCurrentMonth={goToCurrentMonth}
             availableMonths={availableMonths}
+            totalExpense={stats.thisMonthTotal}
+            transactionCount={thisMonth.length}
+            onResetMonth={resetSelectedMonth}
+            onUndoResetMonth={undoResetMonth}
+            showResetButton={false}
           />
 
           {/* View Toggle */}

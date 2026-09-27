@@ -6,14 +6,22 @@ import { useToast } from '../context/ToastContext';
  * MonthSelector.jsx — Komponen pemilih bulan, navigasi riwayat bulan lampau,
  * dan fitur reset bulan aman dengan konfirmasi ketik nama bulan di bottom sheet & Urungkan 10 detik.
  */
+const MONTH_NAMES = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
+
 export default function MonthSelector({
-  selectedYear,
-  selectedMonth,
+  selectedYear = new Date().getFullYear(),
+  selectedMonth = new Date().getMonth(),
   selectedMonthName,
-  isCurrentMonth,
+  isCurrentMonth = false,
   prevMonth,
   nextMonth,
+  onPrev,
+  onNext,
   setMonthYear,
+  onSelect,
   goToCurrentMonth,
   availableMonths = [],
   onResetMonth,
@@ -32,6 +40,11 @@ export default function MonthSelector({
   const [undoState, setUndoState] = useState(null); // { backup: [...], monthName: string, secondsLeft: number }
   const timerRef = useRef(null);
 
+  const activeMonthName = selectedMonthName || MONTH_NAMES[selectedMonth] || '';
+  const handlePrev = prevMonth || onPrev;
+  const handleNext = nextMonth || onNext;
+  const handleSelect = setMonthYear || onSelect;
+
   useEffect(() => {
     if (undoState && undoState.secondsLeft > 0) {
       timerRef.current = setTimeout(() => {
@@ -46,7 +59,7 @@ export default function MonthSelector({
     };
   }, [undoState]);
 
-  const isConfirmationMatched = typedMonth.trim().toLowerCase() === selectedMonthName.toLowerCase();
+  const isConfirmationMatched = typedMonth.trim().toLowerCase() === activeMonthName.toLowerCase();
 
   const handleOpenResetModal = () => {
     setTypedMonth('');
@@ -64,11 +77,11 @@ export default function MonthSelector({
       if (backup && backup.length > 0) {
         setUndoState({
           backup,
-          monthName: `${selectedMonthName} ${selectedYear}`,
+          monthName: `${activeMonthName} ${selectedYear}`,
           secondsLeft: 10,
         });
       }
-      toast.success(`Data bulan ${selectedMonthName} berhasil direset.`);
+      toast.success(`Data bulan ${activeMonthName} berhasil direset.`);
     } catch (err) {
       console.error(err);
       toast.error('Gagal mereset bulan: ' + (err.message || 'Terjadi kesalahan'));
@@ -95,7 +108,7 @@ export default function MonthSelector({
         <div className="flex items-center justify-between gap-2">
           {/* Tombol Geser Bulan Sebelumnya */}
           <button
-            onClick={prevMonth}
+            onClick={handlePrev}
             className="w-9 h-9 rounded-xl bg-gray-50 hover:bg-gray-100 active:scale-95 flex items-center justify-center text-gray-700 font-bold transition-all border border-gray-100"
             title="Bulan sebelumnya"
           >
@@ -108,7 +121,7 @@ export default function MonthSelector({
               onClick={() => setShowPickerModal(true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-primary/5 active:scale-95 transition-all text-gray-800 font-extrabold text-sm sm:text-base group"
             >
-              <span>📅 {selectedMonthName} {selectedYear}</span>
+              <span>📅 {activeMonthName} {selectedYear}</span>
               <span className="text-xs text-primary group-hover:translate-y-0.5 transition-transform">▼</span>
             </button>
             <div className="text-[11px] text-gray-500 font-medium">
@@ -122,7 +135,7 @@ export default function MonthSelector({
 
           {/* Tombol Geser Bulan Berikutnya */}
           <button
-            onClick={nextMonth}
+            onClick={handleNext}
             className="w-9 h-9 rounded-xl bg-gray-50 hover:bg-gray-100 active:scale-95 flex items-center justify-center text-gray-700 font-bold transition-all border border-gray-100"
             title="Bulan berikutnya"
           >
@@ -189,7 +202,7 @@ export default function MonthSelector({
                   <button
                     key={`${item.year}-${item.month}`}
                     onClick={() => {
-                      setMonthYear(item.year, item.month);
+                      handleSelect?.(item.year, item.month);
                       setShowPickerModal(false);
                     }}
                     className={`w-full text-left p-3 rounded-2xl border transition-all flex items-center justify-between ${
