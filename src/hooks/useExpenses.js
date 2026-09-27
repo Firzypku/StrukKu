@@ -9,6 +9,7 @@ import {
   groupByCategory,
   groupByDate,
   sumExpenses,
+  seedSampleExpenses,
 } from '../utils/storage';
 
 export const MONTH_NAMES = [
@@ -48,8 +49,20 @@ export const useExpenses = () => {
   const selectedMonthExpenses = useMemo(() => {
     return expenses.filter((e) => {
       if (!e.date) return false;
-      const d = new Date(e.date);
-      return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth;
+      let y, m;
+      if (typeof e.date === 'string' && e.date.includes('-')) {
+        const parts = e.date.split('T')[0].split('-');
+        if (parts.length >= 2) {
+          y = parseInt(parts[0], 10);
+          m = parseInt(parts[1], 10) - 1;
+        }
+      }
+      if (isNaN(y) || isNaN(m)) {
+        const d = new Date(e.date);
+        y = d.getFullYear();
+        m = d.getMonth();
+      }
+      return y === selectedYear && m === selectedMonth;
     });
   }, [expenses, selectedYear, selectedMonth]);
 
@@ -108,9 +121,19 @@ export const useExpenses = () => {
 
     expenses.forEach((e) => {
       if (!e.date) return;
-      const d = new Date(e.date);
-      const y = d.getFullYear();
-      const m = d.getMonth();
+      let y, m;
+      if (typeof e.date === 'string' && e.date.includes('-')) {
+        const parts = e.date.split('T')[0].split('-');
+        if (parts.length >= 2) {
+          y = parseInt(parts[0], 10);
+          m = parseInt(parts[1], 10) - 1;
+        }
+      }
+      if (isNaN(y) || isNaN(m)) {
+        const d = new Date(e.date);
+        y = d.getFullYear();
+        m = d.getMonth();
+      }
       const key = `${y}-${m}`;
 
       const existing = map.get(key) || {
@@ -224,6 +247,17 @@ export const useExpenses = () => {
     };
   }, [expenses, selectedMonthExpenses, selectedMonth, selectedYear]);
 
+  // Memuat 5 transaksi contoh mahasiswa dengan sekali klik
+  const loadSamples = async () => {
+    setLoading(true);
+    try {
+      await seedSampleExpenses();
+      await refresh();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     expenses,
     thisMonth: selectedMonthExpenses, // Backward compatible: now dynamically reflects selected month!
@@ -243,6 +277,7 @@ export const useExpenses = () => {
     goToCurrentMonth,
     resetSelectedMonth,
     undoResetMonth,
+    loadSamples,
     add,
     update,
     remove,

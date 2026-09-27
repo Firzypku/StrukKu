@@ -57,7 +57,7 @@ export function ExpenseBarChart({ data, height = 200 }) {
             tick={{ fontSize: 10, fill: '#9ca3af' }}
             axisLine={false}
             tickLine={false}
-            tickFormatter={(v) => (v <= 0 ? '' : `${Math.round(v / 1000)}k`)}
+            tickFormatter={(v) => (v <= 0 ? '' : v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`)}
             width={34}
           />
           <Tooltip content={<CustomTooltip />} />
@@ -138,7 +138,7 @@ export function ExpenseLineChart({ data, height = 180 }) {
           tick={{ fontSize: 10, fill: '#9ca3af' }}
           axisLine={false}
           tickLine={false}
-          tickFormatter={(v) => (v <= 0 ? '' : `${Math.round(v / 1000)}k`)}
+          tickFormatter={(v) => (v <= 0 ? '' : v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`)}
           width={36}
         />
         <Tooltip content={<CustomTooltip />} />

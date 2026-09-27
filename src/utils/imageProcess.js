@@ -181,44 +181,48 @@ export async function uploadReceiptToStorage(fileOrBlob, userId) {
  * @returns {Promise<string|null>}
  */
 export async function uploadAvatarToStorage(fileOrBlob, userId) {
-  if (!fileOrBlob || !userId) return null;
+  if (!fileOrBlob) return null;
 
   try {
-    const compressedBlob = await compressImageForUpload(fileOrBlob, 360, 0.82);
-    const fileName = `${userId}/avatar-${Date.now()}.jpg`;
+    // Kompresi ringan optimal untuk avatar profil (128px, quality 0.75 => ~3-4KB)
+    const compressedBlob = await compressImageForUpload(fileOrBlob, 128, 0.75);
 
-    const { error } = await supabase.storage
-      .from('receipts')
-      .upload(fileName, compressedBlob, {
-        contentType: 'image/jpeg',
-        upsert: true,
-      });
+    // Coba upload ke storage jika userId ada
+    if (userId) {
+      try {
+        const fileName = `${userId}/avatar-${Date.now()}.jpg`;
+        const { error: uploadError } = await supabase.storage
+          .from('receipts')
+          .upload(fileName, compressedBlob, {
+            contentType: 'image/jpeg',
+            upsert: true,
+          });
 
-    if (!error) {
-      const { data: pubData } = supabase.storage.from('receipts').getPublicUrl(fileName);
-      if (pubData?.publicUrl) {
-        return pubData.publicUrl;
+        if (!uploadError) {
+          // Karena bucket receipts private, buat signed URL berdurasi panjang (5 tahun)
+          const { data: signedData } = await supabase.storage
+            .from('receipts')
+            .createSignedUrl(fileName, 60 * 60 * 24 * 365 * 5);
+
+          if (signedData?.signedUrl) {
+            return signedData.signedUrl;
+          }
+        }
+      } catch (storageErr) {
+        console.warn('Storage upload skipped, using lightweight data URL:', storageErr);
       }
     }
 
-    // Fallback cepat: encode sebagai lightweight base64 data URL
+    // Fallback cepat: encode sebagai lightweight base64 data URL (<4KB)
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
       reader.readAsDataURL(compressedBlob);
     });
   } catch (err) {
-    console.warn('Fallback error saat upload avatar:', err);
-    try {
-      const compressedBlob = await compressImageForUpload(fileOrBlob, 360, 0.82);
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(compressedBlob);
-      });
-    } catch {
-      return null;
-    }
+    console.warn('Fallback error saat memproses avatar:', err);
+    return null;
   }
 }
 

@@ -334,6 +334,26 @@ export default function Dashboard() {
           </button>
         </div>
 
+        {/* Fitur Favorit Mahasiswa: Split Bill & Tantangan Hemat */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <button
+            id="btn-split-bill"
+            onClick={() => navigate('/social')}
+            className="py-2.5 px-3 bg-white hover:bg-slate-50 active:scale-95 border border-slate-200/90 rounded-xl text-xs font-bold text-slate-700 shadow-sm flex items-center justify-center gap-1.5 transition-all"
+          >
+            <span>🍕</span>
+            <span>Split Bill / Patungan</span>
+          </button>
+          <button
+            id="btn-tantangan-hemat"
+            onClick={() => navigate('/hemat')}
+            className="py-2.5 px-3 bg-white hover:bg-slate-50 active:scale-95 border border-slate-200/90 rounded-xl text-xs font-bold text-slate-700 shadow-sm flex items-center justify-center gap-1.5 transition-all"
+          >
+            <span>💡</span>
+            <span>Tantangan & Resep</span>
+          </button>
+        </div>
+
         {/* Chart Aktivitas 7 Hari Terakhir (Menggunakan data riil 7 hari berakhir hari ini) */}
         <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60 overflow-hidden">
           <div className="flex justify-between items-center mb-3">

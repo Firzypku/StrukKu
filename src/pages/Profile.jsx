@@ -74,18 +74,25 @@ export default function Profile() {
     try {
       const uploadedUrl = await uploadAvatarToStorage(file, user?.id);
       if (!uploadedUrl) {
-        throw new Error('Gagal memproses foto profil.');
+        throw new Error('Gagal memproses gambar foto profil.');
       }
 
       setAvatarUrl(uploadedUrl);
-      if (user?.id) {
-        localStorage.setItem(`user_avatar_${user.id}`, uploadedUrl);
-      }
+      const storageKey = user?.id ? `user_avatar_${user.id}` : 'user_avatar_current';
+      localStorage.setItem(storageKey, uploadedUrl);
 
-      const { error } = await supabase.auth.updateUser({
-        data: { avatar_url: uploadedUrl },
-      });
-      if (error) throw error;
+      // Sinkronisasi ke auth metadata pengguna jika aman (< 4KB atau HTTP URL)
+      if (user) {
+        try {
+          if (!uploadedUrl.startsWith('data:') || uploadedUrl.length < 4000) {
+            await supabase.auth.updateUser({
+              data: { avatar_url: uploadedUrl },
+            });
+          }
+        } catch (authErr) {
+          console.warn('Lewati sinkronisasi auth metadata Supabase:', authErr);
+        }
+      }
 
       toast.success('Foto profil berhasil dipasang! 📸');
     } catch (err) {
@@ -104,9 +111,16 @@ export default function Profile() {
       if (user?.id) {
         localStorage.removeItem(`user_avatar_${user.id}`);
       }
-      await supabase.auth.updateUser({
-        data: { avatar_url: null },
-      });
+      localStorage.removeItem('user_avatar_current');
+      if (user) {
+        try {
+          await supabase.auth.updateUser({
+            data: { avatar_url: null },
+          });
+        } catch (err) {
+          console.warn('Lewati sync hapus avatar di auth:', err);
+        }
+      }
       toast.success('Foto profil dihapus.');
     } catch (err) {
       toast.error('Gagal menghapus foto: ' + err.message);

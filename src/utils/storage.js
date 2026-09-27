@@ -15,118 +15,264 @@ const getCurrentUserId = async () => {
   return session.user.id;
 };
 
+// ── LocalStorage Mirror & Cache Helpers ─────────────────────────────────────────
+
+const getLocalKey = (userId) => `strukku_expenses_${userId || 'guest'}`;
+
+export const getLocalExpenses = (userId) => {
+  try {
+    const raw = localStorage.getItem(getLocalKey(userId));
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+export const setLocalExpenses = (userId, expenses) => {
+  try {
+    localStorage.setItem(getLocalKey(userId), JSON.stringify(expenses || []));
+  } catch (e) {
+    console.warn('Gagal menyimpan cache lokal expenses:', e);
+  }
+};
+
 // ── Expenses ─────────────────────────────────────────────────────────────────
 
 export const getExpenses = async () => {
   const userId = await getCurrentUserId();
-  if (!userId) return [];
+  const localItems = getLocalExpenses(userId);
 
-  const { data, error } = await supabase
-    .from('expenses')
-    .select('*')
-    .eq('user_id', userId)
-    .order('date', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching expenses:', error);
-    return [];
+  if (!userId) {
+    return localItems;
   }
-  return data || [];
+
+  try {
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('*')
+      .eq('user_id', userId)
+      .order('date', { ascending: false });
+
+    if (error) {
+      console.warn('Error fetching expenses from Supabase, using local cache:', error);
+      return localItems;
+    }
+
+    if (data && data.length > 0) {
+      setLocalExpenses(userId, data);
+      return data;
+    }
+
+    // Jika di Supabase masih kosong tapi di localStorage ada data
+    if (localItems.length > 0) {
+      return localItems;
+    }
+
+    return [];
+  } catch (err) {
+    console.warn('Exception fetching expenses, using local cache:', err);
+    return localItems;
+  }
 };
 
 export const addExpense = async (expense) => {
   const userId = await getCurrentUserId();
-  if (!userId) throw new Error("User not authenticated");
+  const expenseId = expense.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'exp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5));
 
   const newExpense = {
-    user_id: userId,
+    id: expenseId,
+    user_id: userId || 'guest',
     title: expense.title,
-    amount: expense.amount,
+    amount: parseFloat(expense.amount) || 0,
     category: expense.category || 'Lainnya',
     date: expense.date || getLocalDateString(),
     note: expense.note || null,
+    image: expense.image || null,
+    created_at: new Date().toISOString(),
   };
 
-  if (expense.image) {
-    newExpense.image = expense.image;
+  // Simpan ke local cache terlebih dahulu agar instan dan tidak hilang
+  const currentLocal = getLocalExpenses(userId);
+  const updatedLocal = [newExpense, ...currentLocal.filter((e) => e.id !== newExpense.id)];
+  setLocalExpenses(userId, updatedLocal);
+
+  if (!userId) {
+    return newExpense;
   }
 
-  let { data, error } = await supabase
-    .from('expenses')
-    .insert([newExpense])
-    .select()
-    .maybeSingle();
+  try {
+    const payload = {
+      user_id: userId,
+      title: newExpense.title,
+      amount: newExpense.amount,
+      category: newExpense.category,
+      date: newExpense.date,
+      note: newExpense.note,
+    };
+    if (newExpense.image) {
+      payload.image = newExpense.image;
+    }
 
-  // Jika kolom 'image' belum ada di schema database Supabase pengguna, coba insert tanpa image
-  if (error && error.message && error.message.toLowerCase().includes('image')) {
-    console.warn("Kolom 'image' belum tersedia di tabel expenses, menyimpan tanpa kolom image.");
-    delete newExpense.image;
-    const retry = await supabase
+    let { data, error } = await supabase
       .from('expenses')
-      .insert([newExpense])
+      .insert([payload])
       .select()
       .maybeSingle();
-    data = retry.data;
-    error = retry.error;
+
+    if (error && error.message && error.message.toLowerCase().includes('image')) {
+      delete payload.image;
+      const retry = await supabase
+        .from('expenses')
+        .insert([payload])
+        .select()
+        .maybeSingle();
+      data = retry.data;
+      error = retry.error;
+    }
+
+    if (error) {
+      console.warn('Gagal sinkronisasi insert ke Supabase, tersimpan lokal:', error);
+      return newExpense;
+    }
+
+    if (data) {
+      const merged = [data, ...currentLocal.filter((e) => e.id !== newExpense.id && e.id !== data.id)];
+      setLocalExpenses(userId, merged);
+      return data;
+    }
+  } catch (err) {
+    console.warn('Exception saat simpan ke Supabase, tersimpan lokal:', err);
   }
 
-  if (error) {
-    console.error('Error adding expense:', error);
-    throw error;
-  }
-  return data;
+  return newExpense;
 };
 
 export const updateExpense = async (id, updates) => {
-  const { data, error } = await supabase
-    .from('expenses')
-    .update(updates)
-    .eq('id', id)
-    .select()
-    .maybeSingle();
+  const userId = await getCurrentUserId();
+  const currentLocal = getLocalExpenses(userId);
+  const updatedLocal = currentLocal.map((e) => (e.id === id ? { ...e, ...updates } : e));
+  setLocalExpenses(userId, updatedLocal);
 
-  if (error) {
-    console.error('Error updating expense:', error);
-    throw error;
+  if (userId) {
+    try {
+      const { data, error } = await supabase
+        .from('expenses')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .maybeSingle();
+
+      if (!error && data) {
+        return data;
+      }
+    } catch (e) {
+      console.warn('Gagal update ke Supabase, update lokal dipertahankan:', e);
+    }
   }
-  return data;
+  return updatedLocal.find((e) => e.id === id);
 };
 
 export const deleteExpense = async (id) => {
-  const { error } = await supabase
-    .from('expenses')
-    .delete()
-    .eq('id', id);
+  const userId = await getCurrentUserId();
+  const currentLocal = getLocalExpenses(userId);
+  const updatedLocal = currentLocal.filter((e) => e.id !== id);
+  setLocalExpenses(userId, updatedLocal);
 
-  if (error) {
-    console.error('Error deleting expense:', error);
-    throw error;
+  if (userId) {
+    try {
+      await supabase.from('expenses').delete().eq('id', id);
+    } catch (e) {
+      console.warn('Gagal hapus dari Supabase:', e);
+    }
   }
 };
 
 /**
  * Menghapus seluruh pengeluaran untuk user pada bulan dan tahun tertentu
- * @param {number} year - contoh 2026
- * @param {number} month - 0 untuk Jan, 11 untuk Des
  */
 export const deleteExpensesByMonth = async (year, month) => {
   const userId = await getCurrentUserId();
-  if (!userId) throw new Error("Not authenticated");
+  const currentLocal = getLocalExpenses(userId);
+  const updatedLocal = currentLocal.filter((e) => {
+    if (!e.date) return false;
+    const parts = e.date.split('T')[0].split('-');
+    if (parts.length >= 2) {
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      return !(y === year && m === month);
+    }
+    return true;
+  });
+  setLocalExpenses(userId, updatedLocal);
 
-  const start = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-  const lastDay = new Date(year, month + 1, 0).getDate();
-  const end = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+  if (userId) {
+    try {
+      const start = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      const end = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
-  const { error } = await supabase
-    .from('expenses')
-    .delete()
-    .eq('user_id', userId)
-    .gte('date', start)
-    .lte('date', end);
+      await supabase
+        .from('expenses')
+        .delete()
+        .eq('user_id', userId)
+        .gte('date', start)
+        .lte('date', end);
+    } catch (e) {
+      console.warn('Gagal reset bulan di Supabase:', e);
+    }
+  }
+};
 
-  if (error) {
-    console.error('Error deleting expenses by month:', error);
-    throw error;
+/**
+ * Memuat 5 transaksi contoh mahasiswa realistis untuk menguji seluruh fitur
+ */
+export const seedSampleExpenses = async () => {
+  const today = getLocalDateString();
+  const [y, m, d] = today.split('-');
+  const dayNum = parseInt(d, 10);
+
+  const padDay = (day) => String(Math.max(1, Math.min(28, day))).padStart(2, '0');
+
+  const samples = [
+    {
+      title: 'Nasi Padang Ayam Pop + Es Teh',
+      amount: 24000,
+      category: 'Makanan',
+      date: `${y}-${m}-${padDay(dayNum)}`,
+      note: 'Makan siang bareng anak kos',
+    },
+    {
+      title: 'Indomaret Sabun, Sampo & Kopi',
+      amount: 38500,
+      category: 'Kebutuhan Kos',
+      date: `${y}-${m}-${padDay(dayNum - 1)}`,
+      note: 'Belanja bulanan kamar kos',
+    },
+    {
+      title: 'Bensin Pertalite Motor Beat',
+      amount: 30000,
+      category: 'Transport',
+      date: `${y}-${m}-${padDay(dayNum - 2)}`,
+      note: 'Isi full tank kampus',
+    },
+    {
+      title: 'Print Modul Kuliah & Jilid Skripsi',
+      amount: 15000,
+      category: 'Pendidikan',
+      date: `${y}-${m}-${padDay(dayNum - 3)}`,
+      note: 'Tugas mata kuliah',
+    },
+    {
+      title: 'Es Teh Manis Jumbo Sore',
+      amount: 5000,
+      category: 'Minuman',
+      date: `${y}-${m}-${padDay(dayNum - 3)}`,
+      note: 'Haus sehabis kelas',
+    },
+  ];
+
+  for (const s of samples) {
+    await addExpense(s);
   }
 };
 

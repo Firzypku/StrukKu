@@ -27,11 +27,15 @@ export default function History() {
     selectedMonthName,
     isCurrentMonth,
     availableMonths,
+    loading,
+    loadSamples,
     prevMonth,
     nextMonth,
     setMonthYear,
     goToCurrentMonth,
   } = useExpenses();
+
+  const [loadingSamples, setLoadingSamples] = useState(false);
 
   const [view, setView] = useState('list'); // list | calendar
   const [timeScope, setTimeScope] = useState('month'); // 'month' (bulan terpilih) | 'all' (semua riwayat)
@@ -71,7 +75,10 @@ export default function History() {
 
     const byDate = {};
     thisMonth.forEach((e) => {
-      byDate[e.date] = (byDate[e.date] || 0) + (parseFloat(e.amount) || 0);
+      const dateKey = typeof e.date === 'string' ? e.date.split('T')[0] : e.date;
+      if (dateKey) {
+        byDate[dateKey] = (byDate[dateKey] || 0) + (parseFloat(e.amount) || 0);
+      }
     });
 
     const activeDaysCount = Object.keys(byDate).length || 1;
@@ -119,7 +126,8 @@ export default function History() {
   const grouped = useMemo(() => {
     const map = {};
     filtered.forEach((e) => {
-      const d = e.date || 'Lainnya';
+      const rawDate = e.date || 'Lainnya';
+      const d = typeof rawDate === 'string' ? rawDate.split('T')[0] : rawDate;
       if (!map[d]) map[d] = [];
       map[d].push(e);
     });
@@ -232,6 +240,19 @@ export default function History() {
       toast.success(`Transaksi "${restored.title}" berhasil dipulihkan! ↩️`);
     } catch (e) {
       toast.error('Gagal memulihkan transaksi');
+    }
+  };
+
+  // Muat data contoh mahasiswa
+  const handleLoadSamples = async () => {
+    setLoadingSamples(true);
+    try {
+      await loadSamples();
+      toast.success('5 transaksi contoh anak kos berhasil dimuat! 🎉');
+    } catch (err) {
+      toast.error('Gagal memuat transaksi contoh: ' + err.message);
+    } finally {
+      setLoadingSamples(false);
     }
   };
 
@@ -460,7 +481,23 @@ export default function History() {
             </div>
 
             {/* Expense List */}
-            {grouped.length === 0 ? (
+            {loading ? (
+              <div className="space-y-3 animate-pulse">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl p-4 shadow-card border border-white/60 flex items-center gap-3"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-gray-200" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-2/3" />
+                      <div className="h-3 bg-gray-100 rounded w-1/3" />
+                    </div>
+                    <div className="w-16 h-4 bg-gray-200 rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : grouped.length === 0 ? (
               <div className="bg-white rounded-2xl p-8 text-center shadow-card border border-white/60">
                 <span className="text-5xl block mb-3">📭</span>
                 <p className="font-bold text-gray-700 text-sm">
@@ -473,22 +510,33 @@ export default function History() {
                 <p className="text-gray-400 text-xs mt-1.5 max-w-xs mx-auto">
                   {searchQ
                     ? 'Coba gunakan kata kunci lain'
-                    : 'Mulai scan struk belanjamu atau catat pengeluaran secara manual!'}
+                    : 'Mulai scan struk belanjamu atau muat data contoh untuk mencoba seluruh fitur!'}
                 </p>
 
-                <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
+                <div className="mt-5 flex flex-col gap-2.5 max-w-xs mx-auto">
                   <button
                     onClick={() => navigate('/scan')}
-                    className="bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-primary-dark active:scale-95 transition-all shadow-sm"
+                    className="w-full bg-primary text-white py-3 rounded-xl font-bold text-xs hover:bg-primary-dark active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2"
                   >
-                    📸 Catat Pengeluaran
+                    <span>📸</span>
+                    <span>Catat Pengeluaran Pertama</span>
                   </button>
+
+                  <button
+                    onClick={handleLoadSamples}
+                    disabled={loadingSamples}
+                    className="w-full bg-amber-50 text-amber-800 border border-amber-200 py-2.5 rounded-xl font-bold text-xs hover:bg-amber-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+                  >
+                    <span>{loadingSamples ? '⏳' : '✨'}</span>
+                    <span>{loadingSamples ? 'Memuat Contoh...' : 'Muat 5 Transaksi Contoh Mahasiswa'}</span>
+                  </button>
+
                   {!isCurrentMonth && (
                     <button
                       onClick={goToCurrentMonth}
-                      className="bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-gray-200 active:scale-95 transition-all"
+                      className="w-full bg-gray-100 text-gray-700 py-2 rounded-xl font-bold text-xs hover:bg-gray-200 active:scale-95 transition-all"
                     >
-                      Bulan Sekarang
+                      Kembali ke Bulan Sekarang
                     </button>
                   )}
                 </div>

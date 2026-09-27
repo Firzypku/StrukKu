@@ -7,7 +7,7 @@ import { useToast } from '../context/ToastContext';
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, demoLogin } = useAuth();
   const toast = useToast();
 
   const successMessage = location.state?.message;
@@ -16,6 +16,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
@@ -36,6 +37,7 @@ export default function Login() {
 
   const handleGoogleLogin = async () => {
     setOauthLoading(true);
+    setError(null);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -43,10 +45,36 @@ export default function Login() {
           redirectTo: `${window.location.origin}/dashboard`,
         },
       });
-      if (error) throw error;
+      if (error) {
+        const lower = (error.message || '').toLowerCase();
+        if (lower.includes('not enabled') || lower.includes('unsupported') || lower.includes('provider')) {
+          throw new Error(
+            'Layanan Google OAuth belum diaktifkan di dashboard Supabase proyek ini. Silakan masuk menggunakan Email atau tombol Masuk Cepat di bawah.'
+          );
+        }
+        throw error;
+      }
     } catch (err) {
-      toast.error(err.message || 'Gagal masuk dengan Google.');
+      const msg = err.message || 'Gagal masuk dengan Google.';
+      setError(msg);
+      toast.error(msg);
       setOauthLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setDemoLoading(true);
+    setError(null);
+    try {
+      await demoLogin();
+      toast.success('Masuk sebagai Akun Demo Mahasiswa! 🎓');
+      navigate('/dashboard');
+    } catch (err) {
+      const msg = 'Gagal masuk mode demo: ' + (err.message || '');
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setDemoLoading(false);
     }
   };
 
@@ -156,6 +184,19 @@ export default function Login() {
             >
               {loading ? 'Memproses...' : 'Masuk →'}
             </button>
+
+            {/* Tombol Masuk Cepat / Demo untuk Evaluator */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                disabled={demoLoading || loading}
+                className="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 active:scale-95 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <span>⚡</span>
+                <span>{demoLoading ? 'Menyiapkan Akun Demo...' : 'Masuk Cepat (Akun Demo / Uji Coba)'}</span>
+              </button>
+            </div>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
