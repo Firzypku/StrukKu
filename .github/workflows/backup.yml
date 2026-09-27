@@ -63,7 +63,7 @@ jobs:
           ls -lh "strukku-backup-${TIMESTAMP}.sql.enc"
 
       - name: Upload Encrypted Backup Artifact (Retention 30 Days)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: database-backup-${{ env.TIMESTAMP }}
           path: strukku-backup-${{ env.TIMESTAMP }}.sql.enc
