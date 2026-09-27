@@ -8,6 +8,10 @@ import { useToast } from '../context/ToastContext';
 import { uploadAvatarToStorage } from '../utils/imageProcess';
 import { FeedbackModal } from '../components/FeedbackForm';
 import PaywallModal from '../components/PaywallModal';
+import { useBudget } from '../hooks/useBudget';
+import { getAllowanceConfig } from '../utils/pocketMoney';
+import { getChallenges } from '../utils/storage';
+import { downloadUserDataJson, downloadUserDataExcel } from '../utils/exportUserData';
 
 // Icon Chevron rapi untuk navigasi mobile modern
 function ChevronIcon({ className = 'text-gray-400' }) {
@@ -25,7 +29,8 @@ function ChevronIcon({ className = 'text-gray-400' }) {
 
 export default function Profile() {
   const { user, logout } = useAuth();
-  const { selectedMonthName, selectedYear, stats, resetSelectedMonth } = useExpenses();
+  const { selectedMonthName, selectedYear, stats, resetSelectedMonth, expenses } = useExpenses();
+  const { budget } = useBudget();
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -33,6 +38,12 @@ export default function Profile() {
   const [isResetting, setIsResetting] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+
+  // UU PDP Hak Pengguna States
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Edit Name State
   const initialName = user?.user_metadata?.full_name || '';
@@ -139,6 +150,88 @@ export default function Profile() {
       toast.error('Gagal mereset: ' + e.message);
     } finally {
       setIsResetting(false);
+    }
+  };
+
+  // UU PDP: Unduh Seluruh Data (JSON)
+  const handleExportJson = async () => {
+    setIsExporting(true);
+    try {
+      const challenges = await getChallenges();
+      const allowanceConfig = getAllowanceConfig();
+      downloadUserDataJson({
+        user,
+        expenses,
+        budget,
+        allowanceConfig,
+        challenges,
+      });
+      toast.success('File arsip JSON berhasil diunduh! 📦');
+    } catch (e) {
+      toast.error('Gagal mengunduh arsip JSON: ' + e.message);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // UU PDP: Unduh Seluruh Data (Excel .xlsx)
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const challenges = await getChallenges();
+      const allowanceConfig = getAllowanceConfig();
+      await downloadUserDataExcel({
+        user,
+        expenses,
+        budget,
+        allowanceConfig,
+        challenges,
+      });
+      toast.success('File Excel data lengkap berhasil diunduh! 📊');
+    } catch (e) {
+      toast.error('Gagal mengekspor spreadsheet Excel: ' + e.message);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // UU PDP: Hapus Akun Permanen via Serverless Function
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmationText.trim() !== 'HAPUS') {
+      toast.error('Ketik kata "HAPUS" secara persis untuk konfirmasi.');
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error('Sesi autentikasi Anda telah berakhir.');
+
+      const response = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const resData = await response.json();
+      if (!response.ok) {
+        throw new Error(resData.error || resData.message || 'Gagal menghapus akun.');
+      }
+
+      toast.success('Akun Anda dan seluruh berkas pribadi telah dihapus permanen.');
+      await logout();
+      localStorage.clear();
+      setShowDeleteModal(false);
+      navigate('/login', {
+        state: { message: 'Akun Anda dan seluruh data pribadi telah berhasil dihapus permanen sesuai UU PDP.' },
+      });
+    } catch (err) {
+      toast.error('Gagal memproses penghapusan akun: ' + err.message);
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -461,6 +554,59 @@ export default function Profile() {
           </Link>
         </div>
 
+        {/* Hak Pengguna & Privasi Data (UU PDP No. 27/2022) */}
+        <div className="bg-white rounded-2xl p-4 shadow-card border border-gray-100 space-y-2">
+          <h2 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3 flex items-center justify-between">
+            <span>Privasi & Portabilitas Data</span>
+            <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full font-bold">UU PDP</span>
+          </h2>
+
+          {/* Unduh Semua Data (JSON) */}
+          <button
+            onClick={handleExportJson}
+            disabled={isExporting}
+            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 active:scale-[0.99] transition-all border border-gray-100 text-xs"
+          >
+            <span className="flex items-center gap-2.5">
+              <span>📦</span>
+              Unduh Semua Dataku (JSON)
+            </span>
+            <span className="text-blue-600 font-semibold text-[11px] flex items-center gap-1">
+              Download <ChevronIcon className="text-blue-600" />
+            </span>
+          </button>
+
+          {/* Unduh Semua Data (Excel) */}
+          <button
+            onClick={handleExportExcel}
+            disabled={isExporting}
+            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 active:scale-[0.99] transition-all border border-gray-100 text-xs"
+          >
+            <span className="flex items-center gap-2.5">
+              <span>📊</span>
+              Unduh Semua Dataku (Excel .xlsx)
+            </span>
+            <span className="text-emerald-600 font-semibold text-[11px] flex items-center gap-1">
+              Download <ChevronIcon className="text-emerald-600" />
+            </span>
+          </button>
+
+          {/* Hapus Akun Permanen */}
+          <button
+            onClick={() => {
+              setDeleteConfirmationText('');
+              setShowDeleteModal(true);
+            }}
+            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-rose-700 font-bold bg-rose-50/70 hover:bg-rose-100/70 active:scale-[0.99] transition-all border border-rose-200/60 text-xs"
+          >
+            <span className="flex items-center gap-2.5">
+              <span>⚠️</span>
+              Hapus Akun & Data Permanen
+            </span>
+            <ChevronIcon className="text-rose-600" />
+          </button>
+        </div>
+
         {/* Keamanan & Logout */}
         <div className="bg-white rounded-2xl p-4 shadow-card border border-gray-100">
           <h2 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3">Keamanan</h2>
@@ -534,6 +680,59 @@ export default function Profile() {
         onClose={() => setShowPaywall(false)}
         triggerSource="profile_banner"
       />
+
+      {/* Modal Hapus Akun Permanen (UU PDP) */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-rose-200 animate-bounce-in">
+            <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-600 mx-auto flex items-center justify-center text-2xl mb-3 shadow-inner">
+              🚨
+            </div>
+
+            <h3 className="font-black text-slate-900 text-base text-center">
+              Hapus Akun Permanen?
+            </h3>
+
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed text-center">
+              Sesuai dengan <strong>UU Pelindungan Data Pribadi No. 27/2022</strong>, seluruh riwayat transaksi,
+              batas anggaran, foto struk di cloud, dan profil akun Anda akan dihapus selamanya. Tindakan ini <strong>tidak dapat dibatalkan</strong>.
+            </p>
+
+            <div className="mt-4 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                Ketik kata <span className="text-rose-600 font-black">HAPUS</span> untuk mengonfirmasi:
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmationText}
+                onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                placeholder="Ketik HAPUS"
+                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-center text-rose-600 tracking-widest focus:outline-none focus:ring-2 focus:ring-rose-500 uppercase"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex gap-2.5 mt-5">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeletingAccount}
+                className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmationText.trim() !== 'HAPUS' || isDeletingAccount}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                {isDeletingAccount ? 'Menghapus...' : 'Hapus Akun'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -10,15 +10,25 @@ export default function Register() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [agreedTerms, setAgreedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!agreedTerms) {
+      setError('Anda harus menyetujui Kebijakan Privasi dan Syarat & Ketentuan untuk melanjutkan.');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      await register(email, password, fullName);
+      await register(email, password, fullName, {
+        terms_accepted: true,
+        terms_accepted_at: new Date().toISOString(),
+        terms_version: 'v1.0-sep2026',
+        privacy_policy_version: 'v1.0-sep2026'
+      });
       analytics.signup('email');
       // Pindahkan user ke login setelah sukses
       navigate('/login', { state: { message: 'Pendaftaran sukses! Silakan konfirmasi email Anda atau langsung login.' } });
@@ -86,10 +96,32 @@ export default function Register() {
               />
             </div>
 
+            <div className="flex items-start gap-2.5 pt-1">
+              <input
+                id="agreed-terms"
+                type="checkbox"
+                checked={agreedTerms}
+                onChange={(e) => setAgreedTerms(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded text-primary focus:ring-primary/20 border-gray-300 cursor-pointer"
+                required
+              />
+              <label htmlFor="agreed-terms" className="text-xs text-gray-600 leading-relaxed cursor-pointer select-none">
+                Saya menyetujui{' '}
+                <Link to="/kebijakan-privasi" target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">
+                  Kebijakan Privasi
+                </Link>{' '}
+                dan{' '}
+                <Link to="/syarat-ketentuan" target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">
+                  Syarat & Ketentuan
+                </Link>{' '}
+                StrukKu (UU PDP No. 27/2022).
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={loading}
-              className={`btn-primary mt-2 flex items-center justify-center gap-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+              disabled={loading || !agreedTerms}
+              className={`btn-primary mt-2 flex items-center justify-center gap-2 ${loading || !agreedTerms ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               {loading ? 'Mendaftarkan...' : 'Daftar Sekarang ✨'}
             </button>
