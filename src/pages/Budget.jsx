@@ -165,8 +165,8 @@ export default function Budget() {
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="mt-4 flex bg-white/15 rounded-2xl p-1 gap-1 overflow-x-auto no-scrollbar">
+        {/* Tab Navigation — Smooth horizontal scroll for mobile 360px */}
+        <div className="mt-4 flex bg-white/15 backdrop-blur-md rounded-2xl p-1 gap-1.5 overflow-x-auto no-scrollbar scroll-smooth overscroll-x-contain">
           {[
             { id: 'cycle', label: '🎯 Jatah Harian' },
             { id: 'simulation', label: '🧮 Simulasi Beli' },
@@ -176,7 +176,7 @@ export default function Budget() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-shrink-0 sm:flex-1 py-2 px-3 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              className={`flex-shrink-0 py-2 px-3.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all active:scale-95 ${
                 activeTab === tab.id
                   ? 'bg-white text-primary shadow-sm'
                   : 'text-white/70 hover:text-white'

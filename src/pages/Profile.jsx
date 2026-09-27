@@ -8,6 +8,20 @@ import { useToast } from '../context/ToastContext';
 import { uploadAvatarToStorage } from '../utils/imageProcess';
 import { FeedbackModal } from '../components/FeedbackForm';
 
+// Icon Chevron rapi untuk navigasi mobile modern
+function ChevronIcon({ className = 'text-gray-400' }) {
+  return (
+    <svg
+      className={`w-4 h-4 flex-shrink-0 transition-transform ${className}`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M9 5l7 7-7 7" />
+    </svg>
+  );
+}
+
 export default function Profile() {
   const { user, logout } = useAuth();
   const { selectedMonthName, selectedYear, stats, resetSelectedMonth } = useExpenses();
@@ -255,13 +269,13 @@ export default function Profile() {
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploadingPhoto}
-            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 active:scale-[0.99] transition-all border border-gray-100 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>📷</span>
               {isUploadingPhoto ? 'Mengunggah Foto...' : 'Ganti Foto Profil'}
             </span>
-            <span className="text-gray-400 font-normal">Pilih Foto →</span>
+            <ChevronIcon />
           </button>
 
           {/* 1. Ubah Nama */}
@@ -270,72 +284,72 @@ export default function Profile() {
               setNameInput(currentDisplayName);
               setIsEditingName(true);
             }}
-            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 active:scale-[0.99] transition-all border border-gray-100 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>✏️</span>
               Ubah Nama Akun
             </span>
-            <span className="text-gray-400 font-normal">Edit →</span>
+            <ChevronIcon />
           </button>
 
-          {/* 1.5 Lihat Homepage & Panduan */}
+          {/* 1.5 Tombol Lihat Website */}
           <button
             onClick={() => navigate('/landing')}
-            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-blue-900 font-bold bg-blue-50/70 hover:bg-blue-100/70 transition-colors border border-blue-200/60 text-xs"
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-blue-900 font-bold bg-blue-50/70 hover:bg-blue-100/70 active:scale-[0.99] transition-all border border-blue-200/60 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>🌐</span>
-              Lihat Homepage & Panduan Fitur
+              Lihat Website
             </span>
-            <span className="text-blue-600 font-bold">Buka →</span>
+            <ChevronIcon className="text-blue-600" />
           </button>
 
           {/* 2. Budget Bulanan */}
           <button
             onClick={() => navigate('/budget')}
-            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 active:scale-[0.99] transition-all border border-gray-100 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>🎯</span>
               Budget Bulanan & Jatah Harian
             </span>
-            <span className="text-gray-400">›</span>
+            <ChevronIcon />
           </button>
 
           {/* 3. Riwayat & Export Excel */}
           <button
             onClick={() => navigate('/history')}
-            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 active:scale-[0.99] transition-all border border-gray-100 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>📊</span>
               Riwayat Transaksi & Export Excel
             </span>
-            <span className="text-gray-400">›</span>
+            <ChevronIcon />
           </button>
 
           {/* Fitur Sosial / Split Bill */}
           <button
             onClick={() => navigate('/social')}
-            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 active:scale-[0.99] transition-all border border-gray-100 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>🍕</span>
               Patungan & Split Bill (Satu Scan)
             </span>
-            <span className="text-gray-400">›</span>
+            <ChevronIcon />
           </button>
 
           <button
             onClick={() => navigate('/hemat')}
-            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 active:scale-[0.99] transition-all border border-gray-100 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>💡</span>
               Tantangan Hemat & Resep Masak
             </span>
-            <span className="text-gray-400">→</span>
+            <ChevronIcon />
           </button>
         </div>
 
@@ -367,13 +381,13 @@ export default function Profile() {
           {/* Formulir Masukan (in-app) */}
           <button
             onClick={() => setShowFeedback(true)}
-            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-blue-900 font-bold bg-blue-50/70 hover:bg-blue-100/70 transition-colors border border-blue-200/60 text-xs"
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-blue-900 font-bold bg-blue-50/70 hover:bg-blue-100/70 active:scale-[0.99] transition-all border border-blue-200/60 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>📝</span>
               Kirim Masukan atau Keluhan
             </span>
-            <span className="text-blue-600 font-bold">›</span>
+            <ChevronIcon className="text-blue-600" />
           </button>
 
           {/* WhatsApp Support — dibaca dari env */}
@@ -388,7 +402,7 @@ export default function Profile() {
                 <span className="text-base">💬</span>
                 <span>Chat WhatsApp Tim StrukKu</span>
               </span>
-              <span className="text-emerald-700">›</span>
+              <ChevronIcon className="text-emerald-700" />
             </a>
           )}
         </div>
@@ -398,23 +412,23 @@ export default function Profile() {
           <h2 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3">Informasi</h2>
           <Link
             to="/kebijakan-privasi"
-            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 active:scale-[0.99] transition-all border border-gray-100 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>🔒</span>
               Kebijakan Privasi
             </span>
-            <span className="text-gray-400">›</span>
+            <ChevronIcon />
           </Link>
           <Link
             to="/syarat-ketentuan"
-            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 active:scale-[0.99] transition-all border border-gray-100 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>📋</span>
               Syarat & Ketentuan
             </span>
-            <span className="text-gray-400">›</span>
+            <ChevronIcon />
           </Link>
         </div>
 
@@ -429,7 +443,7 @@ export default function Profile() {
               <span className="text-base">🚪</span>
               Keluar Akun (Logout)
             </span>
-            <span>→</span>
+            <ChevronIcon className="text-danger" />
           </button>
         </div>
         

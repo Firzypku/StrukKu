@@ -217,6 +217,7 @@ export const useExpenses = () => {
       count: expenses.length,
       thisMonthCount: selectedMonthExpenses.length,
       topCategory: byCat[0]?.name || null,
+      topCategoryAmount: byCat[0]?.value || 0,
       selectedMonthName: MONTH_NAMES[selectedMonth],
       selectedMonthShort: MONTH_SHORT_NAMES[selectedMonth],
       selectedYear,

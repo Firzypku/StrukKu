@@ -398,8 +398,8 @@ export default function Social() {
           <h1 className="text-xl font-black text-white tracking-tight mb-1">Sosial & Patungan</h1>
           <p className="text-white/70 text-xs">Satu Scan, Semua Tercatat tanpa ribet e-wallet 🤝</p>
 
-          {/* Tab Selector */}
-          <div className="mt-4 flex bg-white/15 rounded-2xl p-1 gap-1">
+          {/* Tab Selector — Smooth horizontal scroll for mobile 360px */}
+          <div className="mt-4 flex bg-white/15 backdrop-blur-md rounded-2xl p-1 gap-1.5 overflow-x-auto no-scrollbar scroll-smooth overscroll-x-contain">
             {[
               { id: 'itemized', label: '🍕 Split per Item' },
               { id: 'quick', label: '⚡ Bagi Rata' },
@@ -409,7 +409,7 @@ export default function Social() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`flex-shrink-0 py-2 px-3.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all active:scale-95 ${
                   activeTab === tab.id
                     ? 'bg-white text-primary shadow-sm'
                     : 'text-white/70 hover:text-white'

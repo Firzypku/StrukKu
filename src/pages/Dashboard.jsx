@@ -239,19 +239,21 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Cards — Rata/hari dalam rupiah penuh (Rp1.852) */}
+      {/* Stats Cards — Rata/hari dalam rupiah penuh & Top Kategori lengkap nominal */}
       <div className="px-3 sm:px-4 -mt-6 relative z-10 grid grid-cols-3 gap-2 sm:gap-3 mb-4">
         {[
           {
             icon: '📋',
             label: 'Transaksi',
             value: `${stats.thisMonthCount}x`,
+            subValue: null,
             gradient: 'from-blue-600 to-indigo-600',
           },
           {
             icon: '🏆',
             label: 'Top Kategori',
             value: stats.topCategory ? `${CATEGORY_ICONS[stats.topCategory] || '💳'} ${stats.topCategory}` : '—',
+            subValue: stats.topCategory && stats.topCategoryAmount ? formatRupiah(stats.topCategoryAmount) : null,
             gradient: 'from-emerald-500 to-teal-600',
           },
           {
@@ -259,15 +261,23 @@ export default function Dashboard() {
             label: 'Rata/hari',
             // Menampilkan rupiah penuh tanpa singkatan K (misal Rp1.852)
             value: prediction?.dailyAvg ? formatRupiah(prediction.dailyAvg) : '—',
+            subValue: null,
             gradient: 'from-violet-600 to-purple-600',
           },
         ].map((item) => (
-          <div key={item.label} className="bg-white rounded-2xl p-2 sm:p-3 shadow-md border border-slate-100 text-center">
+          <div key={item.label} className="bg-white rounded-2xl p-2 sm:p-3 shadow-md border border-slate-100 text-center flex flex-col justify-between">
             <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center text-sm sm:text-base text-white mx-auto mb-1 sm:mb-1.5 shadow-sm`}>
               {item.icon}
             </div>
-            <p className="text-[10px] sm:text-[11px] text-slate-400 font-semibold">{item.label}</p>
-            <p className="text-xs sm:text-sm font-black text-slate-800 mt-0.5 truncate">{item.value}</p>
+            <div>
+              <p className="text-[10px] sm:text-[11px] text-slate-400 font-semibold">{item.label}</p>
+              <p className="text-xs sm:text-sm font-black text-slate-800 mt-0.5 truncate">{item.value}</p>
+              {item.subValue && (
+                <p className="text-[10px] sm:text-[11px] font-bold text-emerald-600 truncate mt-0.5">
+                  {item.subValue}
+                </p>
+              )}
+            </div>
           </div>
         ))}
       </div>
