@@ -17,6 +17,7 @@ import {
 } from '../utils/pocketMoney';
 import ProgressBar from '../components/ProgressBar';
 import { ExpensePieChart, CategoryLegend } from '../components/Chart';
+import BalanceAdjustModal from '../components/BalanceAdjustModal';
 
 const QUICK_BUDGETS = [500000, 1000000, 1500000, 2000000, 2500000, 3000000];
 
@@ -30,6 +31,7 @@ export default function Budget() {
 
   // Allowance Cycle State (Sinkron ke Supabase allowances & localStorage)
   const [allowanceConfig, setAllowanceConfig] = useState(getAllowanceConfig);
+  const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [editAllowance, setEditAllowance] = useState(false);
   const [inputAllowanceAmount, setInputAllowanceAmount] = useState(allowanceConfig.monthlyAmount.toString());
   const [inputPayDay, setInputPayDay] = useState(allowanceConfig.payDay.toString());
@@ -169,7 +171,7 @@ export default function Budget() {
             { id: 'cycle', label: '🎯 Jatah Harian' },
             { id: 'simulation', label: '🧮 Simulasi Beli' },
             { id: 'parent', label: '👨‍👩‍👦 Rekap Ortu' },
-            { id: 'standard', label: '⚙️ Budget Limit' },
+            { id: 'standard', label: '⚙️ Batas Belanja' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -198,9 +200,12 @@ export default function Budget() {
                 <span className="text-xs uppercase tracking-wider text-white/75 font-semibold">
                   Jatah Harian Aman Hari Ini
                 </span>
-                <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-bold">
-                  Sisa {cycleData.daysLeft} Hari
-                </span>
+                <button
+                  onClick={() => setShowAdjustModal(true)}
+                  className="text-[11px] bg-white/20 hover:bg-white/30 text-white font-bold px-2.5 py-1 rounded-xl border border-white/25 active:scale-95 transition-all flex items-center gap-1"
+                >
+                  <span>Sesuaikan Saldo</span> ⚙️
+                </button>
               </div>
 
               <p className="text-4xl font-black mt-1">
@@ -210,12 +215,12 @@ export default function Budget() {
 
               <div className="mt-4 pt-3 border-t border-white/20 grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <span className="text-white/70 block">Sisa Uang Saku:</span>
+                  <span className="text-white/70 block">Sisa Uang Saat Ini:</span>
                   <span className="font-extrabold text-sm">{formatRupiah(cycleData.remainingAllowance)}</span>
                 </div>
                 <div>
                   <span className="text-white/70 block">Kiriman Berikutnya:</span>
-                  <span className="font-extrabold text-sm">{cycleData.nextPayDate}</span>
+                  <span className="font-extrabold text-sm">{cycleData.nextPayDate} ({cycleData.daysLeft} hari)</span>
                 </div>
               </div>
             </div>
@@ -639,6 +644,13 @@ export default function Budget() {
           </div>
         )}
       </div>
+
+      {/* Modal Sesuaikan Saldo */}
+      <BalanceAdjustModal
+        isOpen={showAdjustModal}
+        onClose={() => setShowAdjustModal(false)}
+        onSaved={(newCfg) => setAllowanceConfig(newCfg)}
+      />
     </div>
   );
 }

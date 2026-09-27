@@ -1,9 +1,56 @@
 /**
  * challenges.js — Perhitungan otomatis progress tantangan hemat mahasiswa
  * Berdasarkan data riil pengeluaran (expenses) dan batas anggaran (monthly_limit).
+ * 
+ * Aturan Streak:
+ * Hari tanpa catatan TIDAK dihitung sukses.
+ * Streak hanya dihitung pada hari ketika pengguna mencatat minimal 1 transaksi
+ * ATAU menekan tombol "Hari ini aku tidak belanja" (check-in no-spend day).
  */
 
 import { todayLocal, toLocalDateString } from './date';
+
+const NO_SPEND_STORAGE_KEY = 'strukku_no_spend_days';
+
+/**
+ * Mengambil daftar tanggal "Hari ini aku tidak belanja" yang telah dicatat
+ * @returns {string[]} array format YYYY-MM-DD
+ */
+export const getNoSpendDays = () => {
+  try {
+    const raw = localStorage.getItem(NO_SPEND_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * Mencatat tanggal hari ini (atau tanggal tertentu) sebagai hari hemat tanpa belanja
+ * @param {string} dateStr - YYYY-MM-DD (default hari ini)
+ * @returns {boolean} true jika baru dicatat, false jika sudah pernah dicatat
+ */
+export const markNoSpendDay = (dateStr = todayLocal()) => {
+  try {
+    const list = getNoSpendDays();
+    if (!list.includes(dateStr)) {
+      list.push(dateStr);
+      localStorage.setItem(NO_SPEND_STORAGE_KEY, JSON.stringify(list));
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Cek apakah tanggal tertentu sudah dicatat sebagai hari tanpa belanja
+ */
+export const isNoSpendDay = (dateStr = todayLocal()) => {
+  const list = getNoSpendDays();
+  return list.includes(dateStr);
+};
 
 // Kata kunci belanja bahan masakan / masak sendiri (mudah ditambah/diubah)
 export const COOKING_KEYWORDS = [
@@ -21,10 +68,15 @@ export const isCookingExpense = (expense) => {
 };
 
 /**
- * Hitung streak hari tanpa jajan (kategori Makanan/Minuman atau jajan)
+ * Hitung streak hari tanpa jajan
+ * Syarat sukses per hari:
+ * - Pengguna mencatat "Hari ini aku tidak belanja", ATAU
+ * - Pengguna mencatat transaksi, dan TIDAK ADA transaksi berkategori Makanan/Minuman/Jajan.
+ * Hari tanpa catatan APAPUN dianggap absen (streak terputus).
  */
 export const calculateNoSnackStreak = (expenses) => {
   const today = new Date();
+  const noSpendDays = getNoSpendDays();
   let streak = 0;
 
   for (let i = 0; i < 30; i++) {
@@ -33,6 +85,25 @@ export const calculateNoSnackStreak = (expenses) => {
     const dateStr = toLocalDateString(d);
 
     const dayExpenses = expenses.filter((e) => e.date === dateStr);
+    const hasExpenses = dayExpenses.length > 0;
+    const checkedInNoSpend = noSpendDays.includes(dateStr);
+
+    // Jika tidak ada transaksi DAN tidak check-in no-spend
+    if (!hasExpenses && !checkedInNoSpend) {
+      // Jika ini hari ini (i === 0) dan belum ada catatan hari ini, jangan langsung putus streak kemarin
+      if (i === 0) {
+        continue;
+      }
+      break; // Hari kosong tanpa catatan memutus streak
+    }
+
+    // Jika pengguna check-in "tidak belanja hari ini", hari ini sukses
+    if (checkedInNoSpend && !hasExpenses) {
+      streak++;
+      continue;
+    }
+
+    // Jika ada pengeluaran, cek apakah ada jajan/makanan/minuman
     const hasSnack = dayExpenses.some((e) => {
       const cat = (e.category || '').toLowerCase();
       const title = (e.title || '').toLowerCase();
@@ -40,17 +111,19 @@ export const calculateNoSnackStreak = (expenses) => {
         cat === 'makanan' ||
         cat === 'minuman' ||
         title.includes('kopi') ||
+        title.includes('coffee') ||
         title.includes('boba') ||
         title.includes('snack') ||
-        title.includes('jajan')
+        title.includes('jajan') ||
+        title.includes('kafe') ||
+        title.includes('cafe')
       );
     });
 
     if (!hasSnack) {
       streak++;
     } else {
-      // Streak terputus
-      if (i > 0) break;
+      break; // Ada jajan, streak putus
     }
   }
 
@@ -59,7 +132,6 @@ export const calculateNoSnackStreak = (expenses) => {
 
 /**
  * Hitung penghematan vs bulan lalu pada periode tanggal yang sama
- * Misal hari ini tgl 24: membandingkan tgl 1-24 bulan ini vs tgl 1-24 bulan lalu
  */
 export const calculateSavingVsLastMonth = (expenses) => {
   const now = new Date();
@@ -121,6 +193,10 @@ export const countCookingThisMonth = (expenses) => {
 
 /**
  * Hitung hari berturut-turut di bawah budget harian (Budget Master)
+ * Syarat sukses per hari:
+ * - Pengguna mencatat "Hari ini aku tidak belanja" (Rp 0 <= dailyBudget), ATAU
+ * - Pengguna mencatat transaksi dan total hari tersebut <= dailyBudget.
+ * Hari tanpa catatan APAPUN dianggap tidak ada aktivitas (streak putus).
  */
 export const calculateBudgetMasterStreak = (expenses, monthlyBudget) => {
   if (!monthlyBudget || monthlyBudget <= 0) return 0;
@@ -128,6 +204,7 @@ export const calculateBudgetMasterStreak = (expenses, monthlyBudget) => {
   const now = new Date();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const dailyBudget = monthlyBudget / daysInMonth;
+  const noSpendDays = getNoSpendDays();
 
   let streak = 0;
   for (let i = 0; i < 30; i++) {
@@ -135,14 +212,23 @@ export const calculateBudgetMasterStreak = (expenses, monthlyBudget) => {
     d.setDate(now.getDate() - i);
     const dateStr = toLocalDateString(d);
 
-    const dayTotal = expenses
-      .filter((e) => e.date === dateStr)
-      .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+    const dayExpenses = expenses.filter((e) => e.date === dateStr);
+    const hasExpenses = dayExpenses.length > 0;
+    const checkedInNoSpend = noSpendDays.includes(dateStr);
+
+    if (!hasExpenses && !checkedInNoSpend) {
+      if (i === 0) {
+        continue;
+      }
+      break; // Hari kosong tanpa catatan memutus streak
+    }
+
+    const dayTotal = dayExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
 
     if (dayTotal <= dailyBudget) {
       streak++;
     } else {
-      if (i > 0) break;
+      break;
     }
   }
 
@@ -162,13 +248,13 @@ export const getAutomaticChallenges = (expenses = [], monthlyBudget = 0) => {
     {
       id: 'ch_1',
       title: 'Tidak Jajan 3 Hari',
-      description: 'Pertahankan streak tidak jajan selama 3 hari berturut-turut',
+      description: 'Pertahankan streak tidak jajan dengan check-in tanpa belanja atau tanpa beli camilan/kopi',
       target: 3,
       progress: Math.min(noSnackDays, 3),
       unit: 'hari',
       badge: '🧘',
       completed: noSnackDays >= 3,
-      metricLabel: `${noSnackDays}/3 hari streak`,
+      metricLabel: `${noSnackDays}/3 hari aktif`,
     },
     {
       id: 'ch_2',

@@ -1,5 +1,6 @@
 /**
- * Dashboard.jsx — Halaman utama dengan ringkasan pengeluaran & navigasi bulan
+ * Dashboard.jsx — Halaman utama dengan ringkasan Jatah Harian Aman, sisa uang riil,
+ * navigasi bulan, batas belanja bulanan sekunder, dan chart aktivitas 7 hari.
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -7,18 +8,29 @@ import { useNavigate } from 'react-router-dom';
 import { useExpenses } from '../hooks/useExpenses';
 import { useBudget } from '../hooks/useBudget';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { predictEndOfMonth, generateTip, formatRupiah } from '../utils/prediction';
 import { CATEGORY_ICONS } from '../utils/ocr';
 import { toLocalDateString, todayLocal } from '../utils/date';
-import ProgressBar from '../components/ProgressBar';
+import {
+  getAllowanceConfig,
+  fetchAllowanceConfigFromSupabase,
+  calculateAllowanceCycle,
+} from '../utils/pocketMoney';
+import { markNoSpendDay, isNoSpendDay } from '../utils/challenges';
 import { ExpenseBarChart } from '../components/Chart';
+import BalanceAdjustModal from '../components/BalanceAdjustModal';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const toast = useToast();
+  const { user } = useAuth();
+
   const {
     thisMonth,
     stats,
     expenses,
+    allExpenses,
     selectedYear,
     selectedMonth,
     selectedMonthName,
@@ -29,30 +41,62 @@ export default function Dashboard() {
   } = useExpenses();
 
   const { budget, getStatus } = useBudget();
-  const { user } = useAuth();
-  
+
+  // Konfigurasi siklus uang saku & jatah harian
+  const [allowanceConfig, setAllowanceConfig] = useState(getAllowanceConfig);
+  const [showAdjustBalanceModal, setShowAdjustBalanceModal] = useState(false);
+  const [noSpendToday, setNoSpendToday] = useState(isNoSpendDay());
+
+  // Ambil konfigurasi uang saku dari Supabase
+  useEffect(() => {
+    if (user?.id) {
+      fetchAllowanceConfigFromSupabase(user.id).then((cfg) => {
+        if (cfg) setAllowanceConfig(cfg);
+      });
+    }
+  }, [user?.id]);
+
+  // Hitung siklus uang saku dinamis
+  const cycleData = useMemo(() => {
+    return calculateAllowanceCycle(allExpenses || expenses, allowanceConfig);
+  }, [allExpenses, expenses, allowanceConfig]);
+
   const [tip, setTip] = useState(null);
   const [prediction, setPrediction] = useState(null);
 
   useEffect(() => {
-    setTip(generateTip(thisMonth));
+    setTip(generateTip(thisMonth, cycleData.safeDailySpend));
     setPrediction(predictEndOfMonth(thisMonth));
-  }, [thisMonth]);
+  }, [thisMonth, cycleData.safeDailySpend]);
 
   const budgetStatus = getStatus(stats.thisMonthTotal);
 
-  // Siapkan data chart: 7 hari terakhir jika bulan sekarang, atau 4 minggu jika bulan lampau
+  // Check-in "Hari ini aku tidak belanja"
+  const handleCheckInNoSpend = () => {
+    const today = todayLocal();
+    const marked = markNoSpendDay(today);
+    setNoSpendToday(true);
+    if (marked) {
+      toast.success('Keren! Hari hemat tanpa jajan tercatat 🧘 Streak bertambah!');
+    } else {
+      toast.info('Kamu sudah check-in tanpa belanja hari ini.');
+    }
+  };
+
+  // Siapkan data chart: benar-benar 7 hari terakhir berakhir hari ini (menggunakan allExpenses)
   const chartData = useMemo(() => {
     if (isCurrentMonth) {
       const result = [];
+      const sourceExpenses = allExpenses && allExpenses.length > 0 ? allExpenses : expenses;
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
         const dateStr = toLocalDateString(d);
-        const dayExpenses = thisMonth.filter((e) => e.date === dateStr);
+        const dayExpenses = sourceExpenses.filter((e) => e.date === dateStr);
         const total = dayExpenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+        const isToday = i === 0;
         result.push({
-          name: d.toLocaleDateString('id-ID', { weekday: 'short' }),
+          name: isToday ? 'Hari Ini' : d.toLocaleDateString('id-ID', { weekday: 'short' }),
           value: total,
         });
       }
@@ -75,7 +119,7 @@ export default function Dashboard() {
       });
       return weeks;
     }
-  }, [thisMonth, isCurrentMonth, selectedYear, selectedMonth]);
+  }, [thisMonth, isCurrentMonth, allExpenses, expenses, selectedYear, selectedMonth]);
 
   const greetingHour = new Date().getHours();
   const greeting =
@@ -84,13 +128,17 @@ export default function Dashboard() {
   const userAvatarUrl =
     user?.user_metadata?.avatar_url || (user?.id ? localStorage.getItem(`user_avatar_${user.id}`) : null);
 
+  // Kriteria prediksi: minimal 7 hari data dan 5 transaksi
+  const hasEnoughPredictionData = isCurrentMonth && thisMonth.length >= 5 && (prediction?.daysPassed || 0) >= 7;
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-28">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-[#0B1E36] via-[#123E6B] to-[#1E40AF] px-4 pt-12 pb-16 relative overflow-hidden shadow-lg">
+      {/* Header Utama dengan Jatah Harian sebagai Angka Utama */}
+      <div className="bg-gradient-to-br from-[#0B1E36] via-[#123E6B] to-[#1E40AF] px-4 pt-12 pb-14 relative overflow-hidden shadow-lg">
         <div className="absolute top-0 right-0 w-48 h-48 bg-blue-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-40 h-40 bg-emerald-400/10 rounded-full -translate-x-1/3 translate-y-1/3 blur-2xl pointer-events-none" />
 
+        {/* Profil & Navigasi Bulan */}
         <div className="relative z-10 flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <button
@@ -136,110 +184,123 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Total pengeluaran bulan aktif */}
-        <div className="relative z-10">
+        {/* JATAH HARIAN AMAN — Angka Utama Beranda */}
+        <div className="relative z-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-4 sm:p-5 text-white shadow-inner">
           <div className="flex items-center justify-between">
-            <p className="text-white/70 text-xs font-semibold uppercase tracking-wider">
-              {isCurrentMonth ? 'Total Pengeluaran Bulan Ini' : `Pengeluaran ${selectedMonthName} ${selectedYear}`}
-            </p>
-            {!isCurrentMonth && (
-              <button
-                onClick={goToCurrentMonth}
-                className="text-[10px] bg-emerald-400 text-slate-950 font-bold px-2.5 py-0.5 rounded-full shadow-sm hover:bg-emerald-300 transition-all active:scale-95"
-              >
-                Ke Bulan Ini ⚡
-              </button>
-            )}
+            <span className="text-xs uppercase tracking-wider text-white/80 font-bold flex items-center gap-1.5">
+              <span>🎯</span>
+              <span>Jatah Harian Aman Hari Ini</span>
+            </span>
+            <button
+              onClick={() => setShowAdjustBalanceModal(true)}
+              className="text-[11px] bg-white/20 hover:bg-white/30 text-white font-bold px-2.5 py-1 rounded-xl border border-white/25 active:scale-95 transition-all flex items-center gap-1"
+              title="Sesuaikan sisa uang dan tanggal kiriman"
+            >
+              <span>Sesuaikan Saldo</span> ⚙️
+            </button>
           </div>
-          <p className="text-4xl font-black text-white mt-1 tracking-tight">{formatRupiah(stats.thisMonthTotal)}</p>
+
+          <p className="text-3xl sm:text-4xl font-black text-white mt-1.5 tracking-tight">
+            {formatRupiah(cycleData.safeDailySpend)}
+            <span className="text-sm font-normal text-white/70"> /hari</span>
+          </p>
+
+          <p className="text-xs text-blue-100/90 mt-1 font-medium leading-relaxed">
+            Sisa uang: <strong>{formatRupiah(cycleData.remainingAllowance)}</strong> • Kiriman dalam {cycleData.daysLeft} hari ({cycleData.nextPayDate})
+          </p>
+
+          {/* Sekunder: Pengeluaran Bulan Ini */}
+          <div className="mt-3.5 pt-2.5 border-t border-white/15 flex items-center justify-between text-xs text-white/80">
+            <span>Terpakai {isCurrentMonth ? 'Bulan Ini' : selectedMonthName}:</span>
+            <span className="font-bold text-white text-sm">{formatRupiah(stats.thisMonthTotal)}</span>
+          </div>
+
+          {/* Sekunder: Budget Limit Bulanan */}
           {budget > 0 && (
-            <p className={`text-sm mt-1.5 font-semibold ${budgetStatus.status === 'safe' ? 'text-emerald-300' : budgetStatus.status === 'warning' ? 'text-amber-300' : 'text-rose-300'}`}>
-              {budgetStatus.status === 'danger' ? `⚠️ Over budget ${formatRupiah(Math.abs(budgetStatus.remaining))}` :
-               budgetStatus.status === 'warning' ? `⚡ Hampir habis, sisa ${formatRupiah(budgetStatus.remaining)}` :
-               `✅ Aman, sisa ${formatRupiah(budgetStatus.remaining)}`}
-            </p>
+            <div className="mt-2.5 pt-2 border-t border-white/10">
+              <div className="flex justify-between items-center text-[11px] text-white/80 mb-1">
+                <span>Batas belanja bulanan ({formatRupiah(budget)}):</span>
+                <span className={budgetStatus.status === 'danger' ? 'text-rose-300 font-bold' : 'text-emerald-300 font-semibold'}>
+                  {budgetStatus.status === 'danger'
+                    ? `Over ${formatRupiah(Math.abs(budgetStatus.remaining))}`
+                    : `Sisa ${formatRupiah(budgetStatus.remaining)}`}
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    budgetStatus.status === 'danger' ? 'bg-rose-400' : 'bg-emerald-400'
+                  }`}
+                  style={{ width: `${Math.min(budgetStatus.percent, 100)}%` }}
+                />
+              </div>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="px-3 sm:px-4 -mt-8 relative z-10 grid grid-cols-3 gap-2 sm:gap-3 mb-4">
+      {/* Stats Cards — Rata/hari dalam rupiah penuh (Rp1.852) */}
+      <div className="px-3 sm:px-4 -mt-6 relative z-10 grid grid-cols-3 gap-2 sm:gap-3 mb-4">
         {[
           {
             icon: '📋',
             label: 'Transaksi',
-            value: stats.thisMonthCount,
+            value: `${stats.thisMonthCount}x`,
             gradient: 'from-blue-600 to-indigo-600',
           },
           {
             icon: '🏆',
             label: 'Top Kategori',
-            value: stats.topCategory ? CATEGORY_ICONS[stats.topCategory] || '💳' : '—',
+            value: stats.topCategory ? `${CATEGORY_ICONS[stats.topCategory] || '💳'} ${stats.topCategory}` : '—',
             gradient: 'from-emerald-500 to-teal-600',
           },
           {
             icon: '📅',
             label: 'Rata/hari',
-            value: prediction?.dailyAvg ? `${(prediction.dailyAvg / 1000).toFixed(0)}K` : '—',
+            // Menampilkan rupiah penuh tanpa singkatan K (misal Rp1.852)
+            value: prediction?.dailyAvg ? formatRupiah(prediction.dailyAvg) : '—',
             gradient: 'from-violet-600 to-purple-600',
           },
         ].map((item) => (
           <div key={item.label} className="bg-white rounded-2xl p-2 sm:p-3 shadow-md border border-slate-100 text-center">
-            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center text-sm sm:text-base text-white mx-auto mb-1.5 sm:mb-2 shadow-sm`}>
+            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center text-sm sm:text-base text-white mx-auto mb-1 sm:mb-1.5 shadow-sm`}>
               {item.icon}
             </div>
             <p className="text-[10px] sm:text-[11px] text-slate-400 font-semibold">{item.label}</p>
-            <p className="text-xs sm:text-base font-black text-slate-800 mt-0.5 truncate">{item.value}</p>
+            <p className="text-xs sm:text-sm font-black text-slate-800 mt-0.5 truncate">{item.value}</p>
           </div>
         ))}
       </div>
 
       <div className="px-4 space-y-4">
-        {/* Fintech Startup Promo / Ad Showcase Banner */}
-        <div className="rounded-2xl overflow-hidden shadow-md border border-blue-200/80 bg-white">
-          <div className="relative h-28 w-full overflow-hidden bg-slate-950">
-            <img
-              src="/images/fintech-banner.jpg"
-              alt="Promo StrukKu PWA"
-              className="w-full h-full object-cover opacity-90 hover:scale-105 transition-transform duration-700"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent flex items-end p-3">
-              <span className="text-[10px] font-black uppercase tracking-wider text-blue-300 bg-blue-900/60 border border-blue-400/30 px-2 py-0.5 rounded-full">
-                ✨ FITUR STARTUP STRUKKU
-              </span>
+        {/* Banner Check-in: "Hari ini aku tidak belanja" */}
+        {isCurrentMonth && (
+          <div className="bg-emerald-50 border border-emerald-200/80 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              <span className="text-2xl">{noSpendToday ? '🧘' : '🍃'}</span>
+              <div>
+                <p className="text-xs font-bold text-emerald-950">
+                  {noSpendToday ? 'Hari Hemat Tercatat!' : 'Tidak jajan hari ini?'}
+                </p>
+                <p className="text-[11px] text-emerald-700">
+                  {noSpendToday
+                    ? 'Streak hemat bertambah. Pertahankan!'
+                    : 'Check-in untuk menambah streak tantangan hematmu.'}
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="p-3.5 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold text-slate-900">Jelajahi Homepage Baru StrukKu</p>
-              <p className="text-[10px] text-slate-500 mt-0.5">Panduan visual 3D, fitur OCR, dan split bill kosan.</p>
-            </div>
-            <button
-              onClick={() => navigate('/landing')}
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-sm transition-all whitespace-nowrap"
-            >
-              Lihat →
-            </button>
-          </div>
-        </div>
-
-        {/* Budget Progress */}
-        {budget > 0 && (
-          <div className="bg-white rounded-2xl p-4 shadow-card border border-slate-100">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="font-bold text-slate-800 text-sm">Budget Bulanan</h2>
+            {!noSpendToday ? (
               <button
-                onClick={() => navigate('/budget')}
-                className="text-xs text-blue-600 font-bold hover:underline"
+                onClick={handleCheckInNoSpend}
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-sm whitespace-nowrap transition-all"
               >
-                Ubah →
+                Hari Ini Aku Tidak Belanja ✨
               </button>
-            </div>
-            <ProgressBar percent={budgetStatus.percent} />
-            <div className="flex justify-between mt-2">
-              <span className="text-xs text-slate-400">{formatRupiah(stats.thisMonthTotal)} digunakan</span>
-              <span className="text-xs text-slate-400">dari {formatRupiah(budget)}</span>
-            </div>
+            ) : (
+              <span className="text-[11px] bg-emerald-200/80 text-emerald-900 font-bold px-2.5 py-1 rounded-xl">
+                ✓ Tercatat
+              </span>
+            )}
           </div>
         )}
 
@@ -263,11 +324,11 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Chart Tren Pengeluaran */}
-        <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60">
+        {/* Chart Aktivitas 7 Hari Terakhir (Menggunakan data riil 7 hari berakhir hari ini) */}
+        <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60 overflow-hidden">
           <div className="flex justify-between items-center mb-3">
             <div>
-              <h2 className="font-bold text-gray-800">
+              <h2 className="font-bold text-gray-800 text-sm">
                 {isCurrentMonth ? 'Aktivitas 7 Hari Terakhir' : `Tren Mingguan ${selectedMonthName}`}
               </h2>
               <p className="text-[11px] text-gray-400">
@@ -281,8 +342,8 @@ export default function Dashboard() {
           <ExpenseBarChart data={chartData} height={160} />
         </div>
 
-        {/* Prediksi Akhir Bulan (atau Ringkasan jika bulan lampau) */}
-        {prediction && prediction.predicted > 0 && (
+        {/* Prediksi Akhir Bulan: Hanya tampil jika ada minimal 7 hari data DAN 5 transaksi */}
+        {hasEnoughPredictionData ? (
           <div className={`rounded-2xl p-4 shadow-card border ${
             prediction.predicted > budget && budget > 0
               ? 'bg-red-50 border-red-100'
@@ -291,23 +352,14 @@ export default function Dashboard() {
             <div className="flex items-start gap-3">
               <span className="text-2xl">{prediction.predicted > budget && budget > 0 ? '⚠️' : '🔮'}</span>
               <div>
-                <h3 className="font-bold text-gray-800 text-sm">
-                  {isCurrentMonth ? 'Prediksi Akhir Bulan' : `Rekapitulasi ${selectedMonthName}`}
-                </h3>
+                <h3 className="font-bold text-gray-800 text-sm">Prediksi Akhir Bulan</h3>
                 <p className="text-xl font-black text-primary mt-1">
-                  {formatRupiah(isCurrentMonth ? prediction.predicted : stats.thisMonthTotal)}
+                  {formatRupiah(prediction.predicted)}
                 </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {isCurrentMonth ? (
-                    <>
-                      Berdasarkan rata-rata {formatRupiah(prediction.dailyAvg)}/hari selama {prediction.daysPassed} hari
-                      {prediction.confidence === 'low' && ' (data masih sedikit)'}
-                    </>
-                  ) : (
-                    <>Total tercatat selama bulan {selectedMonthName} {selectedYear} ({thisMonth.length} transaksi)</>
-                  )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Berdasarkan rata-rata {formatRupiah(prediction.dailyAvg)}/hari selama {prediction.daysPassed} hari.
                 </p>
-                {prediction.predicted > budget && budget > 0 && isCurrentMonth && (
+                {prediction.predicted > budget && budget > 0 && (
                   <p className="text-xs text-danger font-semibold mt-1">
                     ❌ Diprediksi over budget {formatRupiah(prediction.predicted - budget)}
                   </p>
@@ -315,21 +367,40 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+        ) : (
+          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🔮</span>
+              <div>
+                <h3 className="font-bold text-slate-800 text-sm">
+                  Prediksi Pengeluaran Akhir Bulan
+                </h3>
+                <p className="text-xs text-slate-600 mt-1">
+                  Catat 5 transaksi untuk membuka prediksi
+                </p>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Saat ini tercatat {thisMonth.length}/5 transaksi di bulan ini.
+                </p>
+              </div>
+            </div>
+          </div>
         )}
 
-        {/* Tip Hemat */}
+        {/* Tip Hemat Dipersonalisasi dengan Jatah Harian Aktual */}
         {tip && (
-          <div className="bg-gradient-to-br from-success to-teal-400 rounded-2xl p-4 text-white">
-            <p className="text-xs text-white/60 font-semibold uppercase tracking-wide mb-2">💡 Tip Hemat Hari Ini</p>
+          <div className="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-2xl p-4 text-white shadow-md">
+            <p className="text-xs text-white/75 font-semibold uppercase tracking-wide mb-1.5">
+              💡 Tip Hemat Dipersonalisasi
+            </p>
             <div className="flex items-start gap-3">
               <span className="text-2xl">{tip.icon}</span>
-              <p className="text-sm font-semibold leading-relaxed">{tip.tip}</p>
+              <p className="text-xs sm:text-sm font-semibold leading-relaxed">{tip.tip}</p>
             </div>
             <button
               onClick={() => navigate('/hemat')}
-              className="mt-3 text-xs text-white/70 font-semibold underline underline-offset-2"
+              className="mt-3 text-xs text-white/80 font-semibold underline underline-offset-2"
             >
-              Lihat semua tips →
+              Buka Tantangan & Resep Hemat →
             </button>
           </div>
         )}
@@ -337,7 +408,7 @@ export default function Dashboard() {
         {/* Kategori Terbesar */}
         {stats.byCategory.length > 0 && (
           <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60">
-            <h2 className="font-bold text-gray-800 mb-3">
+            <h2 className="font-bold text-gray-800 text-sm mb-3">
               Pengeluaran per Kategori {selectedMonthName}
             </h2>
             <div className="flex flex-col gap-2">
@@ -346,10 +417,10 @@ export default function Dashboard() {
                 return (
                   <div key={cat.name}>
                     <div className="flex justify-between mb-1">
-                      <span className="text-sm text-gray-600 font-medium">
+                      <span className="text-xs font-medium text-gray-700">
                         {CATEGORY_ICONS[cat.name] || '💳'} {cat.name}
                       </span>
-                      <span className="text-sm font-bold text-gray-800">{formatRupiah(cat.value)}</span>
+                      <span className="text-xs font-bold text-gray-900">{formatRupiah(cat.value)}</span>
                     </div>
                     <div className="w-full h-2 bg-gray-100 rounded-full">
                       <div
@@ -371,7 +442,9 @@ export default function Dashboard() {
             <h3 className="font-bold text-gray-700 text-lg">
               Belum ada pengeluaran di {selectedMonthName} {selectedYear}
             </h3>
-            <p className="text-gray-400 text-sm mt-2 mb-5">Mulai scan struk atau input manual untuk memantau keuanganmu</p>
+            <p className="text-gray-400 text-sm mt-2 mb-5">
+              Mulai scan struk atau input manual untuk memantau keuanganmu
+            </p>
             <button
               onClick={() => navigate('/scan')}
               className="bg-primary text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-primary-dark active:scale-95 transition-all shadow-md"
@@ -381,6 +454,13 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Modal Sesuaikan Saldo Kapan Saja */}
+      <BalanceAdjustModal
+        isOpen={showAdjustBalanceModal}
+        onClose={() => setShowAdjustBalanceModal(false)}
+        onSaved={(newCfg) => setAllowanceConfig(newCfg)}
+      />
     </div>
   );
 }

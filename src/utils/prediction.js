@@ -79,18 +79,41 @@ const TIPS_DATABASE = {
   ],
   default: [
     { tip: '📊 Catat setiap pengeluaran agar lebih sadar pola belanjamu', icon: '📊' },
-    { tip: '🎯 Set budget harian Rp 50.000 dan coba patuhi seminggu', icon: '🎯' },
     { tip: '💡 Aturan 50-30-20: 50% kebutuhan, 30% keinginan, 20% tabungan', icon: '💡' },
-    { tip: '🏆 Bergabung tantangan hemat untuk motivasi lebih!', icon: '🏆' },
+    { tip: '🏆 Ikuti tantangan hemat untuk menjaga disiplin pengeluaran!', icon: '🏆' },
+    { tip: '🛡️ Evaluasi pengeluaran mingguan agar tidak kaget di akhir bulan', icon: '🛡️' },
   ],
 };
 
 /**
- * Generate tip berdasarkan pola pengeluaran
+ * Generate tip dipersonalisasi berdasarkan pola pengeluaran dan jatah harian aktual
  * @param {Array} expenses
+ * @param {number|null} safeDailySpend - Jatah harian aktual pengguna
  * @returns {Object} { tip, icon, category }
  */
-export const generateTip = (expenses) => {
+export const generateTip = (expenses, safeDailySpend = null) => {
+  // Jika ada jatah harian aktual, 50% peluang tampilkan tip jatah harian spesifik
+  if (safeDailySpend && safeDailySpend > 0 && Math.random() > 0.4) {
+    const dailyTips = [
+      {
+        tip: `🎯 Jatah harian amanmu saat ini ${formatRupiah(safeDailySpend)}/hari. Usahakan total belanja hari ini di bawah angka ini ya!`,
+        icon: '🎯',
+        category: 'Jatah Harian',
+      },
+      {
+        tip: `🛡️ Dengan jatah ${formatRupiah(safeDailySpend)}/hari, masak sendiri atau bawa bekal bisa bikin sisa uangmu awet sampai kiriman berikutnya.`,
+        icon: '💡',
+        category: 'Jatah Harian',
+      },
+      {
+        tip: `⚡ Batasi belanja harianmu di kisaran ${formatRupiah(safeDailySpend)}/hari agar tidak defisit sebelum tanggal kiriman.`,
+        icon: '⚖️',
+        category: 'Jatah Harian',
+      },
+    ];
+    return dailyTips[Math.floor(Math.random() * dailyTips.length)];
+  }
+
   if (!expenses || expenses.length === 0) {
     const tips = TIPS_DATABASE.default;
     const tip = tips[Math.floor(Math.random() * tips.length)];
@@ -108,15 +131,27 @@ export const generateTip = (expenses) => {
 };
 
 /**
- * Generate beberapa tips sekaligus
+ * Generate beberapa tips sekaligus dengan personalisasi jatah harian
  * @param {Array} expenses
  * @param {number} count
+ * @param {number|null} safeDailySpend
  * @returns {Array}
  */
-export const generateMultipleTips = (expenses, count = 3) => {
+export const generateMultipleTips = (expenses, count = 3, safeDailySpend = null) => {
   const tips = [];
-  const grouped = groupByCategory(expenses);
   const seenTips = new Set();
+
+  if (safeDailySpend && safeDailySpend > 0) {
+    const dailyTip = {
+      tip: `🎯 Jatah harian amanmu adalah ${formatRupiah(safeDailySpend)}/hari. Kendalikan belanja harian di batas ini agar cukup sampai kiriman berikutnya.`,
+      icon: '🎯',
+      category: 'Jatah Harian',
+    };
+    tips.push(dailyTip);
+    seenTips.add(dailyTip.tip);
+  }
+
+  const grouped = groupByCategory(expenses);
 
   // Tip dari kategori terbesar
   grouped.slice(0, 2).forEach(({ name }) => {

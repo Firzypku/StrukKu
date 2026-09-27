@@ -7,27 +7,46 @@ import { useNavigate } from 'react-router-dom';
 import { generateMultipleTips, RECIPE_RECOMMENDATIONS, formatRupiah } from '../utils/prediction';
 import { useExpenses } from '../hooks/useExpenses';
 import { useBudget } from '../hooks/useBudget';
-import { getAutomaticChallenges } from '../utils/challenges';
+import { useToast } from '../context/ToastContext';
+import { getAutomaticChallenges, markNoSpendDay, isNoSpendDay } from '../utils/challenges';
+import { getAllowanceConfig, calculateAllowanceCycle } from '../utils/pocketMoney';
 import { ChallengeProgressBar } from '../components/ProgressBar';
 import { TipCard } from '../components/FeatureCard';
 
 export default function Hemat() {
   const navigate = useNavigate();
-  const { expenses, thisMonth } = useExpenses();
+  const toast = useToast();
+  const { expenses, thisMonth, allExpenses } = useExpenses();
   const { budget } = useBudget();
   const [activeTab, setActiveTab] = useState('tantangan');
   const [showRecipe, setShowRecipe] = useState(null);
+  const [noSpendToday, setNoSpendToday] = useState(isNoSpendDay());
+
+  const allowanceConfig = useMemo(() => getAllowanceConfig(), []);
+  const cycleData = useMemo(() => {
+    return calculateAllowanceCycle(allExpenses || expenses, allowanceConfig);
+  }, [allExpenses, expenses, allowanceConfig]);
 
   // Perhitungan progres tantangan secara otomatis berdasarkan data transaksi riil
   const challenges = useMemo(() => {
     return getAutomaticChallenges(expenses, budget);
-  }, [expenses, budget]);
+  }, [expenses, budget, noSpendToday]);
 
   const [tips, setTips] = useState([]);
 
   useEffect(() => {
-    setTips(generateMultipleTips(thisMonth, 4));
-  }, [thisMonth]);
+    setTips(generateMultipleTips(thisMonth, 4, cycleData.safeDailySpend));
+  }, [thisMonth, cycleData.safeDailySpend]);
+
+  const handleCheckInNoSpend = () => {
+    const marked = markNoSpendDay();
+    setNoSpendToday(true);
+    if (marked) {
+      toast.success('Keren! Hari hemat tanpa jajan tercatat 🧘 Streak bertambah!');
+    } else {
+      toast.info('Kamu sudah check-in tanpa belanja hari ini.');
+    }
+  };
 
   const completedCount = challenges.filter((c) => c.completed).length;
 
@@ -78,6 +97,35 @@ export default function Hemat() {
                 <p className="text-white/70 text-sm">{completedCount >= challenges.length ? 'Kamu luar biasa! Semua tantangan selesai!' : 'Terus semangat!'}</p>
               </div>
             )}
+
+            {/* Check-in Hari Tanpa Belanja */}
+            <div className="bg-emerald-50 border border-emerald-200/80 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm">
+              <div className="flex items-center gap-2.5">
+                <span className="text-3xl">{noSpendToday ? '🧘' : '🍃'}</span>
+                <div>
+                  <h3 className="font-bold text-emerald-950 text-xs sm:text-sm">
+                    {noSpendToday ? 'Hari Hemat Berhasil Tercatat!' : 'Hari Ini Tidak Belanja?'}
+                  </h3>
+                  <p className="text-[11px] text-emerald-700 leading-snug mt-0.5">
+                    {noSpendToday
+                      ? 'Streak tantangan tidak jajan dan budget master tetap aktif.'
+                      : 'Check-in untuk menambah streak tantangan hematmu hari ini.'}
+                  </p>
+                </div>
+              </div>
+              {!noSpendToday ? (
+                <button
+                  onClick={handleCheckInNoSpend}
+                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-sm whitespace-nowrap transition-all"
+                >
+                  Check-in Hemat ✨
+                </button>
+              ) : (
+                <span className="text-[11px] bg-emerald-200/80 text-emerald-900 font-bold px-2.5 py-1 rounded-xl whitespace-nowrap">
+                  ✓ Tercatat
+                </span>
+              )}
+            </div>
 
             <div className="space-y-3">
               {challenges.map((ch) => (

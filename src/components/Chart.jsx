@@ -37,31 +37,38 @@ export function ExpenseBarChart({ data, height = 200 }) {
     );
   }
 
+  const hasPositiveValue = data.some((d) => d.value > 0);
+
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-        <XAxis
-          dataKey="name"
-          tick={{ fontSize: 10, fill: '#9ca3af' }}
-          axisLine={false}
-          tickLine={false}
-        />
-        <YAxis
-          tick={{ fontSize: 10, fill: '#9ca3af' }}
-          axisLine={false}
-          tickLine={false}
-          tickFormatter={(v) => (v <= 0 ? '' : `${Math.round(v / 1000)}k`)}
-          width={36}
-        />
-        <Tooltip content={<CustomTooltip />} />
-        <Bar dataKey="value" fill="#185FA5" radius={[6, 6, 0, 0]}>
-          {data.map((_, i) => (
-            <Cell key={i} fill={COLORS[i % COLORS.length]} />
-          ))}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="w-full overflow-hidden" style={{ height }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+          <XAxis
+            dataKey="name"
+            tick={{ fontSize: 10, fill: '#9ca3af' }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            hide={!hasPositiveValue}
+            domain={[0, 'auto']}
+            allowDecimals={false}
+            tick={{ fontSize: 10, fill: '#9ca3af' }}
+            axisLine={false}
+            tickLine={false}
+            tickFormatter={(v) => (v <= 0 ? '' : `${Math.round(v / 1000)}k`)}
+            width={34}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Bar dataKey="value" fill="#185FA5" radius={[6, 6, 0, 0]}>
+            {data.map((_, i) => (
+              <Cell key={i} fill={COLORS[i % COLORS.length]} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
