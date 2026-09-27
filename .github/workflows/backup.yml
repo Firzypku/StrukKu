@@ -1,0 +1,70 @@
+name: Weekly Database Backup (Encrypted)
+
+on:
+  schedule:
+    # Berjalan otomatis setiap Senin pukul 02:00 UTC (09:00 WIB)
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+    # Memungkinkan trigger backup manual kapan saja dari tab GitHub Actions
+
+jobs:
+  backup:
+    name: Supabase pg_dump & Encrypt
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install PostgreSQL Client Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+      - name: Perform pg_dump Backup
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "❌ Error: Secret SUPABASE_DB_URL tidak ditemukan di GitHub Secrets."
+            exit 1
+          fi
+
+          TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
+          echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
+          
+          echo "Memulai pencadangan database StrukKu..."
+          pg_dump "$SUPABASE_DB_URL" \
+            --clean \
+            --if-exists \
+            --no-owner \
+            --no-privileges \
+            --schema=public \
+            --file="strukku-backup-${TIMESTAMP}.sql"
+          
+          echo "Dump selesai. Ukuran file:"
+          ls -lh "strukku-backup-${TIMESTAMP}.sql"
+
+      - name: Encrypt Backup File (AES-256-CBC with PBKDF2)
+        env:
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+        run: |
+          if [ -z "$BACKUP_ENCRYPTION_KEY" ]; then
+            echo "❌ Error: Secret BACKUP_ENCRYPTION_KEY tidak ditemukan di GitHub Secrets."
+            exit 1
+          fi
+
+          # Enkripsi kuat AES-256-CBC menggunakan 100.000 iterasi PBKDF2
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 \
+            -in "strukku-backup-${TIMESTAMP}.sql" \
+            -out "strukku-backup-${TIMESTAMP}.sql.enc" \
+            -pass "pass:$BACKUP_ENCRYPTION_KEY"
+
+          # Hapus file SQL plain text demi kepatuhan keamanan
+          rm -f "strukku-backup-${TIMESTAMP}.sql"
+          echo "Enkripsi berhasil. Hanya file terenkripsi yang disimpan:"
+          ls -lh "strukku-backup-${TIMESTAMP}.sql.enc"
+
+      - name: Upload Encrypted Backup Artifact (Retention 30 Days)
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-backup-${{ env.TIMESTAMP }}
+          path: strukku-backup-${{ env.TIMESTAMP }}.sql.enc
+          retention-days: 30
