@@ -2,11 +2,14 @@
  * Social.jsx — Split Bill "Satu Scan, Semua Tercatat", Cross E-Wallet Reminder, & Peta Hemat Kampus
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useExpenses } from '../hooks/useExpenses';
 import { formatRupiah } from '../utils/prediction';
 import { todayLocal } from '../utils/date';
 import { useToast } from '../context/ToastContext';
+import { scanReceipt } from '../utils/ocr';
+import { extractItemsFromReceipt } from '../utils/receiptParser';
+import { preprocessImageForOcr } from '../utils/imageProcess';
 
 export default function Social() {
   const { add } = useExpenses();
@@ -28,6 +31,11 @@ export default function Social() {
   const [newFriendName, setNewFriendName] = useState('');
   const [items, setItems] = useState([]);
   const [isExample, setIsExample] = useState(false);
+
+  // State OCR scan struk untuk Split Bill
+  const ocrFileInputRef = useRef(null);
+  const [isScanningOcr, setIsScanningOcr] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState(0);
 
   const [newItemName, setNewItemName] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
@@ -152,8 +160,109 @@ export default function Social() {
     setPlaceName('');
     setFriends(['Kamu']);
     setItems([]);
+    setExtraFees({ tax: 0, service: 0, discount: 0 });
     setIsExample(false);
     toast.info('Split bill dikosongkan.');
+  };
+
+  // Trigger input file OCR
+  const handleTriggerOcr = () => {
+    if (ocrFileInputRef.current) {
+      ocrFileInputRef.current.value = '';
+      ocrFileInputRef.current.click();
+    }
+  };
+
+  // Proses scan struk OCR untuk Split Bill
+  const handleOcrFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsScanningOcr(true);
+    setOcrProgress(10);
+
+    try {
+      let processedSource = file;
+      try {
+        const preprocessed = await preprocessImageForOcr(file);
+        if (preprocessed) processedSource = preprocessed;
+      } catch (err) {
+        console.warn('Preprocessing dilewati:', err);
+      }
+
+      setOcrProgress(30);
+      const ocrResult = await scanReceipt(processedSource, (pct) => {
+        setOcrProgress(30 + Math.round(pct * 0.65));
+      });
+
+      if (!ocrResult || !ocrResult.text) {
+        toast.error('Teks struk tidak terbaca. Pastikan foto cukup terang.');
+        return;
+      }
+
+      const extracted = extractItemsFromReceipt(ocrResult.text);
+
+      if (extracted.items && extracted.items.length > 0) {
+        setItems(extracted.items);
+        if (extracted.tax > 0 || extracted.service > 0 || extracted.discount > 0) {
+          setExtraFees((prev) => ({
+            ...prev,
+            tax: extracted.tax || prev.tax,
+            service: extracted.service || prev.service,
+            discount: extracted.discount || prev.discount,
+          }));
+        }
+        if (extracted.merchant) {
+          setPlaceName(extracted.merchant);
+        }
+        setIsExample(false);
+        toast.success(`Berhasil mengenali ${extracted.items.length} item dari struk! 🧾`);
+      } else if (ocrResult.amount > 0) {
+        setItems([
+          {
+            id: Date.now(),
+            name: ocrResult.storeName || 'Total Pesanan Struk',
+            price: ocrResult.amount,
+            assignedTo: ['Kamu'],
+          },
+        ]);
+        if (ocrResult.storeName) setPlaceName(ocrResult.storeName);
+        setIsExample(false);
+        toast.info('Total struk Rp ' + ocrResult.amount.toLocaleString('id-ID') + ' tercatat. Kamu bisa tambah/edit item.');
+      } else {
+        toast.warning('Daftar item tidak terbaca jelas. Kamu bisa menginputnya manual di bawah.');
+      }
+    } catch (err) {
+      toast.error('Gagal scan struk: ' + err.message);
+    } finally {
+      setIsScanningOcr(false);
+      setOcrProgress(0);
+    }
+  };
+
+  // Toggle penugasan teman pada item yang sudah ada di daftar
+  const toggleItemAssignment = (itemId, friendName) => {
+    setItems((prevItems) =>
+      prevItems.map((item) => {
+        if (item.id !== itemId) return item;
+        const exists = item.assignedTo.includes(friendName);
+        if (exists) {
+          if (item.assignedTo.length <= 1) {
+            toast.warning('Minimal 1 orang harus menanggung item ini.');
+            return item;
+          }
+          return {
+            ...item,
+            assignedTo: item.assignedTo.filter((f) => f !== friendName),
+          };
+        } else {
+          return {
+            ...item,
+            assignedTo: [...item.assignedTo, friendName],
+          };
+        }
+      })
+    );
   };
 
   // Toggle penugasan teman di item baru
@@ -198,8 +307,13 @@ export default function Social() {
 
   // Share Rincian Itemized ke WhatsApp
   const handleShareToWhatsApp = () => {
-    let text = `🧾 *TAGIHAN SPLIT BILL — ${placeName.toUpperCase()}*\n`;
-    text += `Total Seluruh Tagihan: ${formatRupiah(itemizedSummary.finalTotal)}\n`;
+    let text = `🧾 *TAGIHAN SPLIT BILL — ${(placeName || 'PATUNGAN').toUpperCase()}*\n`;
+    text += `Subtotal Menu: ${formatRupiah(itemizedSummary.subtotal)}\n`;
+    if (extraFees.tax > 0) text += `Pajak (PPN): +${formatRupiah(extraFees.tax)}\n`;
+    if (extraFees.service > 0) text += `Service Charge: +${formatRupiah(extraFees.service)}\n`;
+    if (extraFees.discount > 0) text += `Diskon: -${formatRupiah(extraFees.discount)}\n`;
+    text += `*Total Akhir:* *${formatRupiah(itemizedSummary.finalTotal)}*\n`;
+    text += `_(Pajak & service dibagi proporsional sesuai nominal pesanan)_\n`;
     text += `--------------------------------\n\n`;
 
     Object.values(itemizedSummary.breakdown).forEach((person) => {
@@ -312,6 +426,54 @@ export default function Social() {
         {/* TAB 1: SPLIT PER ITEM ("SATU SCAN, SEMUA TERCATAT") */}
         {activeTab === 'itemized' && (
           <>
+            {/* Input File OCR Tersembunyi */}
+            <input
+              type="file"
+              ref={ocrFileInputRef}
+              onChange={handleOcrFileChange}
+              accept="image/*"
+              className="hidden"
+            />
+
+            {/* Tombol Scan Struk OCR */}
+            <div className="bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 border border-purple-200/80 rounded-2xl p-4 shadow-sm space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-lg shadow-sm">
+                    📸
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-purple-950 text-xs sm:text-sm">Scan Struk Otomatis (OCR)</h3>
+                    <p className="text-[10px] text-purple-700">Foto struk untuk mengisi daftar menu & harga secara otomatis</p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleTriggerOcr}
+                disabled={isScanningOcr}
+                className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 active:scale-98 text-white font-bold text-xs rounded-xl shadow-md shadow-purple-600/20 flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+              >
+                <span>{isScanningOcr ? '⏳' : '⚡'}</span>
+                <span>{isScanningOcr ? `Memindai Daftar Item... (${ocrProgress}%)` : 'Pindai Struk / Upload Gambar'}</span>
+              </button>
+
+              {isScanningOcr && (
+                <div className="space-y-1 pt-1 animate-fade-in">
+                  <div className="w-full h-1.5 bg-purple-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-purple-600 rounded-full transition-all duration-300"
+                      style={{ width: `${ocrProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-purple-600 text-center font-medium">
+                    Mengekstrak baris item, harga nominal, dan pajak...
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Banner Mode Contoh */}
             {isExample && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-center justify-between animate-fade-in">
@@ -333,21 +495,21 @@ export default function Social() {
             )}
 
             {/* Empty State Banner ketika belum ada item */}
-            {items.length === 0 && !isExample && (
+            {items.length === 0 && !isExample && !isScanningOcr && (
               <div className="bg-white rounded-2xl p-6 shadow-card border border-dashed border-purple-200 text-center space-y-2.5 animate-fade-in">
                 <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mx-auto">
                   🍕
                 </div>
                 <h3 className="font-bold text-gray-800 text-sm">Split Bill Masih Kosong</h3>
                 <p className="text-xs text-gray-500 max-w-xs mx-auto">
-                  Masukkan nama tempat, teman patungan, dan pesananmu di bawah, atau klik tombol untuk melihat contoh perhitungannya.
+                  Scan struk di atas atau ketik manual nama tempat, teman patungan, dan pesananmu di bawah.
                 </p>
                 <button
                   type="button"
                   onClick={handleLoadExample}
                   className="inline-flex items-center gap-1.5 py-2 px-3.5 bg-purple-50 border border-purple-200 text-purple-700 font-bold text-xs rounded-xl hover:bg-purple-100 transition-all active:scale-95 mt-1"
                 >
-                  <span>💡</span> Lihat Contoh
+                  <span>💡</span> Lihat Contoh Perhitungan
                 </button>
               </div>
             )}
@@ -399,7 +561,7 @@ export default function Social() {
                   />
                   <button
                     type="submit"
-                    className="px-3 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-bold hover:bg-purple-700"
+                    className="px-3 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-bold hover:bg-purple-700 active:scale-95 transition-all"
                   >
                     Tambah
                   </button>
@@ -407,12 +569,22 @@ export default function Social() {
               </div>
             </div>
 
-            {/* Input Item Pesanan */}
-            <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60">
-              <h3 className="text-xs font-bold text-gray-700 mb-2">Daftar Menu & Pesanan ({items.length})</h3>
+            {/* Input & Daftar Item Pesanan */}
+            <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-gray-700">Daftar Menu & Pesanan ({items.length})</h3>
+                {items.length > 0 && (
+                  <button
+                    onClick={() => setItems([])}
+                    className="text-[10px] text-gray-400 hover:text-red-500 font-semibold"
+                  >
+                    Hapus Semua Item
+                  </button>
+                )}
+              </div>
 
-              {/* Form Tambah Item Baru */}
-              <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 mb-3 space-y-2">
+              {/* Form Tambah Item Manual */}
+              <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-2">
                 <div className="grid grid-cols-3 gap-2">
                   <input
                     type="text"
@@ -456,39 +628,125 @@ export default function Social() {
                 <button
                   type="button"
                   onClick={handleAddItem}
-                  className="w-full py-1.5 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-black transition-colors"
+                  className="w-full py-1.5 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-black active:scale-98 transition-colors"
                 >
-                  + Tambahkan Item
+                  + Tambahkan Item Manual
                 </button>
               </div>
 
-              {/* List Item yang Sudah Masuk */}
-              <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1 no-scrollbar">
+              {/* List Item yang Sudah Masuk (dengan tombol toggle penugasan orang langsung) */}
+              <div className="space-y-2 max-h-72 overflow-y-auto pr-1 no-scrollbar">
                 {items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between p-2 rounded-xl bg-gray-50/70 border border-gray-100 text-xs"
+                    className="p-3 rounded-xl bg-gray-50/80 border border-gray-100 text-xs space-y-1.5"
                   >
-                    <div className="min-w-0 flex-1 pr-2">
-                      <p className="font-bold text-gray-800 truncate">{item.name}</p>
-                      <p className="text-[10px] text-purple-600 font-semibold truncate">
-                        Porsi: {item.assignedTo.join(', ')}
-                      </p>
+                    <div className="flex items-center justify-between">
+                      <p className="font-bold text-gray-800 truncate pr-2">{item.name}</p>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="font-black text-gray-900">{formatRupiah(item.price)}</span>
+                        <button
+                          onClick={() => handleRemoveItem(item.id)}
+                          className="text-gray-400 hover:text-red-500 font-bold px-1"
+                          title="Hapus"
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-gray-900">{formatRupiah(item.price)}</span>
-                      <button
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="text-gray-400 hover:text-red-500 font-bold px-1"
-                        title="Hapus"
-                      >
-                        ✕
-                      </button>
+
+                    {/* Tagging Orang yang Pesan (Tinggal klik untuk aktif/nonaktifkan) */}
+                    <div>
+                      <span className="text-[10px] text-gray-400 block mb-1">Tandai siapa yang memesan:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {friends.map((f) => {
+                          const isAssigned = item.assignedTo.includes(f);
+                          return (
+                            <button
+                              key={f}
+                              type="button"
+                              onClick={() => toggleItemAssignment(item.id, f)}
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold border transition-all active:scale-95 ${
+                                isAssigned
+                                  ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                                  : 'bg-white text-gray-400 border-gray-200 hover:border-purple-300'
+                              }`}
+                            >
+                              {f === 'Kamu' ? '👤 Kamu' : f} {isAssigned ? '✓' : '+'}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Pajak, Service Charge & Diskon (Dibagi Proporsional) */}
+            {items.length > 0 && (
+              <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-gray-800 text-xs">Pajak & Biaya Tambahan (Proporsional)</h3>
+                  <span className="text-[10px] text-purple-700 font-semibold bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100">
+                    Dibagi Pas Sesuai Pesanan
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 block mb-1">Pajak / PPN (Rp)</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={extraFees.tax || ''}
+                      onChange={(e) => setExtraFees({ ...extraFees, tax: parseFloat(e.target.value) || 0 })}
+                      className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 block mb-1">Service (Rp)</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={extraFees.service || ''}
+                      onChange={(e) => setExtraFees({ ...extraFees, service: parseFloat(e.target.value) || 0 })}
+                      className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 block mb-1">Diskon (Rp)</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={extraFees.discount || ''}
+                      onChange={(e) => setExtraFees({ ...extraFees, discount: parseFloat(e.target.value) || 0 })}
+                      className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-200 text-emerald-600"
+                    />
+                  </div>
+                </div>
+
+                {/* Ringkasan Subtotal + Pajak */}
+                <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100 text-[11px] space-y-1">
+                  <div className="flex justify-between text-gray-500">
+                    <span>Subtotal Menu:</span>
+                    <span className="font-semibold text-gray-800">{formatRupiah(itemizedSummary.subtotal)}</span>
+                  </div>
+                  {(extraFees.tax > 0 || extraFees.service > 0 || extraFees.discount > 0) && (
+                    <div className="flex justify-between text-gray-500">
+                      <span>Pajak & Biaya Tambahan:</span>
+                      <span className="font-semibold text-purple-700">
+                        +{formatRupiah((parseFloat(extraFees.tax) || 0) + (parseFloat(extraFees.service) || 0) - (parseFloat(extraFees.discount) || 0))}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-gray-900 font-extrabold pt-1.5 border-t border-gray-200 text-xs">
+                    <span>Total Keseluruhan Tagihan:</span>
+                    <span className="text-purple-700 font-black">{formatRupiah(itemizedSummary.finalTotal)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Rekapitulasi Pembagian per Orang */}
             <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60 space-y-3">

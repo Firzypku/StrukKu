@@ -15,7 +15,7 @@ import { todayLocal } from '../utils/date';
 import { useToast } from '../context/ToastContext';
 import { preprocessImageForOcr, uploadReceiptToStorage } from '../utils/imageProcess';
 
-const CATEGORIES = ['Makanan', 'Minuman', 'Transport', 'Belanja', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Fashion', 'Lainnya'];
+const CATEGORIES = ['Makanan', 'Minuman', 'Kebutuhan Kos', 'Transport', 'Belanja', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Fashion', 'Lainnya'];
 
 const INITIAL_FORM = {
   title: '',

@@ -283,12 +283,16 @@ export function detectCategoryFromText(text) {
 
   const rules = [
     {
-      category: 'Makanan',
-      pattern: /\b(makan|makanan|nasi|ayam|goreng|mie|bakso|soto|kantin|warung|cafe|kafe|resto|restoran|dapur|snack|roti|burger|pizza|geprek|pecel|sayur|sambal|bebek|sate|padang)\b/i,
+      category: 'Minuman',
+      pattern: /\b(minum|minuman|kopi|coffee|kafe|cafe|tea|teh|boba|jus|juice|es|air|mineral|latte|cappuccino|drink|susu|chatime|haus|janji jiwa)\b/i,
     },
     {
-      category: 'Minuman',
-      pattern: /\b(minum|minuman|kopi|coffee|tea|teh|boba|jus|juice|es|air|mineral|latte|cappuccino|drink|susu|chatime|haus|janji jiwa)\b/i,
+      category: 'Makanan',
+      pattern: /\b(makan|makanan|nasi|ayam|goreng|mie|bakso|soto|kantin|warung|resto|restoran|dapur|snack|roti|burger|pizza|geprek|pecel|sayur|sambal|bebek|sate|padang)\b/i,
+    },
+    {
+      category: 'Kebutuhan Kos',
+      pattern: /\b(laundry|cuci baju|setrika|kiloan|kos|kost|air galon|gas elpiji|galon|wifi kos)\b/i,
     },
     {
       category: 'Transport',
@@ -308,7 +312,7 @@ export function detectCategoryFromText(text) {
     },
     {
       category: 'Fashion',
-      pattern: /\b(baju|celana|kaos|sepatu|sandal|jaket|laundry|cuci baju|setrika|kiloan)\b/i,
+      pattern: /\b(baju|celana|kaos|sepatu|sandal|jaket)\b/i,
     },
     {
       category: 'Hiburan',
@@ -370,5 +374,122 @@ export function parseReceiptText(rawText) {
       merchant: merchantResult.confidence,
       category: categoryResult.confidence,
     },
+  };
+}
+
+/**
+ * Ekstraksi daftar item makanan/barang dan harga dari teks struk belanja (untuk Split Bill per Item)
+ * Baris item = teks + nominal
+ * Otomatis mendeteksi pajak (PPN/Tax), service charge, dan diskon.
+ */
+export function extractItemsFromReceipt(rawText) {
+  if (!rawText || !rawText.trim()) {
+    return { items: [], tax: 0, service: 0, discount: 0, merchant: '' };
+  }
+
+  const lines = rawText
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+
+  const merchantResult = extractMerchantFromLines(lines);
+
+  const skipKeywords = [
+    'subtotal', 'sub total', 'total', 'grand total', 'tunai', 'cash', 'kembali',
+    'change', 'kembalian', 'kembal', 'kartu', 'bca', 'mandiri', 'debit', 'kredit',
+    'bayar', 'pembayaran', 'qris', 'telp', 'phone', 'alamat', 'jl.', 'jalan',
+    'terima kasih', 'thank you', 'selamat datang', 'kasir', 'cashier', 'table', 'meja',
+    'order id', 'order #', 'no.', 'no struk', 'tanggal', 'date', 'waktu', 'time',
+    'item', 'qty', 'price', 'harga', 'nama'
+  ];
+
+  const taxKeywords = ['ppn', 'pajak', 'tax', 'pb1'];
+  const serviceKeywords = ['service', 'layanan', 'service charge'];
+  const discountKeywords = ['diskon', 'discount', 'potongan', 'promo', 'voucher'];
+
+  let tax = 0;
+  let service = 0;
+  let discount = 0;
+  const items = [];
+
+  lines.forEach((line, idx) => {
+    const lower = line.toLowerCase();
+
+    // 1. Cek apakah ini baris Pajak (PPN/Tax)
+    if (taxKeywords.some((kw) => lower.includes(kw)) && !lower.includes('non') && !lower.includes('bebas')) {
+      const match = line.match(/(?:rp\.?|idr)?\s*[\d.,]{3,}/gi);
+      if (match && match.length > 0) {
+        const val = normalizeAmount(match[match.length - 1]);
+        if (val > 0) tax = val;
+      }
+      return;
+    }
+
+    // 2. Cek apakah ini baris Service Charge
+    if (serviceKeywords.some((kw) => lower.includes(kw))) {
+      const match = line.match(/(?:rp\.?|idr)?\s*[\d.,]{3,}/gi);
+      if (match && match.length > 0) {
+        const val = normalizeAmount(match[match.length - 1]);
+        if (val > 0) service = val;
+      }
+      return;
+    }
+
+    // 3. Cek apakah ini baris Diskon
+    if (discountKeywords.some((kw) => lower.includes(kw))) {
+      const match = line.match(/(?:rp\.?|idr)?\s*[\d.,]{3,}/gi);
+      if (match && match.length > 0) {
+        const val = normalizeAmount(match[match.length - 1]);
+        if (val > 0) discount = val;
+      }
+      return;
+    }
+
+    // 4. Lewati baris rangkuman atau header
+    if (skipKeywords.some((kw) => lower.startsWith(kw) || lower === kw)) {
+      return;
+    }
+
+    // 5. Coba ekstraksi baris item: harus mengandung nama barang dan angka harga
+    const amountMatches = [...line.matchAll(/(?:rp\.?|idr)?\s*([\d.,]{3,})/gi)];
+    if (amountMatches.length > 0) {
+      const lastMatch = amountMatches[amountMatches.length - 1];
+      const priceStr = lastMatch[1];
+      const price = normalizeAmount(priceStr);
+
+      if (price >= 500 && price <= 5000000) {
+        let itemName = line.substring(0, lastMatch.index).trim();
+
+        // Bersihkan trailing 'x', '1x', '2x', titik, strip
+        itemName = itemName
+          .replace(/\s+\d+\s*[xX]\s*$/, '')
+          .replace(/[.:\-=_]+$/, '')
+          .replace(/^\d+[\s.)-]+/, '')
+          .trim();
+
+        if (/[a-zA-Z]{2,}/.test(itemName)) {
+          const formattedName = itemName
+            .toLowerCase()
+            .split(' ')
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(' ');
+
+          items.push({
+            id: Date.now() + idx + Math.random(),
+            name: formattedName,
+            price,
+            assignedTo: ['Kamu'],
+          });
+        }
+      }
+    }
+  });
+
+  return {
+    items,
+    tax,
+    service,
+    discount,
+    merchant: merchantResult.merchant !== 'Toko / Resto' ? merchantResult.merchant : '',
   };
 }

@@ -258,7 +258,9 @@ export const formatDate = (dateStr) => {
  * "makan siang 15000" → { title: 'makan siang', amount: 15000 }
  */
 const VOICE_KEYWORDS = {
-  Makanan: ['makan', 'nasi', 'ayam', 'bakso', 'mie', 'soto', 'warteg', 'cafe', 'kopi', 'snack', 'indomie', 'burger', 'gorengan'],
+  Minuman: ['kopi', 'coffee', 'kafe', 'cafe', 'teh', 'tea', 'boba', 'jus', 'juice', 'minum', 'es', 'latte', 'cappuccino'],
+  Makanan: ['makan', 'nasi', 'ayam', 'bakso', 'mie', 'soto', 'warteg', 'snack', 'indomie', 'burger', 'gorengan'],
+  'Kebutuhan Kos': ['laundry', 'cuci', 'kiloan', 'setrika', 'kos', 'kost', 'galon'],
   Transport: ['grab', 'gojek', 'ojek', 'bensin', 'parkir', 'busway', 'kereta', 'krl'],
   Belanja: ['indomaret', 'alfamart', 'minimarket', 'supermarket', 'toko', 'beli'],
   Hiburan: ['cinema', 'bioskop', 'netflix', 'game', 'tiket'],

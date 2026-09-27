@@ -1,8 +1,9 @@
 /**
- * History.jsx — Riwayat pengeluaran + kalender dinamis + navigasi bulan lampau + reset bulan + export Excel
+ * History.jsx — Riwayat pengeluaran + kalender dinamis + navigasi bulan lampau +
+ * bottom sheet detail transaksi (Edit & Hapus dengan fitur Urungkan 5 detik) + export Excel
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useExpenses, MONTH_NAMES } from '../hooks/useExpenses';
 import { formatRupiah, formatDate } from '../utils/prediction';
@@ -18,6 +19,8 @@ export default function History() {
     expenses,
     thisMonth,
     remove,
+    update,
+    add,
     stats,
     selectedYear,
     selectedMonth,
@@ -28,16 +31,35 @@ export default function History() {
     nextMonth,
     setMonthYear,
     goToCurrentMonth,
-    resetSelectedMonth,
-    undoResetMonth,
   } = useExpenses();
 
   const [view, setView] = useState('list'); // list | calendar
   const [timeScope, setTimeScope] = useState('month'); // 'month' (bulan terpilih) | 'all' (semua riwayat)
   const [filterCat, setFilterCat] = useState('Semua');
   const [searchQ, setSearchQ] = useState('');
-  const [deleting, setDeleting] = useState(null);
   const [showExportModal, setShowExportModal] = useState(false);
+
+  // ── State Detail Bottom Sheet & Edit ──────────────────────────────────────
+  const [selectedExpense, setSelectedExpense] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    amount: '',
+    category: 'Makanan',
+    date: todayLocal(),
+    note: '',
+  });
+
+  // ── State Undo Hapus (5 Detik) ─────────────────────────────────────────────
+  const [undoItem, setUndoItem] = useState(null); // { expense, secondsLeft }
+  const undoTimerRef = useRef(null);
+
+  // Bersihkan timer saat unmount
+  useEffect(() => {
+    return () => {
+      if (undoTimerRef.current) clearInterval(undoTimerRef.current);
+    };
+  }, []);
 
   // Sumber data berdasarkan timeScope
   const activeExpenses = timeScope === 'month' ? thisMonth : expenses;
@@ -56,7 +78,6 @@ export default function History() {
     const avg = stats.thisMonthTotal / activeDaysCount;
 
     const cells = [];
-    // Padding hari sebelum tanggal 1
     for (let i = 0; i < firstDay; i++) cells.push(null);
 
     const today = new Date();
@@ -94,6 +115,126 @@ export default function History() {
     });
   }, [activeExpenses, filterCat, searchQ]);
 
+  // Grouping per tanggal untuk tampilan list
+  const grouped = useMemo(() => {
+    const map = {};
+    filtered.forEach((e) => {
+      const d = e.date || 'Lainnya';
+      if (!map[d]) map[d] = [];
+      map[d].push(e);
+    });
+    return Object.entries(map).sort((a, b) => b[0].localeCompare(a[0]));
+  }, [filtered]);
+
+  // Buka detail bottom sheet
+  const handleOpenDetail = (expense) => {
+    setSelectedExpense(expense);
+    setIsEditing(false);
+    setEditForm({
+      title: expense.title || '',
+      amount: expense.amount ? expense.amount.toString() : '',
+      category: expense.category || 'Makanan',
+      date: expense.date || todayLocal(),
+      note: expense.note || '',
+    });
+  };
+
+  // Simpan perubahan edit
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!selectedExpense) return;
+    const numAmount = parseFloat(editForm.amount) || 0;
+    if (numAmount <= 0) {
+      toast.error('Nominal belanja harus lebih dari 0');
+      return;
+    }
+    if (!editForm.title.trim()) {
+      toast.error('Keterangan belanja tidak boleh kosong');
+      return;
+    }
+
+    try {
+      await update(selectedExpense.id, {
+        title: editForm.title.trim(),
+        amount: numAmount,
+        category: editForm.category,
+        date: editForm.date,
+        note: editForm.note.trim() || null,
+      });
+      setSelectedExpense((prev) => ({
+        ...prev,
+        title: editForm.title.trim(),
+        amount: numAmount,
+        category: editForm.category,
+        date: editForm.date,
+        note: editForm.note.trim() || null,
+      }));
+      setIsEditing(false);
+      toast.success('Transaksi berhasil diperbarui! ✏️');
+    } catch (err) {
+      toast.error('Gagal memperbarui transaksi: ' + err.message);
+    }
+  };
+
+  // Hapus transaksi dengan fitur Urungkan 5 detik
+  const handleDeleteWithUndo = (expenseToDelete) => {
+    if (!expenseToDelete) return;
+
+    // Tutup bottom sheet
+    setSelectedExpense(null);
+    setIsEditing(false);
+
+    // Hapus dari data
+    remove(expenseToDelete.id);
+
+    // Bersihkan timer lama jika ada
+    if (undoTimerRef.current) {
+      clearInterval(undoTimerRef.current);
+    }
+
+    let countdown = 5;
+    setUndoItem({
+      expense: expenseToDelete,
+      secondsLeft: countdown,
+    });
+
+    const timer = setInterval(() => {
+      countdown -= 1;
+      if (countdown <= 0) {
+        clearInterval(timer);
+        setUndoItem(null);
+      } else {
+        setUndoItem((prev) => (prev ? { ...prev, secondsLeft: countdown } : null));
+      }
+    }, 1000);
+
+    undoTimerRef.current = timer;
+  };
+
+  // Eksekusi Urungkan (Undo)
+  const handleUndo = async () => {
+    if (!undoItem?.expense) return;
+    if (undoTimerRef.current) {
+      clearInterval(undoTimerRef.current);
+    }
+    const restored = undoItem.expense;
+    setUndoItem(null);
+
+    try {
+      await add({
+        title: restored.title,
+        amount: restored.amount,
+        category: restored.category,
+        date: restored.date,
+        note: restored.note || null,
+        image: restored.image || null,
+      });
+      toast.success(`Transaksi "${restored.title}" berhasil dipulihkan! ↩️`);
+    } catch (e) {
+      toast.error('Gagal memulihkan transaksi');
+    }
+  };
+
   // Export Excel
   const handleExportExcel = async (exportScope = 'month') => {
     try {
@@ -114,14 +255,12 @@ export default function History() {
       }));
 
       const ws = XLSX.utils.json_to_sheet(data);
-
-      // Lebar kolom rapi dan tidak saling bertumpuk
       ws['!cols'] = [
-        { wch: 14 }, // Tanggal
-        { wch: 28 }, // Keterangan
-        { wch: 16 }, // Kategori
-        { wch: 18 }, // Jumlah (Rp)
-        { wch: 32 }, // Catatan
+        { wch: 14 },
+        { wch: 28 },
+        { wch: 16 },
+        { wch: 18 },
+        { wch: 32 },
       ];
 
       const wb = XLSX.utils.book_new();
@@ -141,112 +280,92 @@ export default function History() {
     }
   };
 
-  const handleDelete = (id) => {
-    setDeleting(id);
-    setTimeout(() => {
-      remove(id);
-      setDeleting(null);
-    }, 300);
-  };
-
-  // Group by date
-  const grouped = useMemo(() => {
-    const map = {};
-    filtered.forEach((e) => {
-      if (!map[e.date]) map[e.date] = [];
-      map[e.date].push(e);
-    });
-    return Object.entries(map).sort(([a], [b]) => b.localeCompare(a));
-  }, [filtered]);
-
   return (
     <div className="min-h-screen bg-surface pb-28">
       {/* Header */}
       <div className="bg-gradient-to-br from-[#0B1E36] via-[#123E6B] to-[#1E40AF] px-4 pt-12 pb-6 relative overflow-hidden shadow-lg">
         <div className="absolute top-0 right-0 w-44 h-44 bg-blue-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
-        <div className="relative z-10 flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-xl font-black text-white tracking-tight">Riwayat Pengeluaran</h1>
-            <p className="text-white/60 text-xs mt-0.5">Pantau & jelajahi catatan bulanan</p>
-          </div>
-          <button
-            id="btn-export-excel"
-            onClick={() => setShowExportModal(true)}
-            className="flex items-center gap-1.5 bg-white/15 text-white border border-white/20 px-3 py-2 rounded-xl text-xs font-bold hover:bg-white/25 transition-all active:scale-95 shadow-sm"
-          >
-            📤 Export Excel
-          </button>
-        </div>
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h1 className="text-xl font-black text-white tracking-tight">Riwayat Belanja</h1>
+              <p className="text-white/60 text-xs">
+                {timeScope === 'month' ? `${selectedMonthName} ${selectedYear}` : 'Semua Transaksi'} · {filtered.length} transaksi
+              </p>
+            </div>
 
-        {/* View Toggle */}
-        <div className="flex bg-white/15 rounded-2xl p-1 gap-1">
-          {[
-            { id: 'list', label: '📋 Daftar' },
-            { id: 'calendar', label: '📅 Kalender' },
-          ].map((tab) => (
+            {/* Ekspor Excel */}
             <button
-              key={tab.id}
-              id={`view-${tab.id}`}
-              onClick={() => setView(tab.id)}
-              className={`flex-1 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                view === tab.id ? 'bg-white text-primary shadow-sm' : 'text-white/70 hover:text-white'
+              id="btn-export-excel"
+              onClick={() => setShowExportModal(true)}
+              className="bg-white/15 text-white hover:bg-white/25 active:scale-95 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/20 flex items-center gap-1.5 shadow-sm"
+              title="Ekspor ke spreadsheet Excel"
+            >
+              <span>📊</span>
+              <span>Ekspor</span>
+            </button>
+          </div>
+
+          {/* Month Selector Carousel */}
+          <MonthSelector
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
+            onSelect={setMonthYear}
+            onPrev={prevMonth}
+            onNext={nextMonth}
+            availableMonths={availableMonths}
+          />
+
+          {/* View Toggle */}
+          <div className="mt-4 flex bg-white/15 rounded-2xl p-1 gap-1">
+            <button
+              id="btn-view-list"
+              onClick={() => setView('list')}
+              className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                view === 'list' ? 'bg-white text-primary shadow-sm' : 'text-white/70 hover:text-white'
               }`}
             >
-              {tab.label}
+              📋 Daftar
             </button>
-          ))}
+            <button
+              id="btn-view-calendar"
+              onClick={() => setView('calendar')}
+              className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                view === 'calendar' ? 'bg-white text-primary shadow-sm' : 'text-white/70 hover:text-white'
+              }`}
+            >
+              📅 Kalender
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="px-4 py-4 space-y-4">
-        {/* Month Selector & Navigation Bar */}
-        <MonthSelector
-          selectedYear={selectedYear}
-          selectedMonth={selectedMonth}
-          selectedMonthName={selectedMonthName}
-          isCurrentMonth={isCurrentMonth}
-          prevMonth={prevMonth}
-          nextMonth={nextMonth}
-          setMonthYear={setMonthYear}
-          goToCurrentMonth={goToCurrentMonth}
-          availableMonths={availableMonths}
-          onResetMonth={resetSelectedMonth}
-          onUndoResetMonth={undoResetMonth}
-          totalExpense={stats.thisMonthTotal}
-          transactionCount={stats.thisMonthCount}
-          showResetButton={true}
-        />
-
         {/* Calendar View */}
         {view === 'calendar' && (
           <div className="bg-white rounded-2xl p-4 shadow-card border border-white/60">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="font-extrabold text-gray-800 text-sm">
-                  {selectedMonthName} {selectedYear}
-                </h2>
-                <p className="text-[11px] text-gray-400">Peta pengeluaran harian</p>
-              </div>
-              <div className="flex gap-2 text-[11px]">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-bold text-gray-800 text-sm">
+                Kalender Belanja {selectedMonthName} {selectedYear}
+              </h2>
+              <div className="flex items-center gap-2 text-[10px] text-gray-400">
                 <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-success inline-block" /> Hemat
+                  <span className="w-2 h-2 rounded-full bg-green-500 inline-block" /> Wajar
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-danger inline-block" /> Boros
+                  <span className="w-2 h-2 rounded-full bg-red-500 inline-block" /> Boros
                 </span>
               </div>
             </div>
 
-            {/* Day headers */}
-            <div className="grid grid-cols-7 gap-1 mb-2">
+            <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-400 font-semibold mb-2">
               {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((d) => (
-                <div key={d} className="text-center text-[11px] text-gray-400 font-semibold py-1">
+                <div key={d} className="py-1">
                   {d}
                 </div>
               ))}
             </div>
 
-            {/* Calendar grid */}
             <div className="grid grid-cols-7 gap-1">
               {calendarDays.map((cell, i) => (
                 <div
@@ -275,7 +394,6 @@ export default function History() {
               ))}
             </div>
 
-            {/* Summary */}
             <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center text-xs">
               <span className="text-gray-500 font-medium">Total {selectedMonthName}:</span>
               <span className="font-extrabold text-primary text-sm">{formatRupiah(stats.thisMonthTotal)}</span>
@@ -286,7 +404,7 @@ export default function History() {
         {/* List View */}
         {view === 'list' && (
           <>
-            {/* Scope Filter (Bulan Terpilih vs Semua Waktu) */}
+            {/* Scope Filter */}
             <div className="flex bg-gray-100/80 p-1 rounded-xl text-xs font-bold gap-1">
               <button
                 onClick={() => setTimeScope('month')}
@@ -328,7 +446,7 @@ export default function History() {
               {categories.map((cat) => (
                 <button
                   key={cat}
-                  id={`filter-${cat.toLowerCase()}`}
+                  id={`filter-${cat.toLowerCase().replace(/\s+/g, '-')}`}
                   onClick={() => setFilterCat(cat)}
                   className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-150 active:scale-95 ${
                     filterCat === cat
@@ -388,17 +506,16 @@ export default function History() {
                     </p>
                   </div>
 
-                  {/* Items */}
+                  {/* Items — Ketuk baris untuk membuka Detail Bottom Sheet */}
                   {items.map((expense) => (
                     <div
                       key={expense.id}
-                      className={`bg-white rounded-2xl p-4 shadow-card border border-white/60 flex items-center gap-3 transition-all duration-300 ${
-                        deleting === expense.id ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-                      }`}
+                      onClick={() => handleOpenDetail(expense)}
+                      className="bg-white rounded-2xl p-4 shadow-card border border-white/60 flex items-center gap-3 transition-all duration-200 hover:border-blue-200 active:scale-[0.99] cursor-pointer group"
                     >
                       {/* Category icon */}
                       <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                        className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-105 transition-transform"
                         style={{ backgroundColor: `${CATEGORY_COLORS[expense.category] || '#C8D6E5'}20` }}
                       >
                         {CATEGORY_ICONS[expense.category] || '💳'}
@@ -406,26 +523,23 @@ export default function History() {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-800 text-sm truncate">{expense.title}</p>
+                        <p className="font-semibold text-gray-800 text-sm truncate group-hover:text-blue-600 transition-colors">
+                          {expense.title}
+                        </p>
                         <p className="text-xs text-gray-400 mt-0.5">
                           {expense.category}
                           {expense.note && ` · ${expense.note}`}
                         </p>
                       </div>
 
-                      {/* Amount + delete */}
-                      <div className="flex flex-col items-end gap-1">
+                      {/* Amount + detail indicator */}
+                      <div className="flex items-center gap-2">
                         <p className="font-bold text-gray-800 text-sm">
                           {formatRupiah(parseFloat(expense.amount))}
                         </p>
-                        <button
-                          id={`btn-delete-${expense.id}`}
-                          onClick={() => handleDelete(expense.id)}
-                          className="text-gray-300 text-xs hover:text-danger transition-colors p-1"
-                          title="Hapus transaksi"
-                        >
-                          🗑️
-                        </button>
+                        <span className="text-gray-300 text-xs group-hover:text-blue-600 transition-colors">
+                          ›
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -435,6 +549,215 @@ export default function History() {
           </>
         )}
       </div>
+
+      {/* Floating Undo Notification (5 Detik) */}
+      {undoItem && (
+        <div className="fixed bottom-20 left-4 right-4 z-40 max-w-md mx-auto bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between border border-slate-700 animate-slide-up">
+          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+            <span className="text-amber-400">🗑️</span>
+            <p className="text-xs truncate">
+              <strong>"{undoItem.expense.title}"</strong> dihapus
+            </p>
+          </div>
+          <button
+            onClick={handleUndo}
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-black text-xs rounded-xl shadow-sm whitespace-nowrap transition-all flex items-center gap-1.5"
+          >
+            <span>Urungkan</span>
+            <span className="bg-blue-800 text-[10px] px-1.5 py-0.5 rounded-full font-mono">
+              {undoItem.secondsLeft}d
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* Bottom Sheet Detail Transaksi (Edit & Hapus) */}
+      {selectedExpense && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-fade-in">
+          <div className="bg-white rounded-t-[2.5rem] sm:rounded-3xl p-5 sm:p-6 w-full max-w-md shadow-2xl border border-gray-100 animate-slide-up max-h-[85vh] overflow-y-auto no-scrollbar">
+            {/* Drag Handle on Mobile */}
+            <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4 sm:hidden" />
+
+            {!isEditing ? (
+              // ── VIEW DETAIL MODE ──────────────────────────────────────────
+              <div>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm"
+                      style={{ backgroundColor: `${CATEGORY_COLORS[selectedExpense.category] || '#C8D6E5'}25` }}
+                    >
+                      {CATEGORY_ICONS[selectedExpense.category] || '💳'}
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                        {selectedExpense.category}
+                      </span>
+                      <h3 className="font-black text-slate-900 text-base sm:text-lg mt-0.5 leading-snug">
+                        {selectedExpense.title}
+                      </h3>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedExpense(null)}
+                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-2 mb-4">
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-xs text-slate-500 font-medium">Nominal Belanja</span>
+                    <span className="text-2xl font-black text-slate-900">
+                      {formatRupiah(parseFloat(selectedExpense.amount))}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs pt-2.5 border-t border-slate-200/60">
+                    <span className="text-slate-500 font-medium">Tanggal Transaksi</span>
+                    <span className="font-bold text-slate-800">{formatDate(selectedExpense.date)}</span>
+                  </div>
+                  {selectedExpense.note && (
+                    <div className="flex justify-between text-xs pt-1.5 border-t border-slate-200/40">
+                      <span className="text-slate-500 font-medium">Catatan</span>
+                      <span className="font-semibold text-slate-700 max-w-[200px] text-right">{selectedExpense.note}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Struk Image if exists */}
+                {selectedExpense.image && (
+                  <div className="mb-4">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                      Foto Bukti Struk
+                    </span>
+                    <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 max-h-48 flex items-center justify-center">
+                      <img
+                        src={selectedExpense.image}
+                        alt="Bukti Struk"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons: Edit & Hapus */}
+                <div className="grid grid-cols-2 gap-2.5 pt-2">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="py-3 px-4 rounded-xl bg-blue-50 hover:bg-blue-100 active:scale-95 text-blue-700 font-bold text-xs flex items-center justify-center gap-1.5 border border-blue-200 transition-all shadow-sm"
+                  >
+                    <span>✏️</span>
+                    <span>Edit Transaksi</span>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteWithUndo(selectedExpense)}
+                    className="py-3 px-4 rounded-xl bg-red-50 hover:bg-red-100 active:scale-95 text-red-600 font-bold text-xs flex items-center justify-center gap-1.5 border border-red-200 transition-all shadow-sm"
+                  >
+                    <span>🗑️</span>
+                    <span>Hapus</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // ── EDIT TRANSACTION FORM ──────────────────────────────────────
+              <form onSubmit={handleSaveEdit} className="space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <h3 className="font-black text-slate-900 text-base flex items-center gap-1.5">
+                    <span>✏️</span>
+                    <span>Edit Transaksi</span>
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="text-xs text-slate-400 hover:text-slate-600 font-bold"
+                  >
+                    Batal
+                  </button>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">
+                    Keterangan / Nama Toko
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">
+                    Nominal (Rp)
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.amount}
+                    onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-black"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Kategori</label>
+                    <select
+                      value={editForm.category}
+                      onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                      className="w-full border border-slate-200 rounded-xl px-2.5 py-2 text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                    >
+                      {['Makanan', 'Minuman', 'Kebutuhan Kos', 'Transport', 'Belanja', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Fashion', 'Lainnya'].map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Tanggal</label>
+                    <input
+                      type="date"
+                      value={editForm.date}
+                      onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                      className="w-full border border-slate-200 rounded-xl px-2.5 py-2 text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Catatan Tambahan (Opsional)</label>
+                  <input
+                    type="text"
+                    value={editForm.note}
+                    onChange={(e) => setEditForm({ ...editForm, note: e.target.value })}
+                    placeholder="Misal: bareng teman kos"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
+                  >
+                    Kembali
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all active:scale-95"
+                  >
+                    Simpan Perubahan
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Modal Pilihan Ekspor Excel */}
       {showExportModal && (

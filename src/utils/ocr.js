@@ -98,6 +98,7 @@ export const detectCategory = (text) => {
 export const CATEGORY_ICONS = {
   Makanan: '🍽️',
   Minuman: '🥤',
+  'Kebutuhan Kos': '🏠',
   Transport: '🚗',
   Belanja: '🛒',
   Hiburan: '🎬',
@@ -113,6 +114,7 @@ export const CATEGORY_ICONS = {
 export const CATEGORY_COLORS = {
   Makanan: '#FF6B6B',
   Minuman: '#4ECDC4',
+  'Kebutuhan Kos': '#10B981',
   Transport: '#45B7D1',
   Belanja: '#96CEB4',
   Hiburan: '#FECA57',
