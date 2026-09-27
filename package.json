@@ -34,7 +34,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "autocannon": "^8.0.0",
     "autoprefixer": "^10.4.19",
-    "eslint": "^8.57.1",
+    "eslint": "^10.11.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.26",
     "postcss": "^8.4.38",
