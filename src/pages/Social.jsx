@@ -10,6 +10,7 @@ import { useToast } from '../context/ToastContext';
 import { scanReceipt } from '../utils/ocr';
 import { extractItemsFromReceipt } from '../utils/receiptParser';
 import { preprocessImageForOcr } from '../utils/imageProcess';
+import { analytics } from '../utils/analytics';
 
 export default function Social() {
   const { add } = useExpenses();
@@ -297,6 +298,7 @@ export default function Social() {
         date: todayLocal(),
         note: `Split bill bersama ${friends.filter((f) => f !== 'Kamu').join(', ')}`,
       });
+      analytics.splitCreated('itemized', friends.length);
       setSavedPortion(true);
       toast.success('Bagianmu berhasil dicatat ke pengeluaran!');
       setTimeout(() => setSavedPortion(false), 3000);
@@ -307,6 +309,7 @@ export default function Social() {
 
   // Share Rincian Itemized ke WhatsApp
   const handleShareToWhatsApp = () => {
+    analytics.splitCreated('itemized', friends.length);
     let text = `🧾 *TAGIHAN SPLIT BILL — ${(placeName || 'PATUNGAN').toUpperCase()}*\n`;
     text += `Subtotal Menu: ${formatRupiah(itemizedSummary.subtotal)}\n`;
     if (extraFees.tax > 0) text += `Pajak (PPN): +${formatRupiah(extraFees.tax)}\n`;
@@ -346,6 +349,8 @@ export default function Social() {
     }
 
     setQuickError('');
+
+    analytics.splitCreated('quick', people);
 
     const baseAmount = Math.floor(total / people);
     const remainder = Math.round(total % people);

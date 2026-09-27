@@ -9,6 +9,7 @@ import { formatRupiah } from '../utils/prediction';
 import { todayLocal } from '../utils/date';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { analytics } from '../utils/analytics';
 
 export default function BalanceAdjustModal({ isOpen, onClose, onSaved, isOnboarding = false }) {
   const { user } = useAuth();
@@ -59,6 +60,9 @@ export default function BalanceAdjustModal({ isOpen, onClose, onSaved, isOnboard
     try {
       const numMonthly = parseFloat(monthlyInput.replace(/\./g, '')) || null;
       const updatedConfig = await adjustBalance(numBalance, nextPayDateInput, numMonthly, user?.id);
+      if (isOnboarding) {
+        analytics.onboardingDone();
+      }
       toast.success(
         isOnboarding
           ? 'Siklus uang saku berhasil diset! Jatah harianmu siap dihitung 🚀'
@@ -106,13 +110,13 @@ export default function BalanceAdjustModal({ isOpen, onClose, onSaved, isOnboard
                 value={balanceInput}
                 onChange={(e) => setBalanceInput(e.target.value)}
                 placeholder="Contoh: 800000"
-                className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-base font-black rounded-xl pl-11 pr-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-base font-black rounded-xl pl-11 pr-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition-all ph-no-capture"
                 required
                 autoFocus
               />
             </div>
             {numBalance > 0 && (
-              <p className="text-[11px] text-blue-600 font-semibold mt-1">
+              <p className="text-[11px] text-blue-600 font-semibold mt-1 ph-no-capture">
                 {formatRupiah(numBalance)}
               </p>
             )}

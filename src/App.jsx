@@ -25,6 +25,7 @@ const Social = lazyWithRetry(() => import('./pages/Social'));
 const Profile = lazyWithRetry(() => import('./pages/Profile'));
 const KebijakanPrivasi = lazyWithRetry(() => import('./pages/KebijakanPrivasi'));
 const SyaratKetentuan = lazyWithRetry(() => import('./pages/SyaratKetentuan'));
+const Status = lazyWithRetry(() => import('./pages/Status'));
 
 // Loading fallback yang ringan
 const PageLoader = () => (
@@ -75,9 +76,10 @@ export default function App() {
                 <Route path="/register" element={<PublicRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><Register /></div></PublicRoute>} />
                 <Route path="/reset-password" element={<PublicRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><ResetPassword /></div></PublicRoute>} />
                 
-                {/* Halaman Legal (publik, tidak perlu login) */}
+                {/* Halaman Legal & Status (publik, tidak perlu login) */}
                 <Route path="/kebijakan-privasi" element={<div className="max-w-md mx-auto min-h-screen bg-surface"><KebijakanPrivasi /></div>} />
                 <Route path="/syarat-ketentuan" element={<div className="max-w-md mx-auto min-h-screen bg-surface"><SyaratKetentuan /></div>} />
+                <Route path="/status" element={<div className="max-w-md mx-auto min-h-screen bg-surface"><Status /></div>} />
 
                 {/* Protected Routes */}
                 <Route path="/dashboard" element={<ProtectedRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><Dashboard /></div></ProtectedRoute>} />

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
 
 export default defineConfig({
   plugins: [
@@ -47,8 +48,21 @@ export default defineConfig({
           }
         ]
       }
-    })
-  ],
+    }),
+    // Upload source maps ke Sentry saat build jika SENTRY_AUTH_TOKEN tersedia
+    process.env.SENTRY_AUTH_TOKEN && sentryVitePlugin({
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      sourcemaps: {
+        assets: './dist/**',
+      },
+    }),
+  ].filter(Boolean),
+  build: {
+    // Generate sourcemap untuk error reporting dan tracing Sentry
+    sourcemap: true,
+  },
   server: {
     port: 3000,
     open: true

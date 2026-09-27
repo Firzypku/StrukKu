@@ -14,6 +14,7 @@ import { formatRupiah, parseVoiceInput } from '../utils/prediction';
 import { todayLocal } from '../utils/date';
 import { useToast } from '../context/ToastContext';
 import { preprocessImageForOcr, uploadReceiptToStorage } from '../utils/imageProcess';
+import { analytics } from '../utils/analytics';
 
 const CATEGORIES = ['Makanan', 'Minuman', 'Kebutuhan Kos', 'Transport', 'Belanja', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Fashion', 'Lainnya'];
 
@@ -122,6 +123,7 @@ export default function Scan() {
       return;
     }
 
+    analytics.scanStarted(file.name ? 'file_picker' : 'camera');
     resetScan();
     setScanning(true);
     setOcrProgress(5);
@@ -184,6 +186,12 @@ export default function Scan() {
         setOcrResult(result);
         setFieldConfidence(result.fieldConfidence || {});
 
+        analytics.scanSuccess({
+          hasStoreName: Boolean(result.storeName),
+          hasAmount: Boolean(result.amount),
+          confidence: result.confidence || 0,
+        });
+
         // Pre-fill form (Catatan dibiarkan kosong, BUKAN teks OCR confidence!)
         setForm({
           title: result.storeName && result.storeName !== 'Toko / Resto' && result.storeName !== 'Toko'
@@ -240,6 +248,8 @@ export default function Scan() {
         }
       }
 
+      const isFirst = expenses.length === 0;
+
       await add({
         title: form.title.trim(),
         amount: parsedAmount,
@@ -248,6 +258,10 @@ export default function Scan() {
         note: form.note || null,
         image: storageImageUrl || null,
       });
+
+      if (isFirst) {
+        analytics.firstExpense(form.category);
+      }
 
       setSaved(true);
       toast.success('Pengeluaran berhasil disimpan!');
@@ -264,6 +278,13 @@ export default function Scan() {
     setForm((f) => ({ ...f, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+    // Jika user mengubah nominal dari hasil OCR
+    if (field === 'amount' && ocrResult?.amount) {
+      const numVal = parseFloat(value);
+      if (!isNaN(numVal) && numVal !== ocrResult.amount) {
+        analytics.scanEditedAmount();
+      }
     }
     // Jika pengguna sudah mengedit, hilangkan peringatan 'Cek lagi ya' untuk field tersebut
     if (fieldConfidence[field]) {
@@ -546,7 +567,7 @@ export default function Scan() {
                   value={form.amount}
                   onChange={(e) => handleChange('amount', e.target.value)}
                   placeholder="0"
-                  className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none transition-all bg-gray-50 font-bold text-gray-800 ${
+                  className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none transition-all bg-gray-50 font-bold text-gray-800 ph-no-capture ${
                     errors.amount
                       ? 'border-danger focus:ring-2 focus:ring-danger/30'
                       : fieldConfidence.amount === 'low'

@@ -7,6 +7,7 @@ import { supabase } from '../utils/supabase';
 import { useToast } from '../context/ToastContext';
 import { uploadAvatarToStorage } from '../utils/imageProcess';
 import { FeedbackModal } from '../components/FeedbackForm';
+import PaywallModal from '../components/PaywallModal';
 
 // Icon Chevron rapi untuk navigasi mobile modern
 function ChevronIcon({ className = 'text-gray-400' }) {
@@ -31,6 +32,7 @@ export default function Profile() {
   const [showResetModal, setShowResetModal] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // Edit Name State
   const initialName = user?.user_metadata?.full_name || '';
@@ -244,6 +246,23 @@ export default function Profile() {
     </div>
 
       <div className="px-5 mt-6 space-y-4">
+        {/* Banner Upgrade StrukKu Pro */}
+        <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 rounded-2xl p-4 text-white shadow-lg shadow-orange-500/20 relative overflow-hidden flex items-center justify-between">
+          <div className="relative z-10">
+            <span className="text-[10px] font-black tracking-wider uppercase bg-white/20 px-2 py-0.5 rounded-full">
+              Fitur Pro
+            </span>
+            <h3 className="font-black text-sm mt-1">Upgrade StrukKu Pro</h3>
+            <p className="text-[11px] text-white/85 mt-0.5">Scan tanpa batas & backup cloud otomatis</p>
+          </div>
+          <button
+            onClick={() => setShowPaywall(true)}
+            className="relative z-10 px-3.5 py-2 bg-white text-orange-600 font-black text-xs rounded-xl shadow-md active:scale-95 transition-all whitespace-nowrap"
+          >
+            Upgrade ⚡
+          </button>
+        </div>
+
         {/* Ringkasan Akun & Status */}
         <div className="bg-white rounded-2xl p-4 shadow-card border border-gray-100">
           <h2 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3">Ringkasan Bulan Aktif</h2>
@@ -430,6 +449,16 @@ export default function Profile() {
             </span>
             <ChevronIcon />
           </Link>
+          <Link
+            to="/status"
+            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 active:scale-[0.99] transition-all border border-gray-100 text-xs"
+          >
+            <span className="flex items-center gap-2.5">
+              <span>🟢</span>
+              Status Sistem & Layanan
+            </span>
+            <ChevronIcon />
+          </Link>
         </div>
 
         {/* Keamanan & Logout */}
@@ -498,6 +527,13 @@ export default function Profile() {
 
       {/* Modal Formulir Masukan */}
       <FeedbackModal isOpen={showFeedback} onClose={() => setShowFeedback(false)} />
+
+      {/* Modal Upgrade Pro (Paywall) */}
+      <PaywallModal
+        isOpen={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        triggerSource="profile_banner"
+      />
     </div>
   );
 }

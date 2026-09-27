@@ -200,25 +200,25 @@ export default function Dashboard() {
             </button>
           </div>
 
-          <p className="text-3xl sm:text-4xl font-black text-white mt-1.5 tracking-tight">
+          <p className="text-3xl sm:text-4xl font-black text-white mt-1.5 tracking-tight ph-no-capture">
             {formatRupiah(cycleData.safeDailySpend)}
             <span className="text-sm font-normal text-white/70"> /hari</span>
           </p>
 
-          <p className="text-xs text-blue-100/90 mt-1 font-medium leading-relaxed">
+          <p className="text-xs text-blue-100/90 mt-1 font-medium leading-relaxed ph-no-capture">
             Sisa uang: <strong>{formatRupiah(cycleData.remainingAllowance)}</strong> • Kiriman dalam {cycleData.daysLeft} hari ({cycleData.nextPayDate})
           </p>
 
           {/* Sekunder: Pengeluaran Bulan Ini */}
           <div className="mt-3.5 pt-2.5 border-t border-white/15 flex items-center justify-between text-xs text-white/80">
             <span>Terpakai {isCurrentMonth ? 'Bulan Ini' : selectedMonthName}:</span>
-            <span className="font-bold text-white text-sm">{formatRupiah(stats.thisMonthTotal)}</span>
+            <span className="font-bold text-white text-sm ph-no-capture">{formatRupiah(stats.thisMonthTotal)}</span>
           </div>
 
           {/* Sekunder: Budget Limit Bulanan */}
           {budget > 0 && (
             <div className="mt-2.5 pt-2 border-t border-white/10">
-              <div className="flex justify-between items-center text-[11px] text-white/80 mb-1">
+              <div className="flex justify-between items-center text-[11px] text-white/80 mb-1 ph-no-capture">
                 <span>Batas belanja bulanan ({formatRupiah(budget)}):</span>
                 <span className={budgetStatus.status === 'danger' ? 'text-rose-300 font-bold' : 'text-emerald-300 font-semibold'}>
                   {budgetStatus.status === 'danger'
@@ -271,9 +271,9 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-[10px] sm:text-[11px] text-slate-400 font-semibold">{item.label}</p>
-              <p className="text-xs sm:text-sm font-black text-slate-800 mt-0.5 truncate">{item.value}</p>
+              <p className="text-xs sm:text-sm font-black text-slate-800 mt-0.5 truncate ph-no-capture">{item.value}</p>
               {item.subValue && (
-                <p className="text-[10px] sm:text-[11px] font-bold text-emerald-600 truncate mt-0.5">
+                <p className="text-[10px] sm:text-[11px] font-bold text-emerald-600 truncate mt-0.5 ph-no-capture">
                   {item.subValue}
                 </p>
               )}

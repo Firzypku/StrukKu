@@ -2,6 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
+import { initSentry } from './utils/sentry';
+import { initPostHog } from './utils/analytics';
+
+// Inisialisasi Monitoring & Analytics di awal pemuatan aplikasi
+initSentry();
+initPostHog();
 
 // Tangani vite:preloadError saat versi baru di-deploy dan chunk lama tidak ditemukan
 window.addEventListener('vite:preloadError', (event) => {

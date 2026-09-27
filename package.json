@@ -10,9 +10,11 @@
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
+    "@sentry/react": "^11.0.0",
     "@supabase/supabase-js": "^2.103.0",
     "heic2any": "^0.0.4",
     "lucide-react": "^0.376.0",
+    "posthog-js": "^1.434.15",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.3",
@@ -21,6 +23,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@sentry/vite-plugin": "^5.4.0",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.2.1",

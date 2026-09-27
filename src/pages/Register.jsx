@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { analytics } from '../utils/analytics';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function Register() {
     setError(null);
     try {
       await register(email, password, fullName);
+      analytics.signup('email');
       // Pindahkan user ke login setelah sukses
       navigate('/login', { state: { message: 'Pendaftaran sukses! Silakan konfirmasi email Anda atau langsung login.' } });
     } catch (err) {
