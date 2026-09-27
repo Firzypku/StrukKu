@@ -1,0 +1,10 @@
+{
+  "id": "fotocopy-08",
+  "store": "Fotocopy Mahasiswa",
+  "rawText": "FOTOCOPY & PERCETAKAN BINTANG\nJL. MENUR KAMPUS NO 12\n--------------------------------\nCETAK PRINT SKRIPSI 80 HAL  24.000\nJILID HARDCOVER BIRU        25.000\nFOTOCOPY MODUL KULIAH 2X     8.000\n--------------------------------\nSUB TOTAL                   57.000\nTOTAL                       57.000\nTUNAI                       60.000\nKEMBALI                      3.000\n--------------------------------\nSUKSES BELAJARNYA KAK",
+  "expected": {
+    "amount": 57000,
+    "category": "Pendidikan",
+    "merchantIncludes": "FOTOCOPY"
+  }
+}

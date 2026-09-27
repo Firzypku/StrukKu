@@ -1,0 +1,10 @@
+{
+  "id": "circlek-05",
+  "store": "Circle K",
+  "rawText": "CIRCLE K RAYA GUBENG\nPT. CIRCLEKA INDONESIA UTAMA\nSURABAYA\n--------------------------------\n1 FROSTER MANGO MEDIUM   10.000\n1 ROTI HOKKAIDO MILK      8.000\n--------------------------------\nTOTAL BELANJA            18.000\nTUNAI                    20.000\nKEMBALI                   2.000\nSIMPAN STRUK INI\nCALL CENTER 1500-CK",
+  "expected": {
+    "amount": 18000,
+    "category": ["Belanja", "Makanan", "Minuman"],
+    "merchantIncludes": "CIRCLE K"
+  }
+}

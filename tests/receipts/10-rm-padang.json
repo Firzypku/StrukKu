@@ -1,0 +1,10 @@
+{
+  "id": "padang-10",
+  "store": "RM Padang Sederhana",
+  "rawText": "RUMAH MAKAN PADANG CITRA BUNDO\nJL. DHARMAWANGSA NO. 18 SURABAYA\n--------------------------------\n1 NASI AYAM POP SAMBAL      24.000\n1 PERKEDEL DAGING            5.000\n1 ES TEH MANIS               4.000\n--------------------------------\nTOTAL BAYAR                 33.000\nTUNAI                       50.000\nKEMBALI                     17.000\n--------------------------------\nTERIMA KASIH ATAS KUNJUNGANNYA",
+  "expected": {
+    "amount": 33000,
+    "category": ["Makanan", "Minuman"],
+    "merchantIncludes": "PADANG"
+  }
+}

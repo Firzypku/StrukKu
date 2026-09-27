@@ -1,0 +1,10 @@
+{
+  "id": "apotek-09",
+  "store": "Apotek K-24",
+  "rawText": "APOTEK K-24 PUCANG ANOM\nSOBAT SEHAT KITA-KITA\n--------------------------------\n1 STRIP PANADOL EXTRA BLUE   14.500\n5 SACHET TOLAK ANGIN HERBAL  22.500\n1 BETADINE ANTISEPTIC 15ML   16.000\n--------------------------------\nSUBTOTAL                     53.000\nTOTAL BELANJA                53.000\nTUNAI                        60.000\nKEMBALI                       7.000\n--------------------------------\nSEMOGA LEKAS SEMBUH",
+  "expected": {
+    "amount": 53000,
+    "category": ["Kesehatan", "Belanja"],
+    "merchantIncludes": "APOTEK"
+  }
+}

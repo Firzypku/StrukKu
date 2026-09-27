@@ -1,0 +1,10 @@
+{
+  "id": "alfamart-02",
+  "store": "Alfamart",
+  "rawText": "ALFAMART KETINTANG 2\nPT. SUMBER ALFARIA TRIJAYA TBK\nJL. KETINTANG NO. 156 SURABAYA\nBON: 001239-140226 Kasir: RATNA\n================================\nSARI ROTI TAWAR KUPAS    15.500\nAQUA AIR MINERAL 600ML    3.700\nFRISIAN FLAG UHT 225ML    5.000\n================================\nTOTAL                    24.200\nTUNAI                    50.000\nKEMBALI                  25.800\nPPN DITANGGUNG PEMERINTAH\nLAYANAN KONSUMEN SMS 08111099951",
+  "expected": {
+    "amount": 24200,
+    "category": ["Belanja", "Minuman"],
+    "merchantIncludes": "ALFAMART"
+  }
+}

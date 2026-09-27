@@ -1,0 +1,10 @@
+{
+  "id": "superindo-03",
+  "store": "Super Indo",
+  "rawText": "SUPERINDO JEMURSARI\nPT. LION SUPER INDO\nJL. RAYA JEMURSARI NO. 30\n--------------------------------\nAPEL FUJI RRC 0.85 KG    28.900\nBIMOLI MINYAK GOR 2L     38.500\nSABUN LIFEBUOY 4X85GR    11.500\n--------------------------------\nSUBTOTAL                 78.900\nGRAND TOTAL              78.900\nDEBIT BCA                78.900\nJUMLAH ITEM: 3 PCS\nTERIMA KASIH TELAH BERBELANJA",
+  "expected": {
+    "amount": 78900,
+    "category": "Belanja",
+    "merchantIncludes": "SUPERINDO"
+  }
+}

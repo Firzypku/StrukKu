@@ -1,0 +1,10 @@
+{
+  "id": "spbu-06",
+  "store": "SPBU Pertamina",
+  "rawText": "SPBU 54.601.19 COCO\nJL. MAYJEND SUNGKONO NO. 88\nSURABAYA\nNO POMPA: 04\nPRODUK : PERTALITE\nHARGA/L: RP 10.000\nVOLUME : 4.00 L\n--------------------------------\nTOTAL RUPIAH             40.000\nCASH                     50.000\nKEMBALI                  10.000\n--------------------------------\nTERIMA KASIH\nSELAMAT JALAN",
+  "expected": {
+    "amount": 40000,
+    "category": "Transport",
+    "merchantIncludes": "SPBU"
+  }
+}

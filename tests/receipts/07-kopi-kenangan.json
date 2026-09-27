@@ -1,0 +1,10 @@
+{
+  "id": "kopi-kenangan-07",
+  "store": "Kopi Kenangan",
+  "rawText": "KOPI KENANGAN TUNJUNGAN PLAZA\nPT. BUMI BERKAH BOGA\n--------------------------------\n1 KOPI KENANGAN MANTAN (R) 18.000\n  - NORMAL ICE\n  - NORMAL SUGAR\n1 ROASTI TOAST COKLAT     14.000\n--------------------------------\nSUBTOTAL                 32.000\nPB1 (10%)                 3.200\nTOTAL BAYAR              35.200\nMETODE: GOPAY            35.200\nTERIMA KASIH",
+  "expected": {
+    "amount": 35200,
+    "category": ["Minuman", "Makanan"],
+    "merchantIncludes": "KOPI KENANGAN"
+  }
+}

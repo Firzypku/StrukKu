@@ -20,13 +20,17 @@ export const lazyWithRetry = (componentImport) =>
       const component = await componentImport();
       try {
         window.sessionStorage.setItem(hasReloadedKey, 'false');
-      } catch {}
+      } catch (_err) {
+        // Abaikan jika sessionStorage dibatasi di private browsing mode
+      }
       return component;
     } catch (error) {
       if (!pageHasBeenForceRefreshed) {
         try {
           window.sessionStorage.setItem(hasReloadedKey, 'true');
-        } catch {}
+        } catch (_err) {
+          // Abaikan jika sessionStorage dibatasi di private browsing mode
+        }
         window.location.reload();
         return new Promise(() => {}); // tahan render saat reload berlangsung
       }

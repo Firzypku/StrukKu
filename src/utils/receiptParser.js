@@ -4,7 +4,7 @@
  * prioritas baris TOTAL vs TUNAI/KEMBALI, ekstraksi tanggal lokal, merchant, dan kategori.
  */
 
-import { todayLocal } from './date';
+import { todayLocal } from './date.js';
 
 // Bulan Indonesia ke angka (01-12)
 const MONTH_MAP = {

@@ -1,13 +1,16 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabase';
 import { useToast } from '../context/ToastContext';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const toast = useToast();
+
+  const successMessage = location.state?.message;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -61,6 +64,13 @@ export default function Login() {
 
         {/* Form Card */}
         <div className="bg-white rounded-2xl p-6 shadow-card border border-white/60">
+          {successMessage && (
+            <div className="mb-4 bg-emerald-50 text-emerald-800 text-xs p-3 rounded-xl border border-emerald-200 flex items-center gap-2">
+              <span>✅</span>
+              <span>{successMessage}</span>
+            </div>
+          )}
+
           {error && (
             <div className="mb-4 bg-red-50 text-danger text-xs p-3 rounded-xl border border-red-100 flex items-center gap-2">
               <span>⚠️</span>

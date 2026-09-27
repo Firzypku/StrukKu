@@ -29,7 +29,7 @@ const INITIAL_FORM = {
 export default function Scan() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { add } = useExpenses();
+  const { add, expenses } = useExpenses();
   const { user } = useAuth();
   const toast = useToast();
 

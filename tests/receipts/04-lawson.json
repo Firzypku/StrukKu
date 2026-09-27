@@ -1,0 +1,10 @@
+{
+  "id": "lawson-04",
+  "store": "Lawson Station",
+  "rawText": "LAWSON STATION KAMPUS C\nPT. LANCI BINA BERSAMA\nORDER #LW-89211\n================================\n1 ODEN SPICY SOUP        18.000\n1 SALMON ONIGIRI         12.000\n1 ICE COFFEE LATTE        5.000\n================================\nTOTAL                    35.000\nQRIS SHOPEEPAY           35.000\nKEMBALIAN                     0\nPAJAK TERMASUK 10%\nTHANK YOU FOR VISITING LAWSON",
+  "expected": {
+    "amount": 35000,
+    "category": ["Belanja", "Minuman", "Makanan"],
+    "merchantIncludes": "LAWSON"
+  }
+}

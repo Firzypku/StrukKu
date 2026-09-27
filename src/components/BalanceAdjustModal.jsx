@@ -106,6 +106,7 @@ export default function BalanceAdjustModal({ isOpen, onClose, onSaved, isOnboard
                 Rp
               </span>
               <input
+                id="input-current-balance"
                 type="number"
                 value={balanceInput}
                 onChange={(e) => setBalanceInput(e.target.value)}

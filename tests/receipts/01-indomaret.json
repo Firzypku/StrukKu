@@ -1,0 +1,10 @@
+{
+  "id": "indomaret-01",
+  "store": "Indomaret",
+  "rawText": "PT INDOMARCO PRISMATAMA\nINDOMARET RAYA DARMO\nJL RAYA DARMO NO 42 SURABAYA\nNPWP: 01.337.994.8-054.000\n--------------------------------\n20.09.26-14:30 2.1.48/01/02\n1 TEH PUCUK HARUM 350ML   4.000\n1 ULTRA MILK COKLAT 250ML 7.500\n1 INDOMIE GOR KRIUK 85G   3.500\n1 CHITATO SAPI PANGGANG  11.500\n1 OREO VANILLA 133G      12.000\n--------------------------------\nSUBTOTAL                 38.500\nPPN 11%                   4.235\nTOTAL BELANJA            38.500\nTUNAI                    50.000\nKEMBALIAN                11.500\n--------------------------------\nTERIMA KASIH DAN SELAMAT BELANJA",
+  "expected": {
+    "amount": 38500,
+    "category": ["Belanja", "Minuman"],
+    "merchantIncludes": "INDOMARET"
+  }
+}
