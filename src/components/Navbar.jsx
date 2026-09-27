@@ -61,8 +61,8 @@ export default function Navbar() {
   const avatarUrl =
     user?.user_metadata?.avatar_url || (user?.id ? localStorage.getItem(`user_avatar_${user.id}`) : null);
 
-  // Sembunyikan navbar di landing, login, register, dan reset-password
-  const HIDE_NAVBAR_PATHS = ['/', '/landing', '/login', '/register', '/reset-password'];
+  // Sembunyikan navbar di landing, login, register, reset-password, dan halaman legal
+  const HIDE_NAVBAR_PATHS = ['/', '/landing', '/login', '/register', '/reset-password', '/kebijakan-privasi', '/syarat-ketentuan'];
   if (HIDE_NAVBAR_PATHS.includes(location.pathname)) return null;
 
   return (

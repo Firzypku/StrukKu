@@ -8,7 +8,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ToastContainer from './components/Toast';
 import Navbar from './components/Navbar';
-import FloatingWhatsApp from './components/FloatingWhatsApp';
 import PwaUpdater from './components/PwaUpdater';
 import { lazyWithRetry } from './utils/lazyWithRetry';
 
@@ -24,6 +23,8 @@ const Budget = lazyWithRetry(() => import('./pages/Budget'));
 const Hemat = lazyWithRetry(() => import('./pages/Hemat'));
 const Social = lazyWithRetry(() => import('./pages/Social'));
 const Profile = lazyWithRetry(() => import('./pages/Profile'));
+const KebijakanPrivasi = lazyWithRetry(() => import('./pages/KebijakanPrivasi'));
+const SyaratKetentuan = lazyWithRetry(() => import('./pages/SyaratKetentuan'));
 
 // Loading fallback yang ringan
 const PageLoader = () => (
@@ -74,6 +75,10 @@ export default function App() {
                 <Route path="/register" element={<PublicRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><Register /></div></PublicRoute>} />
                 <Route path="/reset-password" element={<PublicRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><ResetPassword /></div></PublicRoute>} />
                 
+                {/* Halaman Legal (publik, tidak perlu login) */}
+                <Route path="/kebijakan-privasi" element={<div className="max-w-md mx-auto min-h-screen bg-surface"><KebijakanPrivasi /></div>} />
+                <Route path="/syarat-ketentuan" element={<div className="max-w-md mx-auto min-h-screen bg-surface"><SyaratKetentuan /></div>} />
+
                 {/* Protected Routes */}
                 <Route path="/dashboard" element={<ProtectedRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><Dashboard /></div></ProtectedRoute>} />
                 <Route path="/scan" element={<ProtectedRoute><div className="max-w-md mx-auto min-h-screen bg-surface"><Scan /></div></ProtectedRoute>} />
@@ -87,7 +92,6 @@ export default function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
-            <FloatingWhatsApp />
             <Navbar />
           </div>
         </BrowserRouter>

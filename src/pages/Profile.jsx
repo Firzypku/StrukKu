@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useExpenses } from '../hooks/useExpenses';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { formatRupiah } from '../utils/prediction';
 import { supabase } from '../utils/supabase';
 import { useToast } from '../context/ToastContext';
 import { uploadAvatarToStorage } from '../utils/imageProcess';
+import { FeedbackModal } from '../components/FeedbackForm';
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -15,6 +16,7 @@ export default function Profile() {
 
   const [showResetModal, setShowResetModal] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   // Edit Name State
   const initialName = user?.user_metadata?.full_name || '';
@@ -298,7 +300,7 @@ export default function Profile() {
               <span>🎯</span>
               Budget Bulanan & Jatah Harian
             </span>
-            <span className="text-gray-400">/budget →</span>
+            <span className="text-gray-400">›</span>
           </button>
 
           {/* 3. Riwayat & Export Excel */}
@@ -310,7 +312,7 @@ export default function Profile() {
               <span>📊</span>
               Riwayat Transaksi & Export Excel
             </span>
-            <span className="text-gray-400">/history →</span>
+            <span className="text-gray-400">›</span>
           </button>
 
           {/* Fitur Sosial / Split Bill */}
@@ -322,7 +324,7 @@ export default function Profile() {
               <span>🍕</span>
               Patungan & Split Bill (Satu Scan)
             </span>
-            <span className="text-gray-400">/social →</span>
+            <span className="text-gray-400">›</span>
           </button>
 
           <button
@@ -358,24 +360,62 @@ export default function Profile() {
           </button>
         </div>
 
-        {/* Bantuan & Keluhan Pengguna */}
-        <div className="bg-white rounded-2xl p-4 shadow-card border border-gray-100">
-          <h2 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-2">Bantuan & Keluhan</h2>
-          <a
-            href="https://wa.me/6281251152940?text=Halo%20Firzy%2C%20saya%20pengguna%20StrukKu%20ingin%20menyampaikan%20keluhan%2Fkendala%3A"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-emerald-900 font-bold bg-emerald-50/80 hover:bg-emerald-100/80 transition-all border border-emerald-200/80 active:scale-95 text-xs"
+        {/* Bantuan & Keluhan */}
+        <div className="bg-white rounded-2xl p-4 shadow-card border border-gray-100 space-y-2">
+          <h2 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3">Bantuan & Masukan</h2>
+
+          {/* Formulir Masukan (in-app) */}
+          <button
+            onClick={() => setShowFeedback(true)}
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-blue-900 font-bold bg-blue-50/70 hover:bg-blue-100/70 transition-colors border border-blue-200/60 text-xs"
           >
             <span className="flex items-center gap-2.5">
-              <span className="text-xl">💬</span>
-              <div>
-                <span className="block text-emerald-950 font-bold">Chat WhatsApp Langsung</span>
-                <span className="text-[10px] text-emerald-600 font-normal">0812-5115-2940 (Firzy) • Siap bantu keluhan & ide</span>
-              </div>
+              <span>📝</span>
+              Kirim Masukan atau Keluhan
             </span>
-            <span className="text-emerald-700 font-black">→</span>
-          </a>
+            <span className="text-blue-600 font-bold">›</span>
+          </button>
+
+          {/* WhatsApp Support — dibaca dari env */}
+          {import.meta.env.VITE_SUPPORT_WA && (
+            <a
+              href={`https://wa.me/${import.meta.env.VITE_SUPPORT_WA}?text=Halo%2C%20saya%20pengguna%20StrukKu%20ingin%20menyampaikan%20masukan%3A`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-emerald-900 font-bold bg-emerald-50/80 hover:bg-emerald-100/80 transition-all border border-emerald-200/80 active:scale-95 text-xs"
+            >
+              <span className="flex items-center gap-2.5">
+                <span className="text-base">💬</span>
+                <span>Chat WhatsApp Tim StrukKu</span>
+              </span>
+              <span className="text-emerald-700">›</span>
+            </a>
+          )}
+        </div>
+
+        {/* Informasi Legal */}
+        <div className="bg-white rounded-2xl p-4 shadow-card border border-gray-100 space-y-2">
+          <h2 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3">Informasi</h2>
+          <Link
+            to="/kebijakan-privasi"
+            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+          >
+            <span className="flex items-center gap-2.5">
+              <span>🔒</span>
+              Kebijakan Privasi
+            </span>
+            <span className="text-gray-400">›</span>
+          </Link>
+          <Link
+            to="/syarat-ketentuan"
+            className="w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 text-xs"
+          >
+            <span className="flex items-center gap-2.5">
+              <span>📋</span>
+              Syarat & Ketentuan
+            </span>
+            <span className="text-gray-400">›</span>
+          </Link>
         </div>
 
         {/* Keamanan & Logout */}
@@ -441,6 +481,9 @@ export default function Profile() {
           </div>
         </div>
       )}
+
+      {/* Modal Formulir Masukan */}
+      <FeedbackModal isOpen={showFeedback} onClose={() => setShowFeedback(false)} />
     </div>
   );
 }
