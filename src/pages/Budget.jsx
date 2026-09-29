@@ -2,8 +2,27 @@
  * Budget.jsx — Siklus Uang Saku Mahasiswa, Jatah Harian Aman, Simulasi Belanja, Rekap Ortu & Budget Kalender
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Target,
+  Calculator,
+  Users,
+  SlidersHorizontal,
+  ArrowLeft,
+  Menu,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Check,
+  Sliders,
+  Edit3,
+  Share2,
+  Copy,
+  AlertTriangle,
+  ShieldCheck,
+  HelpCircle,
+} from 'lucide-react';
 import { useBudget } from '../hooks/useBudget';
 import { useExpenses } from '../hooks/useExpenses';
 import { useAuth } from '../context/AuthContext';
@@ -21,6 +40,49 @@ import BalanceAdjustModal from '../components/BalanceAdjustModal';
 
 const QUICK_BUDGETS = [500000, 1000000, 1500000, 2000000, 2500000, 3000000];
 
+const BUDGET_MENU_ITEMS = [
+  {
+    id: 'cycle',
+    label: 'Jatah Harian Aman',
+    shortLabel: 'Jatah Harian',
+    subtitle: 'Siklus uang saku & batas belanja harian aman',
+    icon: Target,
+    activeBg: 'bg-blue-600 text-white',
+    inactiveBg: 'bg-blue-50 text-blue-600',
+    tag: 'Rekomendasi',
+  },
+  {
+    id: 'simulation',
+    label: 'Simulasi Belanja',
+    shortLabel: 'Simulasi Beli',
+    subtitle: 'Cek dampak belanja sebelum uang habis',
+    icon: Calculator,
+    activeBg: 'bg-amber-500 text-white',
+    inactiveBg: 'bg-amber-50 text-amber-600',
+    tag: 'Kalkulator',
+  },
+  {
+    id: 'parent',
+    label: 'Rekap untuk Orang Tua',
+    shortLabel: 'Rekap Ortu',
+    subtitle: 'Format laporan uang saku via WhatsApp',
+    icon: Users,
+    activeBg: 'bg-emerald-600 text-white',
+    inactiveBg: 'bg-emerald-50 text-emerald-600',
+    tag: 'WhatsApp',
+  },
+  {
+    id: 'standard',
+    label: 'Target Batas Belanja',
+    shortLabel: 'Batas Belanja',
+    subtitle: 'Atur limit budget bulanan & pantau grafik',
+    icon: SlidersHorizontal,
+    activeBg: 'bg-indigo-600 text-white',
+    inactiveBg: 'bg-indigo-50 text-indigo-600',
+    tag: 'Limit',
+  },
+];
+
 export default function Budget() {
   const navigate = useNavigate();
   const { budget, updateBudget, getStatus } = useBudget();
@@ -28,6 +90,35 @@ export default function Budget() {
   const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState('cycle'); // 'cycle' | 'simulation' | 'parent' | 'standard'
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close dropdown on outside click or escape key
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    }
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    }
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMenuOpen]);
+
+  const currentTab = BUDGET_MENU_ITEMS.find((item) => item.id === activeTab) || BUDGET_MENU_ITEMS[0];
+  const CurrentIcon = currentTab.icon;
 
   // Allowance Cycle State (Sinkron ke Supabase allowances & localStorage)
   const [allowanceConfig, setAllowanceConfig] = useState(getAllowanceConfig);
@@ -150,41 +241,171 @@ export default function Budget() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#0B1E36] via-[#123E6B] to-[#1E40AF] px-4 pt-12 pb-6 relative overflow-hidden shadow-lg">
+      <div className="bg-gradient-to-br from-[#0B1E36] via-[#123E6B] to-[#1E40AF] px-4 pt-12 pb-5 relative overflow-hidden shadow-lg">
         <div className="absolute top-0 right-0 w-44 h-44 bg-blue-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
-        <div className="relative z-10 flex items-center gap-3 mb-2">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 bg-white/15 rounded-xl flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95 border border-white/20"
-          >
-            ←
-          </button>
-          <div>
-            <h1 className="text-xl font-black text-white tracking-tight">Siklus & Anggaran</h1>
-            <p className="text-white/60 text-xs">Jatah harian, simulasi beli & rekap ortu 🎓</p>
+        
+        {/* Top Header Row: Back button, Title, and Hamburger Menu Button */}
+        <div className="relative z-10 flex items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="w-9 h-9 bg-white/15 rounded-xl flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95 border border-white/20"
+              aria-label="Kembali"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-black text-white tracking-tight">Siklus & Anggaran</h1>
+              <p className="text-white/60 text-xs">Jatah harian, simulasi beli & rekap ortu 🎓</p>
+            </div>
           </div>
+
+          {/* Quick Burger/Menu Button */}
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-95 border ${
+              isMenuOpen
+                ? 'bg-white text-primary border-white shadow-md'
+                : 'bg-white/15 hover:bg-white/25 text-white border-white/20'
+            }`}
+            aria-expanded={isMenuOpen}
+            aria-label="Pilih menu anggaran"
+            title="Pilih fitur anggaran"
+          >
+            {isMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          </button>
         </div>
 
-        {/* Tab Navigation — Smooth horizontal scroll for mobile 360px */}
-        <div className="mt-4 flex bg-white/15 backdrop-blur-md rounded-2xl p-1 gap-1.5 overflow-x-auto no-scrollbar scroll-smooth overscroll-x-contain">
-          {[
-            { id: 'cycle', label: '🎯 Jatah Harian' },
-            { id: 'simulation', label: '🧮 Simulasi Beli' },
-            { id: 'parent', label: '👨‍👩‍👦 Rekap Ortu' },
-            { id: 'standard', label: '⚙️ Batas Belanja' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-shrink-0 py-2 px-3.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all active:scale-95 ${
-                activeTab === tab.id
-                  ? 'bg-white text-primary shadow-sm'
-                  : 'text-white/70 hover:text-white'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Compact Dropdown Feature Switcher Pill */}
+        <div className="relative z-30" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            className="w-full flex items-center justify-between bg-white/12 hover:bg-white/20 active:bg-white/25 backdrop-blur-md border border-white/20 rounded-2xl p-2 pl-2.5 pr-3 text-white transition-all shadow-sm group"
+            aria-expanded={isMenuOpen}
+            aria-label="Pilih fitur aktif"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${currentTab.activeBg} shadow-sm`}>
+                <CurrentIcon className="w-4 h-4 text-white" />
+              </div>
+              <div className="text-left min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-blue-200">
+                    Fitur Aktif
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                </div>
+                <span className="text-sm font-black text-white block truncate leading-tight">
+                  {currentTab.label}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <span className="text-[11px] font-semibold text-blue-100 group-hover:text-white transition-colors bg-white/10 px-2.5 py-1 rounded-lg flex items-center gap-1 border border-white/10">
+                <span>Pilih Menu</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMenuOpen ? 'rotate-180 text-white' : 'text-blue-200'}`} />
+              </span>
+            </div>
+          </button>
+
+          {/* Dropdown Menu Modal / Popover */}
+          {isMenuOpen && (
+            <>
+              {/* Backdrop for click outside on mobile */}
+              <div
+                className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs transition-opacity animate-fade-in"
+                onClick={() => setIsMenuOpen(false)}
+              />
+
+              {/* Dropdown Card */}
+              <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-white rounded-2xl p-2.5 shadow-2xl border border-slate-100 animate-bounce-in">
+                <div className="px-2.5 py-2 border-b border-slate-100 flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                      Pilih Fitur Anggaran
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    4 Fitur
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  {BUDGET_MENU_ITEMS.map((item) => {
+                    const ItemIcon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveTab(item.id);
+                          setIsMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all ${
+                          isActive
+                            ? 'bg-blue-50/90 text-primary border border-blue-200/80 shadow-xs'
+                            : 'hover:bg-slate-50 text-slate-700 active:scale-[0.99]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                            isActive ? item.activeBg : item.inactiveBg
+                          }`}>
+                            <ItemIcon className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className={`text-sm font-bold truncate ${isActive ? 'text-blue-950 font-black' : 'text-slate-800'}`}>
+                                {item.label}
+                              </span>
+                              {isActive ? (
+                                <span className="text-[10px] font-bold bg-blue-600 text-white px-1.5 py-0.2 rounded-full">
+                                  Aktif
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.2 rounded-md">
+                                  {item.tag}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-0.5 truncate leading-tight">
+                              {item.subtitle}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center pl-2 flex-shrink-0">
+                          {isActive ? (
+                            <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center">
+                              <Check className="w-3.5 h-3.5" />
+                            </div>
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-slate-300" />
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-2 pt-2 border-t border-slate-100 px-2 flex items-center justify-between text-[11px] text-slate-400">
+                  <span>💡 Ganti fitur kapan saja tanpa kehilangan data</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-primary font-bold hover:underline"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -202,9 +423,10 @@ export default function Budget() {
                 </span>
                 <button
                   onClick={() => setShowAdjustModal(true)}
-                  className="text-[11px] bg-white/20 hover:bg-white/30 text-white font-bold px-2.5 py-1 rounded-xl border border-white/25 active:scale-95 transition-all flex items-center gap-1"
+                  className="text-[11px] bg-white/20 hover:bg-white/30 text-white font-bold px-2.5 py-1.5 rounded-xl border border-white/25 active:scale-95 transition-all flex items-center gap-1.5"
                 >
-                  <span>Sesuaikan Saldo</span> ⚙️
+                  <Sliders className="w-3.5 h-3.5 text-white" />
+                  <span>Sesuaikan Saldo</span>
                 </button>
               </div>
 
@@ -229,7 +451,9 @@ export default function Budget() {
             {cycleData.willRunOutEarly ? (
               <div className="bg-red-50 border border-red-200 rounded-2xl p-4 shadow-sm animate-bounce-in">
                 <div className="flex items-start gap-3">
-                  <span className="text-3xl">🚨</span>
+                  <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0 text-red-600 mt-0.5">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                  </div>
                   <div>
                     <h3 className="font-black text-red-800 text-sm">
                       Peringatan: Uang Berpotensi Habis Lebih Awal!
@@ -249,7 +473,9 @@ export default function Budget() {
               </div>
             ) : (
               <div className="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center gap-3">
-                <span className="text-2xl">🛡️</span>
+                <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0 text-green-700">
+                  <ShieldCheck className="w-5 h-5 text-green-700" />
+                </div>
                 <div>
                   <p className="text-xs font-bold text-green-900">Arus Uang Saku Masih Sangat Sehat</p>
                   <p className="text-[11px] text-green-700 mt-0.5">
@@ -268,9 +494,16 @@ export default function Budget() {
                 </div>
                 <button
                   onClick={() => setEditAllowance(!editAllowance)}
-                  className="text-xs text-primary font-bold hover:underline"
+                  className="text-xs text-primary font-bold hover:underline flex items-center gap-1"
                 >
-                  {editAllowance ? 'Batal' : 'Ubah ⚙️'}
+                  {editAllowance ? (
+                    'Batal'
+                  ) : (
+                    <>
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>Ubah</span>
+                    </>
+                  )}
                 </button>
               </div>
 
@@ -338,8 +571,8 @@ export default function Budget() {
 
             {/* Info Edukasi: Perbedaan Uang Saku & Budget Limit */}
             <div className="bg-blue-50/80 border border-blue-100 rounded-2xl p-4 text-xs space-y-2">
-              <div className="flex items-center gap-1.5 font-bold text-primary">
-                <span>💡</span>
+              <div className="flex items-center gap-2 font-bold text-primary">
+                <HelpCircle className="w-4 h-4 text-primary" />
                 <span>Pahami Pengelolaan Keuanganmu:</span>
               </div>
               <div className="space-y-1.5 text-gray-600 leading-relaxed text-[11px]">
@@ -347,7 +580,7 @@ export default function Budget() {
                   • <strong className="text-gray-800">Uang Saku (Pemasukan per Siklus):</strong> Nominal total kiriman yang kamu terima (dari ortu/beasiswa) dihitung dari tanggal kiriman bulan ini sampai kiriman berikutnya untuk membagi <em>Jatah Harian Aman</em>.
                 </p>
                 <p>
-                  • <strong className="text-gray-800">Budget Limit (Batas Belanja):</strong> Target batas maksimal pengeluaran bulanan yang kamu tetapkan sendiri di tab <em>Budget Limit</em> agar ada sisa uang saku untuk ditabung.
+                  • <strong className="text-gray-800">Budget Limit (Batas Belanja):</strong> Target batas maksimal pengeluaran bulanan yang kamu tetapkan sendiri di tab <em>Target Batas Belanja</em> agar ada sisa uang saku untuk ditabung.
                 </p>
               </div>
             </div>
@@ -358,8 +591,10 @@ export default function Budget() {
         {activeTab === 'simulation' && (
           <div className="space-y-4">
             <div className="bg-white rounded-2xl p-5 shadow-card border border-white/60">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">🧮</span>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 flex-shrink-0">
+                  <Calculator className="w-5 h-5" />
+                </div>
                 <div>
                   <h2 className="font-bold text-gray-800 text-sm">Simulasi: "Kalau Aku Beli..."</h2>
                   <p className="text-xs text-gray-400">Cek dampak belanja sebelum menyesal</p>
@@ -471,8 +706,10 @@ export default function Budget() {
         {activeTab === 'parent' && (
           <div className="space-y-4">
             <div className="bg-white rounded-2xl p-5 shadow-card border border-white/60">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">👨‍👩‍👦</span>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                  <Users className="w-5 h-5" />
+                </div>
                 <div>
                   <h2 className="font-bold text-gray-800 text-sm">Rekap Khusus Orang Tua</h2>
                   <p className="text-xs text-gray-400">Transparansi yang tetap menjaga privasimu</p>
@@ -512,16 +749,27 @@ export default function Budget() {
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={handleShareWhatsAppReport}
-                  className="flex-1 py-3 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md shadow-green-500/20"
+                  className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md shadow-emerald-600/20"
                 >
-                  <span>📲 Kirim ke WhatsApp Ortu</span>
+                  <Share2 className="w-4 h-4" />
+                  <span>Kirim ke WhatsApp Ortu</span>
                 </button>
                 <button
                   onClick={handleCopyReport}
-                  className="px-4 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs active:scale-95 transition-all"
+                  className="px-4 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs active:scale-95 transition-all flex items-center gap-1.5"
                   title="Salin pesan"
                 >
-                  {copiedReport ? '✅ Disalin' : '📋 Salin'}
+                  {copiedReport ? (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-600" />
+                      <span className="text-emerald-600 font-bold">Disalin</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 text-gray-500" />
+                      <span>Salin</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -533,7 +781,15 @@ export default function Budget() {
           <div className="space-y-4">
             <div className="bg-white rounded-2xl p-5 shadow-card border border-white/60">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-bold text-gray-800">Set Limit Budget Bulanan</h2>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 flex-shrink-0">
+                    <SlidersHorizontal className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-gray-800 text-sm">Target Batas Belanja Bulanan</h2>
+                    <p className="text-xs text-gray-400">Atur batas pengeluaran bulanan</p>
+                  </div>
+                </div>
                 <span className="text-xs bg-primary/10 text-primary font-bold px-2.5 py-1 rounded-full">
                   {stats.selectedMonthName} {stats.selectedYear}
                 </span>
