@@ -26,6 +26,7 @@ import {
 import { useBudget } from '../hooks/useBudget';
 import { useExpenses } from '../hooks/useExpenses';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { formatRupiah } from '../utils/prediction';
 import {
   getAllowanceConfig,
@@ -34,6 +35,7 @@ import {
   calculateAllowanceCycle,
   simulatePurchase,
 } from '../utils/pocketMoney';
+import { validateAmount, MAX_AMOUNT, sanitizeNumericInput } from '../utils/validation';
 import ProgressBar from '../components/ProgressBar';
 import { ExpensePieChart, CategoryLegend } from '../components/Chart';
 import BalanceAdjustModal from '../components/BalanceAdjustModal';
@@ -47,8 +49,8 @@ const BUDGET_MENU_ITEMS = [
     shortLabel: 'Jatah Harian',
     subtitle: 'Siklus uang saku & batas belanja harian aman',
     icon: Target,
-    activeBg: 'bg-blue-600 text-white',
-    inactiveBg: 'bg-blue-50 text-blue-600',
+    activeBg: 'bg-emerald-600 text-white',
+    inactiveBg: 'bg-emerald-50 text-emerald-700',
     tag: 'Rekomendasi',
   },
   {
@@ -58,7 +60,7 @@ const BUDGET_MENU_ITEMS = [
     subtitle: 'Cek dampak belanja sebelum uang habis',
     icon: Calculator,
     activeBg: 'bg-amber-500 text-white',
-    inactiveBg: 'bg-amber-50 text-amber-600',
+    inactiveBg: 'bg-amber-50 text-amber-700',
     tag: 'Kalkulator',
   },
   {
@@ -67,8 +69,8 @@ const BUDGET_MENU_ITEMS = [
     shortLabel: 'Rekap Ortu',
     subtitle: 'Format laporan uang saku via WhatsApp',
     icon: Users,
-    activeBg: 'bg-emerald-600 text-white',
-    inactiveBg: 'bg-emerald-50 text-emerald-600',
+    activeBg: 'bg-emerald-700 text-white',
+    inactiveBg: 'bg-emerald-50 text-emerald-800',
     tag: 'WhatsApp',
   },
   {
@@ -77,14 +79,15 @@ const BUDGET_MENU_ITEMS = [
     shortLabel: 'Batas Belanja',
     subtitle: 'Atur limit budget bulanan & pantau grafik',
     icon: SlidersHorizontal,
-    activeBg: 'bg-indigo-600 text-white',
-    inactiveBg: 'bg-indigo-50 text-indigo-600',
+    activeBg: 'bg-teal-700 text-white',
+    inactiveBg: 'bg-teal-50 text-teal-700',
     tag: 'Limit',
   },
 ];
 
 export default function Budget() {
   const navigate = useNavigate();
+  const toast = useToast();
   const { budget, updateBudget, getStatus } = useBudget();
   const { stats, expenses, allExpenses } = useExpenses();
   const { user } = useAuth();
@@ -163,31 +166,67 @@ export default function Budget() {
 
   // Handle Simpan Konfigurasi Siklus Uang Saku
   const handleSaveAllowanceConfig = async () => {
-    const amt = parseFloat(inputAllowanceAmount) || 0;
-    const day = parseInt(inputPayDay, 10) || 1;
-    if (amt <= 0) return;
-    const newCfg = await saveAllowanceConfig(amt, day, user?.id);
+    const amtVal = validateAmount(inputAllowanceAmount, {
+      fieldName: 'Besar kiriman uang saku',
+      min: 1,
+      max: MAX_AMOUNT,
+      required: true,
+    });
+    if (!amtVal.valid) {
+      toast.error(amtVal.error);
+      return;
+    }
+
+    const day = parseInt(inputPayDay, 10);
+    if (isNaN(day) || day < 1 || day > 31) {
+      toast.error('Tanggal kiriman harus antara tanggal 1 sampai 31.');
+      return;
+    }
+
+    const newCfg = await saveAllowanceConfig(amtVal.value, day, user?.id);
     setAllowanceConfig(newCfg);
     setEditAllowance(false);
     setConfigSaved(true);
+    toast.success('Pengaturan siklus uang saku berhasil disimpan!');
     setTimeout(() => setConfigSaved(false), 2000);
   };
 
   // Handle Simulasi Belanja
   const handleRunSimulation = (e) => {
     e.preventDefault();
-    const price = parseFloat(simItemPrice) || 0;
-    if (price <= 0) return;
-    const res = simulatePurchase(cycleData, simItemName, price);
+    if (!simItemName.trim()) {
+      toast.error('Nama barang belanja wajib diisi.');
+      return;
+    }
+    const priceVal = validateAmount(simItemPrice, {
+      fieldName: 'Harga barang',
+      min: 1,
+      max: MAX_AMOUNT,
+      required: true,
+    });
+    if (!priceVal.valid) {
+      toast.error(priceVal.error);
+      return;
+    }
+    const res = simulatePurchase(cycleData, simItemName.trim(), priceVal.value);
     setSimResult(res);
   };
 
   // Handle Simpan Standard Budget
   const handleSaveStandardBudget = () => {
-    const val = parseFloat(inputVal.replace(/\./g, '')) || 0;
-    if (val <= 0) return;
-    updateBudget(val);
+    const valVal = validateAmount(inputVal, {
+      fieldName: 'Batas belanja bulanan',
+      min: 1,
+      max: MAX_AMOUNT,
+      required: true,
+    });
+    if (!valVal.valid) {
+      toast.error(valVal.error);
+      return;
+    }
+    updateBudget(valVal.value);
     setSavedBudget(true);
+    toast.success('Limit budget berhasil disimpan!');
     setTimeout(() => setSavedBudget(false), 2000);
   };
 
@@ -241,8 +280,8 @@ export default function Budget() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#0B1E36] via-[#123E6B] to-[#1E40AF] px-4 pt-12 pb-5 relative overflow-hidden shadow-lg">
-        <div className="absolute top-0 right-0 w-44 h-44 bg-blue-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
+      <div className="bg-gradient-to-br from-[#064E3B] via-[#047857] to-[#059669] px-4 pt-12 pb-5 relative overflow-hidden shadow-lg">
+        <div className="absolute top-0 right-0 w-44 h-44 bg-amber-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
         
         {/* Top Header Row: Back button, Title, and Hamburger Menu Button */}
         <div className="relative z-10 flex items-center justify-between gap-3 mb-3">
@@ -256,7 +295,7 @@ export default function Budget() {
             </button>
             <div>
               <h1 className="text-xl font-black text-white tracking-tight">Siklus & Anggaran</h1>
-              <p className="text-white/60 text-xs">Jatah harian, simulasi beli & rekap ortu 🎓</p>
+              <p className="text-emerald-100 text-xs">Jatah harian, simulasi beli & rekap ortu 🎓</p>
             </div>
           </div>
 
@@ -266,7 +305,7 @@ export default function Budget() {
             onClick={() => setIsMenuOpen((prev) => !prev)}
             className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-95 border ${
               isMenuOpen
-                ? 'bg-white text-primary border-white shadow-md'
+                ? 'bg-white text-emerald-800 border-white shadow-md'
                 : 'bg-white/15 hover:bg-white/25 text-white border-white/20'
             }`}
             aria-expanded={isMenuOpen}
@@ -292,10 +331,10 @@ export default function Budget() {
               </div>
               <div className="text-left min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-blue-200">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-200">
                     Fitur Aktif
                   </span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                 </div>
                 <span className="text-sm font-black text-white block truncate leading-tight">
                   {currentTab.label}
@@ -304,9 +343,9 @@ export default function Budget() {
             </div>
 
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              <span className="text-[11px] font-semibold text-blue-100 group-hover:text-white transition-colors bg-white/10 px-2.5 py-1 rounded-lg flex items-center gap-1 border border-white/10">
+              <span className="text-[11px] font-semibold text-emerald-100 group-hover:text-white transition-colors bg-white/10 px-2.5 py-1 rounded-lg flex items-center gap-1 border border-white/10">
                 <span>Pilih Menu</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMenuOpen ? 'rotate-180 text-white' : 'text-blue-200'}`} />
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMenuOpen ? 'rotate-180 text-white' : 'text-emerald-200'}`} />
               </span>
             </div>
           </button>
@@ -324,7 +363,7 @@ export default function Budget() {
               <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-white rounded-2xl p-2.5 shadow-2xl border border-slate-100 animate-bounce-in">
                 <div className="px-2.5 py-2 border-b border-slate-100 flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-1.5">
-                    <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-600" />
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                       Pilih Fitur Anggaran
                     </span>
@@ -348,7 +387,7 @@ export default function Budget() {
                         }}
                         className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all ${
                           isActive
-                            ? 'bg-blue-50/90 text-primary border border-blue-200/80 shadow-xs'
+                            ? 'bg-emerald-50/90 text-emerald-800 border border-emerald-200/80 shadow-xs'
                             : 'hover:bg-slate-50 text-slate-700 active:scale-[0.99]'
                         }`}
                       >
@@ -360,11 +399,11 @@ export default function Budget() {
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className={`text-sm font-bold truncate ${isActive ? 'text-blue-950 font-black' : 'text-slate-800'}`}>
+                              <span className={`text-sm font-bold truncate ${isActive ? 'text-emerald-950 font-black' : 'text-slate-800'}`}>
                                 {item.label}
                               </span>
                               {isActive ? (
-                                <span className="text-[10px] font-bold bg-blue-600 text-white px-1.5 py-0.2 rounded-full">
+                                <span className="text-[10px] font-bold bg-emerald-600 text-white px-1.5 py-0.2 rounded-full">
                                   Aktif
                                 </span>
                               ) : (
@@ -381,7 +420,7 @@ export default function Budget() {
 
                         <div className="flex items-center pl-2 flex-shrink-0">
                           {isActive ? (
-                            <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center">
                               <Check className="w-3.5 h-3.5" />
                             </div>
                           ) : (
@@ -398,7 +437,7 @@ export default function Budget() {
                   <button
                     type="button"
                     onClick={() => setIsMenuOpen(false)}
-                    className="text-primary font-bold hover:underline"
+                    className="text-emerald-700 font-bold hover:underline"
                   >
                     Tutup
                   </button>
@@ -515,8 +554,19 @@ export default function Budget() {
                     </label>
                     <input
                       type="number"
+                      min="1"
+                      max={MAX_AMOUNT}
+                      inputMode="numeric"
+                      onKeyDown={(e) => {
+                        if (['-', '+', 'e', 'E'].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                       value={inputAllowanceAmount}
-                      onChange={(e) => setInputAllowanceAmount(e.target.value)}
+                      onChange={(e) => {
+                        const clean = sanitizeNumericInput(e.target.value, MAX_AMOUNT);
+                        setInputAllowanceAmount(clean);
+                      }}
                       className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
@@ -622,9 +672,20 @@ export default function Budget() {
                   </label>
                   <input
                     type="number"
+                    min="1"
+                    max={MAX_AMOUNT}
+                    inputMode="numeric"
+                    onKeyDown={(e) => {
+                      if (['-', '+', 'e', 'E'].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
                     placeholder="Contoh: 350000"
                     value={simItemPrice}
-                    onChange={(e) => setSimItemPrice(e.target.value)}
+                    onChange={(e) => {
+                      const clean = sanitizeNumericInput(e.target.value, MAX_AMOUNT);
+                      setSimItemPrice(clean);
+                    }}
                     className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20"
                     required
                   />
@@ -800,8 +861,19 @@ export default function Budget() {
                 <input
                   id="input-budget"
                   type="number"
+                  min="1"
+                  max={MAX_AMOUNT}
+                  inputMode="numeric"
+                  onKeyDown={(e) => {
+                    if (['-', '+', 'e', 'E'].includes(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
                   value={inputVal}
-                  onChange={(e) => setInputVal(e.target.value)}
+                  onChange={(e) => {
+                    const clean = sanitizeNumericInput(e.target.value, MAX_AMOUNT);
+                    setInputVal(clean);
+                  }}
                   placeholder="0"
                   className="w-full border border-gray-200 rounded-xl pl-12 pr-4 py-4 text-xl font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all bg-gray-50"
                 />
@@ -819,13 +891,13 @@ export default function Budget() {
                   <button
                     key={val}
                     onClick={() => setInputVal(val.toString())}
-                    className={`py-2 rounded-xl text-xs font-bold border transition-all active:scale-95 ${
+                    className={`py-2 px-1 rounded-xl text-[11px] font-bold border transition-all active:scale-95 truncate ${
                       parseFloat(inputVal) === val
                         ? 'bg-primary text-white border-primary'
                         : 'bg-gray-50 text-gray-600 border-gray-100 hover:border-primary/30'
                     }`}
                   >
-                    {(val / 1000).toFixed(0)}rb
+                    {formatRupiah(val)}
                   </button>
                 ))}
               </div>

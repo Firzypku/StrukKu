@@ -53,8 +53,8 @@ export default function Hemat() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#0B1E36] via-[#123E6B] to-[#1E40AF] px-4 pt-12 pb-6 relative overflow-hidden shadow-lg">
-        <div className="absolute top-0 right-0 w-44 h-44 bg-blue-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
+      <div className="bg-gradient-to-br from-[#064E3B] via-[#047857] to-[#059669] px-4 pt-12 pb-6 relative overflow-hidden shadow-lg">
+        <div className="absolute top-0 right-0 w-44 h-44 bg-amber-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-1">
             <h1 className="text-xl font-black text-white tracking-tight">Tips & Tantangan</h1>
@@ -62,7 +62,7 @@ export default function Hemat() {
               🏆 {completedCount}/{challenges.length}
             </div>
           </div>
-          <p className="text-white/70 text-xs">Hemat lebih terarah, masa depan cerah 🚀</p>
+          <p className="text-emerald-100 text-xs">Hemat lebih terarah, masa depan cerah 🚀</p>
 
           {/* Tabs */}
           <div className="mt-4 flex bg-white/15 rounded-2xl p-1 gap-1">
@@ -76,7 +76,7 @@ export default function Hemat() {
                 id={`tab-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === tab.id ? 'bg-white text-primary shadow-sm' : 'text-white/70 hover:text-white'
+                  activeTab === tab.id ? 'bg-white text-emerald-800 shadow-sm' : 'text-white/80 hover:text-white'
                 }`}
               >
                 {tab.label}

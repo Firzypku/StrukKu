@@ -1,6 +1,4 @@
-/**
- * FeatureCard.jsx — Card untuk fitur tantangan, tip, leaderboard
- */
+import { Lightbulb, Trophy, Medal, User } from 'lucide-react';
 
 export default function FeatureCard({ icon, title, description, badge, action, actionLabel = 'Mulai', highlight = false, className = '' }) {
   return (
@@ -63,7 +61,9 @@ export function TipCard({ tip, icon, category, index = 0 }) {
   return (
     <div className={`bg-gradient-to-br ${gradients[index % gradients.length]} rounded-2xl p-4 text-white shadow-md animate-slide-up`}>
       <div className="flex items-start gap-3">
-        <span className="text-3xl">{icon || '💡'}</span>
+        <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 text-white">
+          <Lightbulb className="w-5 h-5 text-white" />
+        </div>
         <div>
           <p className="text-xs text-white/60 font-medium uppercase tracking-wide mb-1">{category}</p>
           <p className="text-sm font-semibold leading-relaxed">{tip}</p>
@@ -77,25 +77,24 @@ export function TipCard({ tip, icon, category, index = 0 }) {
  * LeaderboardCard — Row for leaderboard
  */
 export function LeaderboardRow({ rank, name, avatar, amount, isUser = false }) {
-  const rankColors = {
-    1: 'text-yellow-500',
-    2: 'text-gray-400',
-    3: 'text-amber-600',
+  const renderRankBadge = () => {
+    if (rank === 1) return <Trophy className="w-5 h-5 text-amber-500 mx-auto" />;
+    if (rank === 2) return <Medal className="w-5 h-5 text-slate-400 mx-auto" />;
+    if (rank === 3) return <Medal className="w-5 h-5 text-amber-700 mx-auto" />;
+    return <span className="text-xs font-bold text-gray-400">#{rank}</span>;
   };
-
-  const rankIcons = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
   return (
     <div className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200
       ${isUser ? 'bg-primary/10 border border-primary/20' : 'bg-gray-50 hover:bg-gray-100'}`}>
       {/* Rank */}
-      <div className={`w-8 text-center font-bold text-lg ${rankColors[rank] || 'text-gray-400'}`}>
-        {rankIcons[rank] || `#${rank}`}
+      <div className="w-8 flex items-center justify-center">
+        {renderRankBadge()}
       </div>
 
       {/* Avatar */}
-      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-lg">
-        {avatar}
+      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white text-xs font-bold">
+        {avatar || <User className="w-4 h-4 text-white" />}
       </div>
 
       {/* Name */}

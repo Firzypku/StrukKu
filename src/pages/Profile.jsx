@@ -12,6 +12,31 @@ import { useBudget } from '../hooks/useBudget';
 import { getAllowanceConfig } from '../utils/pocketMoney';
 import { getChallenges } from '../utils/storage';
 import { downloadUserDataJson, downloadUserDataExcel } from '../utils/exportUserData';
+import {
+  Camera,
+  Edit3,
+  GraduationCap,
+  Zap,
+  Globe,
+  Target,
+  BarChart3,
+  Users,
+  Lightbulb,
+  RotateCcw,
+  MessageSquarePlus,
+  MessageCircle,
+  ShieldCheck,
+  FileText,
+  Activity,
+  FileJson,
+  FileSpreadsheet,
+  Trash2,
+  LogOut,
+  Receipt,
+  AlertTriangle,
+  Loader2,
+  X,
+} from 'lucide-react';
 
 // Icon Chevron rapi untuk navigasi mobile modern
 function ChevronIcon({ className = 'text-gray-400' }) {
@@ -94,7 +119,7 @@ export default function Profile() {
         }
       }
 
-      toast.success('Foto profil berhasil dipasang! 📸');
+      toast.success('Foto profil berhasil dipasang!');
     } catch (err) {
       toast.error('Gagal memperbarui foto: ' + err.message);
     } finally {
@@ -180,7 +205,7 @@ export default function Profile() {
         allowanceConfig,
         challenges,
       });
-      toast.success('File arsip JSON berhasil diunduh! 📦');
+      toast.success('File arsip JSON berhasil diunduh!');
     } catch (e) {
       toast.error('Gagal mengunduh arsip JSON: ' + e.message);
     } finally {
@@ -201,7 +226,7 @@ export default function Profile() {
         allowanceConfig,
         challenges,
       });
-      toast.success('File Excel data lengkap berhasil diunduh! 📊');
+      toast.success('File Excel data lengkap berhasil diunduh!');
     } catch (e) {
       toast.error('Gagal mengekspor spreadsheet Excel: ' + e.message);
     } finally {
@@ -263,8 +288,8 @@ export default function Profile() {
       />
 
       {/* Header Profil */}
-      <div className="bg-gradient-to-br from-[#0B1E36] via-[#123E6B] to-[#1E40AF] pt-12 pb-8 rounded-b-[2.5rem] px-6 text-white shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-44 h-44 bg-blue-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
+      <div className="bg-gradient-to-br from-[#064E3B] via-[#047857] to-[#059669] pt-12 pb-8 rounded-b-[2.5rem] px-6 text-white shadow-lg relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-44 h-44 bg-amber-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
         <div className="relative z-10">
           <h1 className="text-xl font-black mb-4 tracking-tight">Profil Akun</h1>
           <div className="flex items-center gap-4">
@@ -422,13 +447,13 @@ export default function Profile() {
           {/* 1.5 Tombol Lihat Website */}
           <button
             onClick={() => navigate('/landing')}
-            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-blue-900 font-bold bg-blue-50/70 hover:bg-blue-100/70 active:scale-[0.99] transition-all border border-blue-200/60 text-xs"
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-emerald-950 font-bold bg-emerald-50/80 hover:bg-emerald-100/80 active:scale-[0.99] transition-all border border-emerald-200/80 text-xs"
           >
             <span className="flex items-center gap-2.5">
               <span>🌐</span>
               Lihat Website
             </span>
-            <ChevronIcon className="text-blue-600" />
+            <ChevronIcon className="text-emerald-700" />
           </button>
 
           {/* 2. Budget Bulanan */}
@@ -474,6 +499,18 @@ export default function Profile() {
             <span className="flex items-center gap-2.5">
               <span>💡</span>
               Tantangan Hemat & Resep Masak
+            </span>
+            <ChevronIcon />
+          </button>
+
+          {/* Fitur Live Tracking Sampah */}
+          <button
+            onClick={() => navigate('/tracking')}
+            className="w-full text-left py-3.5 px-3.5 rounded-xl flex items-center justify-between text-gray-700 font-bold bg-gray-50 hover:bg-gray-100 active:scale-[0.99] transition-all border border-gray-100 text-xs"
+          >
+            <span className="flex items-center gap-2.5">
+              <span>🚚</span>
+              Live Tracking Sampah Sirkular (Surabaya)
             </span>
             <ChevronIcon />
           </button>

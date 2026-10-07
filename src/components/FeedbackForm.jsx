@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MessageSquarePlus } from 'lucide-react';
 import { supabase } from '../utils/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -58,7 +59,7 @@ export default function FeedbackForm({ onClose }) {
         console.warn('Network error pengiriman feedback:', sbErr);
       }
 
-      toast.success('Masukan berhasil dikirim! Terima kasih 🙏');
+      toast.success('Masukan berhasil dikirim! Terima kasih.');
       if (onClose) onClose();
     } catch (error) {
       console.error('Error submitting feedback:', error);
@@ -71,7 +72,8 @@ export default function FeedbackForm({ onClose }) {
   return (
     <div className="bg-white rounded-2xl p-5 shadow-card border border-gray-100 space-y-4">
       <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-        <span>📝</span> Kirim Masukan
+        <MessageSquarePlus className="w-4 h-4 text-primary" />
+        <span>Kirim Masukan</span>
       </h3>
       
       <form onSubmit={handleSubmit} className="space-y-4">

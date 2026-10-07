@@ -8,9 +8,18 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#2563EB',
-          light: '#3B82F6',
-          dark: '#1D4ED8',
+          DEFAULT: '#059669', // Emerald Green Utama
+          light: '#10B981',   // Hijau Segar
+          dark: '#047857',    // Hijau Daun Gelap
+          hover: '#065F46',
+          soft: '#ECFDF5',    // Hijau Lembut Tint
+        },
+        gold: {
+          DEFAULT: '#F59E0B', // Emas / Amber Utama
+          light: '#FDE68A',   // Emas Terang
+          dark: '#D97706',    // Emas Tua / Bronze
+          soft: '#FFFBEB',    // Emas Lembut Tint
+          accent: '#B45309',
         },
         success: {
           DEFAULT: '#10B981',
@@ -27,9 +36,9 @@ export default {
           light: '#FBD07A',
         },
         surface: {
-          DEFAULT: '#F8FAFC',
+          DEFAULT: '#F8FAF8',
           card: '#FFFFFF',
-          dark: '#0A1128',
+          dark: '#064E3B',
         }
       },
       fontFamily: {

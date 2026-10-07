@@ -40,7 +40,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#185FA5] to-[#1D9E75]">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#064E3B] via-[#047857] to-[#059669]">
       <div className="w-full max-w-sm">
         {/* Header */}
         <div className="text-center mb-6">

@@ -11,6 +11,7 @@ import { scanReceipt } from '../utils/ocr';
 import { extractItemsFromReceipt } from '../utils/receiptParser';
 import { preprocessImageForOcr } from '../utils/imageProcess';
 import { analytics } from '../utils/analytics';
+import { validateAmount, MAX_AMOUNT, sanitizeNumericInput } from '../utils/validation';
 
 export default function Social() {
   const { add } = useExpenses();
@@ -126,15 +127,33 @@ export default function Social() {
   // Tambah Item
   const handleAddItem = (e) => {
     e.preventDefault();
-    const price = parseFloat(newItemPrice) || 0;
-    if (!newItemName.trim() || price <= 0 || newItemAssigned.length === 0) return;
+    if (!newItemName.trim()) {
+      toast.error('Nama makanan/minuman wajib diisi.');
+      return;
+    }
+
+    const priceVal = validateAmount(newItemPrice, {
+      fieldName: 'Harga item',
+      min: 1,
+      max: MAX_AMOUNT,
+      required: true,
+    });
+    if (!priceVal.valid) {
+      toast.error(priceVal.error);
+      return;
+    }
+
+    if (newItemAssigned.length === 0) {
+      toast.error('Pilih minimal satu orang yang memesan item ini.');
+      return;
+    }
 
     setItems([
       ...items,
       {
         id: Date.now(),
         name: newItemName.trim(),
-        price,
+        price: priceVal.value,
         assignedTo: [...newItemAssigned],
       },
     ]);
@@ -337,12 +356,19 @@ export default function Social() {
 
   // Hitung Quick Split dengan pembagian presisi (bebas selisih pembulatan)
   const handleCalculateQuick = () => {
-    const total = parseFloat(quickTotal);
-    const people = parseInt(quickPeople, 10);
-    if (!quickTotal || isNaN(total) || total <= 0) {
-      setQuickError('Total tagihan harus berupa angka positif lebih dari 0.');
+    const totalVal = validateAmount(quickTotal, {
+      fieldName: 'Total tagihan',
+      min: 1,
+      max: MAX_AMOUNT,
+      required: true,
+    });
+    if (!totalVal.valid) {
+      setQuickError(totalVal.error);
       return;
     }
+    const total = totalVal.value;
+
+    const people = parseInt(quickPeople, 10);
     if (isNaN(people) || people <= 0) {
       setQuickError('Jumlah orang minimal 1.');
       return;
@@ -397,11 +423,11 @@ export default function Social() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#0B1E36] via-[#123E6B] to-[#1E40AF] px-4 pt-12 pb-6 relative overflow-hidden shadow-lg">
-        <div className="absolute top-0 right-0 w-44 h-44 bg-blue-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
+      <div className="bg-gradient-to-br from-[#064E3B] via-[#047857] to-[#059669] px-4 pt-12 pb-6 relative overflow-hidden shadow-lg">
+        <div className="absolute top-0 right-0 w-44 h-44 bg-amber-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
         <div className="relative z-10">
           <h1 className="text-xl font-black text-white tracking-tight mb-1">Sosial & Patungan</h1>
-          <p className="text-white/70 text-xs">Satu Scan, Semua Tercatat tanpa ribet e-wallet 🤝</p>
+          <p className="text-emerald-100 text-xs">Satu Scan, Semua Tercatat tanpa ribet e-wallet 🤝</p>
 
           {/* Tab Selector — Smooth horizontal scroll for mobile 360px */}
           <div className="mt-4 flex bg-white/15 backdrop-blur-md rounded-2xl p-1 gap-1.5 overflow-x-auto no-scrollbar scroll-smooth overscroll-x-contain">
@@ -416,8 +442,8 @@ export default function Social() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-shrink-0 py-2 px-3.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all active:scale-95 ${
                   activeTab === tab.id
-                    ? 'bg-white text-primary shadow-sm'
-                    : 'text-white/70 hover:text-white'
+                    ? 'bg-white text-emerald-800 shadow-sm'
+                    : 'text-white/80 hover:text-white'
                 }`}
               >
                 {tab.label}
@@ -441,15 +467,15 @@ export default function Social() {
             />
 
             {/* Tombol Scan Struk OCR */}
-            <div className="bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 border border-purple-200/80 rounded-2xl p-4 shadow-sm space-y-2.5">
+            <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200/80 rounded-2xl p-4 shadow-sm space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-lg shadow-sm">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg shadow-sm">
                     📸
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-purple-950 text-xs sm:text-sm">Scan Struk Otomatis (OCR)</h3>
-                    <p className="text-[10px] text-purple-700">Foto struk untuk mengisi daftar menu & harga secara otomatis</p>
+                    <h3 className="font-extrabold text-emerald-950 text-xs sm:text-sm">Scan Struk Otomatis (OCR)</h3>
+                    <p className="text-[10px] text-emerald-700">Foto struk untuk mengisi daftar menu & harga secara otomatis</p>
                   </div>
                 </div>
               </div>
@@ -458,7 +484,7 @@ export default function Social() {
                 type="button"
                 onClick={handleTriggerOcr}
                 disabled={isScanningOcr}
-                className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 active:scale-98 text-white font-bold text-xs rounded-xl shadow-md shadow-purple-600/20 flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+                className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all disabled:opacity-60"
               >
                 <span>{isScanningOcr ? '⏳' : '⚡'}</span>
                 <span>{isScanningOcr ? `Memindai Daftar Item... (${ocrProgress}%)` : 'Pindai Struk / Upload Gambar'}</span>
@@ -466,13 +492,13 @@ export default function Social() {
 
               {isScanningOcr && (
                 <div className="space-y-1 pt-1 animate-fade-in">
-                  <div className="w-full h-1.5 bg-purple-200 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-emerald-200 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-purple-600 rounded-full transition-all duration-300"
+                      className="h-full bg-emerald-600 rounded-full transition-all duration-300"
                       style={{ width: `${ocrProgress}%` }}
                     />
                   </div>
-                  <p className="text-[10px] text-purple-600 text-center font-medium">
+                  <p className="text-[10px] text-emerald-700 text-center font-medium">
                     Mengekstrak baris item, harga nominal, dan pajak...
                   </p>
                 </div>
@@ -600,9 +626,20 @@ export default function Social() {
                   />
                   <input
                     type="number"
+                    min="1"
+                    max={MAX_AMOUNT}
+                    inputMode="numeric"
+                    onKeyDown={(e) => {
+                      if (['-', '+', 'e', 'E'].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
                     placeholder="Harga (Rp)"
                     value={newItemPrice}
-                    onChange={(e) => setNewItemPrice(e.target.value)}
+                    onChange={(e) => {
+                      const clean = sanitizeNumericInput(e.target.value, MAX_AMOUNT);
+                      setNewItemPrice(clean);
+                    }}
                     className="border border-gray-200 rounded-lg px-2 py-1.5 text-xs bg-white font-bold focus:outline-none"
                   />
                 </div>
@@ -703,9 +740,20 @@ export default function Social() {
                     <label className="text-[10px] font-bold text-gray-500 block mb-1">Pajak / PPN (Rp)</label>
                     <input
                       type="number"
+                      min="0"
+                      max={MAX_AMOUNT}
+                      inputMode="numeric"
+                      onKeyDown={(e) => {
+                        if (['-', '+', 'e', 'E'].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                       placeholder="0"
                       value={extraFees.tax || ''}
-                      onChange={(e) => setExtraFees({ ...extraFees, tax: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) => {
+                        const clean = sanitizeNumericInput(e.target.value, MAX_AMOUNT);
+                        setExtraFees({ ...extraFees, tax: parseFloat(clean) || 0 });
+                      }}
                       className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-200"
                     />
                   </div>
@@ -713,9 +761,20 @@ export default function Social() {
                     <label className="text-[10px] font-bold text-gray-500 block mb-1">Service (Rp)</label>
                     <input
                       type="number"
+                      min="0"
+                      max={MAX_AMOUNT}
+                      inputMode="numeric"
+                      onKeyDown={(e) => {
+                        if (['-', '+', 'e', 'E'].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                       placeholder="0"
                       value={extraFees.service || ''}
-                      onChange={(e) => setExtraFees({ ...extraFees, service: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) => {
+                        const clean = sanitizeNumericInput(e.target.value, MAX_AMOUNT);
+                        setExtraFees({ ...extraFees, service: parseFloat(clean) || 0 });
+                      }}
                       className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-200"
                     />
                   </div>
@@ -723,9 +782,20 @@ export default function Social() {
                     <label className="text-[10px] font-bold text-gray-500 block mb-1">Diskon (Rp)</label>
                     <input
                       type="number"
+                      min="0"
+                      max={MAX_AMOUNT}
+                      inputMode="numeric"
+                      onKeyDown={(e) => {
+                        if (['-', '+', 'e', 'E'].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                       placeholder="0"
                       value={extraFees.discount || ''}
-                      onChange={(e) => setExtraFees({ ...extraFees, discount: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) => {
+                        const clean = sanitizeNumericInput(e.target.value, MAX_AMOUNT);
+                        setExtraFees({ ...extraFees, discount: parseFloat(clean) || 0 });
+                      }}
                       className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-200 text-emerald-600"
                     />
                   </div>
@@ -880,10 +950,17 @@ export default function Social() {
                 <input
                   type="number"
                   min="1"
+                  max={MAX_AMOUNT}
                   inputMode="numeric"
+                  onKeyDown={(e) => {
+                    if (['-', '+', 'e', 'E'].includes(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
                   value={quickTotal}
                   onChange={(e) => {
-                    setQuickTotal(e.target.value);
+                    const clean = sanitizeNumericInput(e.target.value, MAX_AMOUNT);
+                    setQuickTotal(clean);
                     setQuickResult(null);
                     if (quickError) setQuickError('');
                   }}

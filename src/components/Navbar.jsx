@@ -78,11 +78,11 @@ export default function Navbar() {
                 `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-200 ${
                   item.special
                     ? isActive
-                      ? 'bg-primary text-white scale-110 shadow-lg'
-                      : 'bg-primary text-white scale-105 shadow-md'
+                      ? 'bg-gradient-to-tr from-emerald-700 via-emerald-600 to-emerald-500 text-white scale-110 shadow-lg ring-2 ring-amber-400/50'
+                      : 'bg-gradient-to-tr from-emerald-600 to-emerald-500 text-white scale-105 shadow-md shadow-emerald-600/30 ring-1 ring-amber-400/30'
                     : isActive
-                    ? 'text-primary bg-blue-50/70 font-bold'
-                    : 'text-gray-400 hover:text-gray-600'
+                    ? 'text-emerald-700 bg-emerald-50 font-bold'
+                    : 'text-slate-400 hover:text-slate-600'
                 }`
               }
             >

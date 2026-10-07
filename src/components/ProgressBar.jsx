@@ -1,6 +1,4 @@
-/**
- * ProgressBar.jsx — Animated budget progress bar
- */
+import { CheckCircle2 } from 'lucide-react';
 
 export default function ProgressBar({
   percent = 0,
@@ -84,8 +82,9 @@ export function ChallengeProgressBar({ current, target, unit, label, badge }) {
       </div>
 
       {done && (
-        <p className="text-xs text-success font-semibold mt-1 flex items-center gap-1">
-          ✅ Tantangan selesai! Keren!
+        <p className="text-xs text-success font-semibold mt-1 flex items-center gap-1.5">
+          <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+          <span>Tantangan selesai! Keren!</span>
         </p>
       )}
     </div>

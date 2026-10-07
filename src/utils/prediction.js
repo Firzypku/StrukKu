@@ -231,13 +231,38 @@ export const RECIPE_RECOMMENDATIONS = [
  * @returns {string}
  */
 export const formatRupiah = (amount) => {
-  if (!amount && amount !== 0) return 'Rp -';
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
+  if (amount === null || amount === undefined || isNaN(amount)) return 'Rp0';
+  const val = Math.round(Number(amount));
+  if (val === 0) return 'Rp0';
+  const prefix = val < 0 ? '-Rp' : 'Rp';
+  return prefix + Math.abs(val).toLocaleString('id-ID');
+};
+
+/**
+ * Format input pengguna secara realtime saat mengetik (hanya angka)
+ * Contoh: "500000" -> "Rp500.000"
+ * @param {string|number} rawValue
+ * @returns {string}
+ */
+export const formatRupiahInput = (rawValue) => {
+  if (!rawValue && rawValue !== 0) return '';
+  const digits = rawValue.toString().replace(/\D/g, '');
+  if (!digits) return '';
+  const number = parseInt(digits, 10);
+  if (isNaN(number)) return '';
+  return 'Rp' + number.toLocaleString('id-ID');
+};
+
+/**
+ * Mengambil angka integer murni dari string format rupiah
+ * Contoh: "Rp500.000" -> 500000
+ * @param {string|number} formattedStr
+ * @returns {number}
+ */
+export const parseRupiahInput = (formattedStr) => {
+  if (!formattedStr && formattedStr !== 0) return 0;
+  const digits = formattedStr.toString().replace(/\D/g, '');
+  return digits ? parseInt(digits, 10) : 0;
 };
 
 /**

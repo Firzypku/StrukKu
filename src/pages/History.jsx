@@ -5,12 +5,28 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  FileSpreadsheet,
+  List,
+  Calendar,
+  Search,
+  Inbox,
+  Camera,
+  Sparkles,
+  Loader2,
+  Trash2,
+  Edit3,
+  ChevronRight,
+  FolderArchive,
+} from 'lucide-react';
 import { useExpenses, MONTH_NAMES } from '../hooks/useExpenses';
 import { formatRupiah, formatDate } from '../utils/prediction';
-import { CATEGORY_ICONS, CATEGORY_COLORS } from '../utils/ocr';
+import { CATEGORY_COLORS } from '../utils/ocr';
 import MonthSelector from '../components/MonthSelector';
+import CategoryIcon from '../components/CategoryIcon';
 import { todayLocal } from '../utils/date';
 import { useToast } from '../context/ToastContext';
+import { validateAmount, MAX_AMOUNT, sanitizeNumericInput } from '../utils/validation';
 
 export default function History() {
   const navigate = useNavigate();
@@ -153,11 +169,19 @@ export default function History() {
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!selectedExpense) return;
-    const numAmount = parseFloat(editForm.amount) || 0;
-    if (numAmount <= 0) {
-      toast.error('Nominal belanja harus lebih dari 0');
+
+    const amountVal = validateAmount(editForm.amount, {
+      fieldName: 'Nominal belanja',
+      min: 1,
+      max: MAX_AMOUNT,
+      required: true,
+    });
+    if (!amountVal.valid) {
+      toast.error(amountVal.error);
       return;
     }
+    const numAmount = amountVal.value;
+
     if (!editForm.title.trim()) {
       toast.error('Keterangan belanja tidak boleh kosong');
       return;
@@ -180,7 +204,7 @@ export default function History() {
         note: editForm.note.trim() || null,
       }));
       setIsEditing(false);
-      toast.success('Transaksi berhasil diperbarui! ✏️');
+      toast.success('Transaksi berhasil diperbarui!');
     } catch (err) {
       toast.error('Gagal memperbarui transaksi: ' + err.message);
     }
@@ -239,7 +263,7 @@ export default function History() {
         note: restored.note || null,
         image: restored.image || null,
       });
-      toast.success(`Transaksi "${restored.title}" berhasil dipulihkan! ↩️`);
+      toast.success(`Transaksi "${restored.title}" berhasil dipulihkan!`);
     } catch (e) {
       toast.error('Gagal memulihkan transaksi');
     }
@@ -250,7 +274,7 @@ export default function History() {
     setLoadingSamples(true);
     try {
       await loadSamples();
-      toast.success('5 transaksi contoh anak kos berhasil dimuat! 🎉');
+      toast.success('5 transaksi contoh mahasiswa berhasil dimuat.');
     } catch (err) {
       toast.error('Gagal memuat transaksi contoh: ' + err.message);
     } finally {
@@ -306,13 +330,13 @@ export default function History() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#0B1E36] via-[#123E6B] to-[#1E40AF] px-4 pt-12 pb-6 relative overflow-hidden shadow-lg">
-        <div className="absolute top-0 right-0 w-44 h-44 bg-blue-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
+      <div className="bg-gradient-to-br from-[#064E3B] via-[#047857] to-[#059669] px-4 pt-12 pb-6 relative overflow-hidden shadow-lg">
+        <div className="absolute top-0 right-0 w-44 h-44 bg-amber-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-2">
             <div>
               <h1 className="text-xl font-black text-white tracking-tight">Riwayat Belanja</h1>
-              <p className="text-white/60 text-xs">
+              <p className="text-emerald-100 text-xs">
                 {timeScope === 'month' ? `${selectedMonthName} ${selectedYear}` : 'Semua Transaksi'} · {filtered.length} transaksi
               </p>
             </div>
@@ -324,7 +348,7 @@ export default function History() {
               className="bg-white/15 text-white hover:bg-white/25 active:scale-95 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/20 flex items-center gap-1.5 shadow-sm"
               title="Ekspor ke spreadsheet Excel"
             >
-              <span>📊</span>
+              <FileSpreadsheet className="w-3.5 h-3.5" />
               <span>Ekspor</span>
             </button>
           </div>
@@ -352,20 +376,22 @@ export default function History() {
             <button
               id="btn-view-list"
               onClick={() => setView('list')}
-              className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                view === 'list' ? 'bg-white text-primary shadow-sm' : 'text-white/70 hover:text-white'
+              className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                view === 'list' ? 'bg-white text-emerald-800 shadow-sm' : 'text-white/80 hover:text-white'
               }`}
             >
-              📋 Daftar
+              <List className="w-3.5 h-3.5" />
+              <span>Daftar</span>
             </button>
             <button
               id="btn-view-calendar"
               onClick={() => setView('calendar')}
-              className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                view === 'calendar' ? 'bg-white text-primary shadow-sm' : 'text-white/70 hover:text-white'
+              className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                view === 'calendar' ? 'bg-white text-emerald-800 shadow-sm' : 'text-white/80 hover:text-white'
               }`}
             >
-              📅 Kalender
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Kalender</span>
             </button>
           </div>
         </div>
@@ -461,7 +487,9 @@ export default function History() {
 
             {/* Search */}
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                <Search className="w-4 h-4 text-gray-400" />
+              </span>
               <input
                 id="input-search"
                 type="text"
@@ -479,13 +507,14 @@ export default function History() {
                   key={cat}
                   id={`filter-${cat.toLowerCase().replace(/\s+/g, '-')}`}
                   onClick={() => setFilterCat(cat)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-150 active:scale-95 ${
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-150 active:scale-95 inline-flex items-center gap-1.5 ${
                     filterCat === cat
                       ? 'bg-primary text-white border-primary'
                       : 'bg-white text-gray-500 border-gray-100 hover:border-primary/30'
                   }`}
                 >
-                  {cat !== 'Semua' && (CATEGORY_ICONS[cat] || '💳')} {cat}
+                  {cat !== 'Semua' && <CategoryIcon category={cat} className="w-3.5 h-3.5 flex-shrink-0" />}
+                  <span>{cat}</span>
                 </button>
               ))}
             </div>
@@ -509,7 +538,9 @@ export default function History() {
               </div>
             ) : grouped.length === 0 ? (
               <div className="bg-white rounded-2xl p-8 text-center shadow-card border border-white/60">
-                <span className="text-5xl block mb-3">📭</span>
+                <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                  <Inbox className="w-7 h-7" />
+                </div>
                 <p className="font-bold text-gray-700 text-sm">
                   {searchQ
                     ? 'Tidak ada transaksi yang cocok'
@@ -528,7 +559,7 @@ export default function History() {
                     onClick={() => navigate('/scan')}
                     className="w-full bg-primary text-white py-3 rounded-xl font-bold text-xs hover:bg-primary-dark active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2"
                   >
-                    <span>📸</span>
+                    <Camera className="w-4 h-4" />
                     <span>Catat Pengeluaran Pertama</span>
                   </button>
 
@@ -537,7 +568,7 @@ export default function History() {
                     disabled={loadingSamples}
                     className="w-full bg-amber-50 text-amber-800 border border-amber-200 py-2.5 rounded-xl font-bold text-xs hover:bg-amber-100 active:scale-95 transition-all flex items-center justify-center gap-2"
                   >
-                    <span>{loadingSamples ? '⏳' : '✨'}</span>
+                    {loadingSamples ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-amber-600" />}
                     <span>{loadingSamples ? 'Memuat Contoh...' : 'Muat 5 Transaksi Contoh Mahasiswa'}</span>
                   </button>
 
@@ -573,10 +604,10 @@ export default function History() {
                     >
                       {/* Category icon */}
                       <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-105 transition-transform"
+                        className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform"
                         style={{ backgroundColor: `${CATEGORY_COLORS[expense.category] || '#C8D6E5'}20` }}
                       >
-                        {CATEGORY_ICONS[expense.category] || '💳'}
+                        <CategoryIcon category={expense.category} className="w-5 h-5 text-slate-700" />
                       </div>
 
                       {/* Info */}
@@ -612,7 +643,7 @@ export default function History() {
       {undoItem && (
         <div className="fixed bottom-20 left-4 right-4 z-40 max-w-md mx-auto bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between border border-slate-700 animate-slide-up">
           <div className="flex items-center gap-2.5 min-w-0 pr-2">
-            <span className="text-amber-400">🗑️</span>
+            <Trash2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
             <p className="text-xs truncate">
               <strong>"{undoItem.expense.title}"</strong> dihapus
             </p>
@@ -642,10 +673,10 @@ export default function History() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm"
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm"
                       style={{ backgroundColor: `${CATEGORY_COLORS[selectedExpense.category] || '#C8D6E5'}25` }}
                     >
-                      {CATEGORY_ICONS[selectedExpense.category] || '💳'}
+                      <CategoryIcon category={selectedExpense.category} className="w-6 h-6 text-slate-800" />
                     </div>
                     <div>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
@@ -658,9 +689,10 @@ export default function History() {
                   </div>
                   <button
                     onClick={() => setSelectedExpense(null)}
-                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm font-bold"
+                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm font-bold transition-colors"
+                    aria-label="Tutup"
                   >
-                    ✕
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
 
@@ -705,14 +737,14 @@ export default function History() {
                     onClick={() => setIsEditing(true)}
                     className="py-3 px-4 rounded-xl bg-blue-50 hover:bg-blue-100 active:scale-95 text-blue-700 font-bold text-xs flex items-center justify-center gap-1.5 border border-blue-200 transition-all shadow-sm"
                   >
-                    <span>✏️</span>
+                    <Edit3 className="w-3.5 h-3.5" />
                     <span>Edit Transaksi</span>
                   </button>
                   <button
                     onClick={() => handleDeleteWithUndo(selectedExpense)}
                     className="py-3 px-4 rounded-xl bg-red-50 hover:bg-red-100 active:scale-95 text-red-600 font-bold text-xs flex items-center justify-center gap-1.5 border border-red-200 transition-all shadow-sm"
                   >
-                    <span>🗑️</span>
+                    <Trash2 className="w-3.5 h-3.5" />
                     <span>Hapus</span>
                   </button>
                 </div>
@@ -722,7 +754,7 @@ export default function History() {
               <form onSubmit={handleSaveEdit} className="space-y-3">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                   <h3 className="font-black text-slate-900 text-base flex items-center gap-1.5">
-                    <span>✏️</span>
+                    <Edit3 className="w-4 h-4 text-primary" />
                     <span>Edit Transaksi</span>
                   </h3>
                   <button
@@ -753,8 +785,19 @@ export default function History() {
                   </label>
                   <input
                     type="number"
+                    min="1"
+                    max={MAX_AMOUNT}
+                    inputMode="numeric"
+                    onKeyDown={(e) => {
+                      if (['-', '+', 'e', 'E'].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
                     value={editForm.amount}
-                    onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
+                    onChange={(e) => {
+                      const clean = sanitizeNumericInput(e.target.value, MAX_AMOUNT);
+                      setEditForm({ ...editForm, amount: clean });
+                    }}
                     className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-black"
                     required
                   />

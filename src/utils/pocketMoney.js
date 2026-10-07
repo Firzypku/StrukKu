@@ -7,6 +7,7 @@
 
 import { toLocalDateString, todayLocal } from './date';
 import { supabase } from './supabase';
+import { validateAmount, MAX_AMOUNT } from './validation';
 
 const STORAGE_KEY = 'strukku_allowance_config';
 
@@ -107,8 +108,16 @@ export const fetchAllowanceConfigFromSupabase = async (userId) => {
  * @param {string|null} userId
  */
 export const adjustBalance = async (newBalance, nextPayDate, monthlyAmount = null, userId = null) => {
+  const val = validateAmount(newBalance, {
+    fieldName: 'Saldo',
+    min: 0,
+    max: MAX_AMOUNT,
+    required: true,
+  });
+  if (!val.isValid) throw new Error(val.error);
+
   const prev = getAllowanceConfig();
-  const amt = Math.max(0, parseFloat(newBalance) || 0);
+  const amt = val.value;
   const targetDateStr = nextPayDate || prev.nextPayDate;
   
   // Ambil tanggal kiriman (day of month) jika ada target date
@@ -152,13 +161,80 @@ export const adjustBalance = async (newBalance, nextPayDate, monthlyAmount = nul
 };
 
 /**
+ * Menambahkan nominal saldo ke saldo yang sedang berjalan (Tambah Saldo)
+ * @param {number} addedAmount - Nominal yang ditambahkan (Rp)
+ * @param {string|null} nextPayDate - Tanggal kiriman berikutnya (opsional)
+ * @param {string|null} userId
+ */
+export const addBalance = async (addedAmount, nextPayDate = null, userId = null) => {
+  const val = validateAmount(addedAmount, {
+    fieldName: 'Nominal penambahan saldo',
+    min: 1,
+    max: MAX_AMOUNT,
+    required: true,
+  });
+  if (!val.isValid) throw new Error(val.error);
+
+  const prev = getAllowanceConfig();
+  const amt = val.value;
+  const targetDateStr = nextPayDate || prev.nextPayDate;
+
+  let derivedPayDay = prev.payDay;
+  if (targetDateStr) {
+    const parts = targetDateStr.split('-');
+    if (parts.length === 3) {
+      derivedPayDay = parseInt(parts[2], 10) || prev.payDay;
+    }
+  }
+
+  const baseBalance = prev.currentBalance !== undefined ? parseFloat(prev.currentBalance) : (parseFloat(prev.monthlyAmount) || 0);
+  const updatedBalance = Math.min(MAX_AMOUNT, baseBalance + amt);
+
+  const config = {
+    ...prev,
+    currentBalance: updatedBalance,
+    nextPayDate: targetDateStr,
+    payDay: derivedPayDay,
+    isOnboarded: true,
+  };
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+
+  if (userId) {
+    try {
+      await supabase.from('allowances').upsert({
+        user_id: userId,
+        monthly_amount: config.monthlyAmount,
+        pay_day: config.payDay,
+        current_balance: config.currentBalance,
+        balance_set_at: config.balanceSetAt,
+        next_pay_date: config.nextPayDate,
+        is_onboarded: true,
+      }, { onConflict: 'user_id' });
+    } catch (err) {
+      console.warn('Gagal menyimpan penambahan saldo ke Supabase:', err);
+    }
+  }
+
+  return config;
+};
+
+/**
  * Menyimpan konfigurasi uang saku ke localStorage dan cloud Supabase (Legacy compatibility)
  */
 export const saveAllowanceConfig = async (monthlyAmount, payDay, userId = null) => {
+  const val = validateAmount(monthlyAmount, {
+    fieldName: 'Uang saku bulanan',
+    min: 1,
+    max: MAX_AMOUNT,
+    required: true,
+  });
+  if (!val.isValid) throw new Error(val.error);
+
   const prev = getAllowanceConfig();
   const config = {
     ...prev,
-    monthlyAmount: Math.max(0, parseFloat(monthlyAmount) || 0),
+    monthlyAmount: val.value,
     payDay: Math.min(31, Math.max(1, parseInt(payDay, 10) || 1)),
   };
 

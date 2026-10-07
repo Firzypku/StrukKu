@@ -4,6 +4,7 @@
  */
 import { supabase } from './supabase';
 import { getLocalDateString } from './dateHelper';
+import { validateAmount, MAX_AMOUNT } from './validation';
 
 /**
  * Mendapatkan User ID dari sesi aktif
@@ -76,6 +77,17 @@ export const getExpenses = async () => {
 };
 
 export const addExpense = async (expense) => {
+  const validation = validateAmount(expense.amount, {
+    fieldName: 'Nominal pengeluaran',
+    min: 1,
+    max: MAX_AMOUNT,
+    required: true,
+  });
+
+  if (!validation.isValid) {
+    throw new Error(validation.error);
+  }
+
   const userId = await getCurrentUserId();
   const expenseId = expense.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'exp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5));
 
@@ -83,7 +95,7 @@ export const addExpense = async (expense) => {
     id: expenseId,
     user_id: userId || 'guest',
     title: expense.title,
-    amount: parseFloat(expense.amount) || 0,
+    amount: validation.value,
     category: expense.category || 'Lainnya',
     date: expense.date || getLocalDateString(),
     note: expense.note || null,
@@ -148,16 +160,30 @@ export const addExpense = async (expense) => {
 };
 
 export const updateExpense = async (id, updates) => {
+  let cleanUpdates = { ...updates };
+  if (updates.amount !== undefined) {
+    const validation = validateAmount(updates.amount, {
+      fieldName: 'Nominal pengeluaran',
+      min: 1,
+      max: MAX_AMOUNT,
+      required: true,
+    });
+    if (!validation.isValid) {
+      throw new Error(validation.error);
+    }
+    cleanUpdates.amount = validation.value;
+  }
+
   const userId = await getCurrentUserId();
   const currentLocal = getLocalExpenses(userId);
-  const updatedLocal = currentLocal.map((e) => (e.id === id ? { ...e, ...updates } : e));
+  const updatedLocal = currentLocal.map((e) => (e.id === id ? { ...e, ...cleanUpdates } : e));
   setLocalExpenses(userId, updatedLocal);
 
   if (userId) {
     try {
       const { data, error } = await supabase
         .from('expenses')
-        .update(updates)
+        .update(cleanUpdates)
         .eq('id', id)
         .select()
         .maybeSingle();
@@ -311,13 +337,24 @@ export const getBudget = async () => {
 };
 
 export const setBudget = async (amount) => {
+  const validation = validateAmount(amount, {
+    fieldName: 'Batas budget',
+    min: 1,
+    max: MAX_AMOUNT,
+    required: true,
+  });
+
+  if (!validation.isValid) {
+    throw new Error(validation.error);
+  }
+
   const userId = await getCurrentUserId();
   if (!userId) throw new Error("Not authenticated");
 
   const { error } = await supabase
     .from('budgets')
     .upsert(
-      { user_id: userId, monthly_limit: amount },
+      { user_id: userId, monthly_limit: validation.value },
       { onConflict: 'user_id' }
     );
   if (error) throw error;

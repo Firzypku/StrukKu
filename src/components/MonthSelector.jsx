@@ -1,4 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  RotateCcw,
+  Trash2,
+  AlertTriangle,
+} from 'lucide-react';
 import { formatRupiah } from '../utils/prediction';
 import { useToast } from '../context/ToastContext';
 
@@ -111,8 +120,9 @@ export default function MonthSelector({
             onClick={handlePrev}
             className="w-9 h-9 rounded-xl bg-gray-50 hover:bg-gray-100 active:scale-95 flex items-center justify-center text-gray-700 font-bold transition-all border border-gray-100"
             title="Bulan sebelumnya"
+            aria-label="Bulan sebelumnya"
           >
-            ←
+            <ChevronLeft className="w-5 h-5 text-gray-600" />
           </button>
 
           {/* Tombol Pilih Bulan & Tahun */}
@@ -121,8 +131,9 @@ export default function MonthSelector({
               onClick={() => setShowPickerModal(true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-primary/5 active:scale-95 transition-all text-gray-800 font-extrabold text-sm sm:text-base group"
             >
-              <span>📅 {activeMonthName} {selectedYear}</span>
-              <span className="text-xs text-primary group-hover:translate-y-0.5 transition-transform">▼</span>
+              <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
+              <span>{activeMonthName} {selectedYear}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-primary group-hover:translate-y-0.5 transition-transform" />
             </button>
             <div className="text-[11px] text-gray-500 font-medium">
               {transactionCount > 0 ? (
@@ -138,8 +149,9 @@ export default function MonthSelector({
             onClick={handleNext}
             className="w-9 h-9 rounded-xl bg-gray-50 hover:bg-gray-100 active:scale-95 flex items-center justify-center text-gray-700 font-bold transition-all border border-gray-100"
             title="Bulan berikutnya"
+            aria-label="Bulan berikutnya"
           >
-            →
+            <ChevronRight className="w-5 h-5 text-gray-600" />
           </button>
         </div>
 
@@ -149,9 +161,10 @@ export default function MonthSelector({
             {!isCurrentMonth ? (
               <button
                 onClick={goToCurrentMonth}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 font-bold transition-colors active:scale-95"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 font-bold transition-colors active:scale-95"
               >
-                <span>⚡ Kembali ke Bulan Ini</span>
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Kembali ke Bulan Ini</span>
               </button>
             ) : (
               <span className="text-green-600 font-semibold inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-green-50">
@@ -164,14 +177,15 @@ export default function MonthSelector({
             <button
               onClick={handleOpenResetModal}
               disabled={transactionCount === 0}
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-all active:scale-95 ${
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold transition-all active:scale-95 ${
                 transactionCount > 0
                   ? 'text-red-500 hover:text-red-700 hover:bg-red-50'
                   : 'text-gray-300 cursor-not-allowed'
               }`}
               title="Reset pengeluaran bulan ini"
             >
-              <span>🗑️ Reset Bulan</span>
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Reset Bulan</span>
             </button>
           )}
         </div>
@@ -262,8 +276,8 @@ export default function MonthSelector({
             {/* Grab handle bar untuk mobile bottom sheet */}
             <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 sm:hidden" />
 
-            <div className="w-14 h-14 rounded-full bg-red-100 text-red-500 mx-auto flex items-center justify-center text-2xl mb-3 shadow-inner">
-              ⚠️
+            <div className="w-14 h-14 rounded-full bg-red-100 text-red-500 mx-auto flex items-center justify-center mb-3 shadow-inner">
+              <AlertTriangle className="w-7 h-7 text-red-600" />
             </div>
 
             <h3 className="font-black text-gray-800 text-lg">
@@ -333,9 +347,10 @@ export default function MonthSelector({
           </div>
           <button
             onClick={handleUndoReset}
-            className="px-3.5 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md flex-shrink-0"
+            className="px-3.5 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md flex-shrink-0 flex items-center gap-1.5"
           >
-            ↩️ Urungkan ({undoState.secondsLeft}s)
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Urungkan ({undoState.secondsLeft}s)</span>
           </button>
         </div>
       )}

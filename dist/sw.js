@@ -1,2 +1,74 @@
-if(!self.define){let s,e={};const l=(l,i)=>(l=new URL(l+".js",i).href,e[l]||new Promise(e=>{if("document"in self){const s=document.createElement("script");s.src=l,s.onload=e,document.head.appendChild(s)}else s=l,importScripts(l),e()}).then(()=>{let s=e[l];if(!s)throw new Error(`Module ${l} didn’t register its module`);return s}));self.define=(i,n)=>{const r=s||("document"in self?document.currentScript.src:"")||location.href;if(e[r])return;let o={};const t=s=>l(s,r),u={module:{uri:r},exports:o,require:t};e[r]=Promise.all(i.map(s=>u[s]||t(s))).then(s=>(n(...s),o))}}define(["./workbox-1d305bb8"],function(s){"use strict";self.skipWaiting(),s.clientsClaim(),s.precacheAndRoute([{url:"og-image.png",revision:"d1b15f04db42723646a7dc109500012d"},{url:"index.html",revision:"be5698a3fcda7c95915b3f772993c7f9"},{url:"favicon.svg",revision:"d6521820c5b033e6d83ba02350c070ac"},{url:"images/hero-3d.jpg",revision:"3d450c9cdf4fd29b3d2c391a8112e732"},{url:"images/fintech-banner.jpg",revision:"38507d197f4ded9c0b5d4e819f72fc34"},{url:"images/abstract-orb.jpg",revision:"6b39f3823e00dc1414c50bbc07f0e987"},{url:"assets/xlsx-D_0l8YDs.js",revision:null},{url:"assets/workbox-window.prod.es5-vqzQaGvo.js",revision:null},{url:"assets/prediction-BDtqXurC.js",revision:null},{url:"assets/pocketMoney-Do7VCCt_.js",revision:null},{url:"assets/ocr-C0vRQy8l.js",revision:null},{url:"assets/index-Cls2g2Lx.css",revision:null},{url:"assets/index-BDEu_DHM.js",revision:null},{url:"assets/imageProcess-BbV7aJr5.js",revision:null},{url:"assets/heic2any-ByBTmuCY.js",revision:null},{url:"assets/challenges-CPocwlaQ.js",revision:null},{url:"assets/analytics-CEFmHmK-.js",revision:null},{url:"assets/SyaratKetentuan-C36oTnAt.js",revision:null},{url:"assets/Status-6hR4rC2Z.js",revision:null},{url:"assets/Social-jtsBf-E6.js",revision:null},{url:"assets/Scan-CpZSDU2W.js",revision:null},{url:"assets/ResetPassword-me55cQgl.js",revision:null},{url:"assets/Register-BzI-mPVE.js",revision:null},{url:"assets/ProgressBar-B61IjaXp.js",revision:null},{url:"assets/Profile-D8wO0i0r.js",revision:null},{url:"assets/Login-Bv2_tnvn.js",revision:null},{url:"assets/Landing-FSHuyIll.js",revision:null},{url:"assets/KebijakanPrivasi-Zt9ZJGDB.js",revision:null},{url:"assets/History-BTkk49-x.js",revision:null},{url:"assets/Hemat-Cn20MkVk.js",revision:null},{url:"assets/Dashboard-Dl7YNaZ3.js",revision:null},{url:"assets/Budget-BGD7R07V.js",revision:null},{url:"assets/BalanceAdjustModal-B6yI_T1v.js",revision:null},{url:"manifest.webmanifest",revision:"dee084a72a6e4cdb869ee8a9674594ea"}],{}),s.cleanupOutdatedCaches(),s.registerRoute(new s.NavigationRoute(s.createHandlerBoundToURL("index.html"))),s.registerRoute(/^https:\/\/fonts\.googleapis\.com\/.*/i,new s.CacheFirst({cacheName:"google-fonts-cache",plugins:[new s.ExpirationPlugin({maxEntries:10,maxAgeSeconds:31536e3}),new s.CacheableResponsePlugin({statuses:[0,200]})]}),"GET")});
-//# sourceMappingURL=sw.js.map
+/**
+ * Service Worker untuk StrukKu PWA
+ * Offline support + cache strategi
+ */
+
+const CACHE_NAME = 'strukku-v4';
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+];
+
+// Install event — cache static assets
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(STATIC_ASSETS);
+    })
+  );
+  self.skipWaiting();
+});
+
+// Activate event — clear old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+      )
+    )
+  );
+  self.clients.claim();
+});
+
+// Fetch event — network first, fallback to cache
+self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') return;
+
+  // Skip chrome-extension and other non-http
+  if (!event.request.url.startsWith('http')) return;
+
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        // Cache successful responses
+        if (response && response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // Network failed — serve from cache
+        return caches.match(event.request).then((cached) => {
+          return cached || caches.match('/index.html');
+        });
+      })
+  );
+});
+
+// Push notification handler
+self.addEventListener('push', (event) => {
+  const data = event.data?.json() || {};
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'StrukKu', {
+      body: data.body || 'Jangan lupa catat pengeluaranmu hari ini! 💰',
+      icon: '/icon-192x192.png',
+      badge: '/icon-192x192.png',
+    })
+  );
+});

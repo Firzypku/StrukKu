@@ -7,8 +7,9 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, LineChart,
   Line, Legend
 } from 'recharts';
+import { BarChart2, PieChart as PieIcon, TrendingUp } from 'lucide-react';
 
-const COLORS = ['#185FA5', '#1D9E75', '#E24B4A', '#F59E0B', '#5F27CD', '#FF9FF3', '#54A0FF', '#C8D6E5'];
+const COLORS = ['#059669', '#10B981', '#F59E0B', '#34D399', '#D97706', '#047857', '#FBBF24', '#065F46'];
 
 // ── Custom Tooltip ────────────────────────────────────────────────────────────
 const CustomTooltip = ({ active, payload, label }) => {
@@ -31,8 +32,9 @@ const CustomTooltip = ({ active, payload, label }) => {
 export function ExpenseBarChart({ data, height = 200 }) {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-32 text-gray-300 text-sm">
-        Belum ada data 📊
+      <div className="flex items-center justify-center gap-2 h-32 text-gray-400 text-xs font-medium">
+        <BarChart2 className="w-4 h-4 text-gray-300" />
+        <span>Belum ada data pengeluaran</span>
       </div>
     );
   }
@@ -61,7 +63,7 @@ export function ExpenseBarChart({ data, height = 200 }) {
             width={34}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="value" fill="#185FA5" radius={[6, 6, 0, 0]}>
+          <Bar dataKey="value" fill="#059669" radius={[6, 6, 0, 0]}>
             {data.map((_, i) => (
               <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}
@@ -76,8 +78,9 @@ export function ExpenseBarChart({ data, height = 200 }) {
 export function ExpensePieChart({ data, height = 200 }) {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-32 text-gray-300 text-sm">
-        Belum ada data 🥧
+      <div className="flex items-center justify-center gap-2 h-32 text-gray-400 text-xs font-medium">
+        <PieIcon className="w-4 h-4 text-gray-300" />
+        <span>Belum ada data distribusi</span>
       </div>
     );
   }
@@ -123,8 +126,9 @@ export function ExpensePieChart({ data, height = 200 }) {
 export function ExpenseLineChart({ data, height = 180 }) {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-32 text-gray-300 text-sm">
-        Belum ada data 📈
+      <div className="flex items-center justify-center gap-2 h-32 text-gray-400 text-xs font-medium">
+        <TrendingUp className="w-4 h-4 text-gray-300" />
+        <span>Belum ada data tren</span>
       </div>
     );
   }

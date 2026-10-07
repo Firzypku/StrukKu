@@ -1,0 +1,343 @@
+
+=== src/components/BalanceAdjustModal.jsx (4 occurrences) ===
+  L68: ? 'Siklus uang saku berhasil diset! Jatah harianmu siap dihitung 🚀'
+  L69: : 'Saldo & jatah harian berhasil disesuaikan! 💰'
+  L86: {isOnboarding ? '🎯' : '⚖️'}
+  L176: {saving ? 'Menyimpan...' : isOnboarding ? 'Mulai Pakai StrukKu 🚀' : 'Simpan Perubahan'}
+
+=== src/components/Chart.jsx (3 occurrences) ===
+  L35: Belum ada data 📊
+  L80: Belum ada data 🥧
+  L127: Belum ada data 📈
+
+=== src/components/FeatureCard.jsx (2 occurrences) ===
+  L66: <span className="text-3xl">{icon || '💡'}</span>
+  L86: const rankIcons = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+=== src/components/FeedbackForm.jsx (2 occurrences) ===
+  L61: toast.success('Masukan berhasil dikirim! Terima kasih 🙏');
+  L74: <span>📝</span> Kirim Masukan
+
+=== src/components/FloatingWhatsApp.jsx (1 occurrences) ===
+  L24: <span>💬</span> Bantuan StrukKu
+
+=== src/components/MonthSelector.jsx (5 occurrences) ===
+  L124: <span>📅 {activeMonthName} {selectedYear}</span>
+  L154: <span>⚡ Kembali ke Bulan Ini</span>
+  L174: <span>🗑️ Reset Bulan</span>
+  L266: ⚠️
+  L338: ↩️ Urungkan ({undoState.secondsLeft}s)
+
+=== src/components/PaywallModal.jsx (7 occurrences) ===
+  L32: toast.success('Selamat! Akunmu telah ditingkatkan ke StrukKu Pro 🎉');
+  L51: 💎
+  L67: { icon: '⚡', title: 'Scan OCR Tanpa Batas', desc: 'Scan struk puluhan kali sehari sepuasnya' },
+  L68: { icon: '📊', title: 'Export Laporan Excel & PDF Ortu', desc: 'Rekap keuangan rapi siap kirim kapan saja' },
+  L69: { icon: '☁️', title: 'Cadangan Cloud Terenkripsi', desc: 'Foto struk tersimpan aman di cloud pribadi' },
+  L70: { icon: '👥', title: 'Split Bill Multi-Grup & Circle', desc: 'Lacak utang-piutang teman otomatis' },
+  L131: <span>⚡</span>
+
+=== src/components/ProgressBar.jsx (1 occurrences) ===
+  L88: ✅ Tantangan selesai! Keren!
+
+=== src/pages/Budget.jsx (21 occurrences) ===
+  L200: let text = `Assalamu'alaikum / Halo Ayah & Ibu 🙏\n\n`;
+  L203: text += `💰 Uang Saku: ${formatRupiah(allowanceConfig.monthlyAmount)}\n`;
+  L204: text += `📉 Terpakai: ${formatRupiah(cycleData.totalSpentInCycle)}\n`;
+  L205: text += `💵 Sisa Uang Saku: ${formatRupiah(cycleData.remainingAllowance)}\n`;
+  L206: text += `📅 Sisa Hari ke Kiriman Berikutnya: ${cycleData.daysLeft} hari (s.d. ${cycleData.nextPayDate})\n`;
+  L207: text += `🛡️ Jatah Aman Harian: ${formatRupiah(cycleData.safeDailySpend)}/hari\n`;
+  L210: text += `\n📊 *Rincian per Kategori:*\n`;
+  L217: text += `\n🧾 *Transaksi Terakhir:*\n`;
+  L225: text += `Alhamdulillah pengelolaan keuangan terkontrol dengan baik lewat aplikasi *StrukKu* 🧾✨`;
+  L259: <p className="text-white/60 text-xs">Jatah harian, simulasi beli & rekap ortu 🎓</p>
+  L397: <span>💡 Ganti fitur kapan saja tanpa kehilangan data</span>
+  L468: 💡 <strong>Saran:</strong> Batasi belanja harianmu maksimal{' '}
+  L567: ✅ Pengaturan uang saku berhasil disimpan!
+  L637: Hitung Dampak terhadap Jatah Harian ⚡
+  L667: ? '🚨 Berbahaya'
+  L669: ? '⚡ Waspada'
+  L670: : '✅ Aman'}
+  L694: 📉 Jatah harianmu akan terpotong sebesar{' '}
+  L835: ✅ Budget limit tersimpan!
+  L847: 💾 Simpan Limit Budget
+  L865: {budgetStatus.status === 'danger' ? '🔴' : budgetStatus.status === 'warning' ? '🟡' : '🟢'}
+
+=== src/pages/Dashboard.jsx (23 occurrences) ===
+  L80: toast.success('Keren! Hari hemat tanpa jajan tercatat 🧘 Streak bertambah!');
+  L160: {user?.user_metadata?.full_name || 'Mahasiswa'} 🎓
+  L172: ◀
+  L182: ▶
+  L191: <span>🎯</span>
+  L199: <span>Sesuaikan Saldo</span> ⚙️
+  L246: icon: '📋',
+  L253: icon: '🏆',
+  L255: value: stats.topCategory ? `${CATEGORY_ICONS[stats.topCategory] || '💳'} ${stats.topCategory}` : '—',
+  L260: icon: '📅',
+  L290: <span className="text-2xl">{noSpendToday ? '🧘' : '🍃'}</span>
+  L307: Hari Ini Aku Tidak Belanja ✨
+  L324: <span className="text-3xl">📸</span>
+  L332: <span className="text-3xl">✏️</span>
+  L344: <span>🍕</span>
+  L352: <span>💡</span>
+  L383: <span className="text-2xl">{prediction.predicted > budget && budget > 0 ? '⚠️' : '🔮'}</span>
+  L394: ❌ Diprediksi over budget {formatRupiah(prediction.predicted - budget)}
+  L403: <span className="text-2xl">🔮</span>
+  L423: 💡 Tip Hemat Dipersonalisasi
+  L451: {CATEGORY_ICONS[cat.name] || '💳'} {cat.name}
+  L471: <span className="text-6xl block mb-4">🧾</span>
+  L482: 📸 Scan Struk Pertama
+
+=== src/pages/Hemat.jsx (19 occurrences) ===
+  L45: toast.success('Keren! Hari hemat tanpa jajan tercatat 🧘 Streak bertambah!');
+  L62: 🏆 {completedCount}/{challenges.length}
+  L65: <p className="text-white/70 text-xs">Hemat lebih terarah, masa depan cerah 🚀</p>
+  L70: { id: 'tantangan', label: '🏆 Tantangan' },
+  L71: { id: 'tips', label: '💡 Tips' },
+  L72: { id: 'resep', label: '🍳 Resep' },
+  L95: <p className="text-4xl mb-1">🎉</p>
+  L104: <span className="text-3xl">{noSpendToday ? '🧘' : '🍃'}</span>
+  L121: Check-in Hemat ✨
+  L188: 🔄 Tampilkan Tips Lain
+  L193: <h3 className="font-bold text-gray-800 mb-3">📌 Tips Wajib Tahu</h3>
+  L196: { icon: '🍱', text: 'Bawa bekal ke kampus bisa hemat Rp 500.000/bulan' },
+  L197: { icon: '🚇', text: 'Gunakan KRL/MRT untuk hemat transportasi harian' },
+  L198: { icon: '📱', text: 'Gunakan aplikasi cashback saat belanja online' },
+  L199: { icon: '🛒', text: 'Belanja kebutuhan bulanan sekali, bukan per hari' },
+  L200: { icon: '☕', text: 'Buat kopi sendiri daripada beli setiap hari' },
+  L216: 💚 Masak sendiri = lebih hemat & lebih sehat!
+  L237: <span className="text-xs text-gray-400">⏱ {recipe.waktu}</span>
+  L256: 💡 Bahan biasanya sudah ada di dapur! Estimasi hemat vs beli jadi: <strong>Rp {formatRupiah(recipe.estimasi * 2 - recipe.estimasi)}</strong>
+
+=== src/pages/History.jsx (19 occurrences) ===
+  L183: toast.success('Transaksi berhasil diperbarui! ✏️');
+  L242: toast.success(`Transaksi "${restored.title}" berhasil dipulihkan! ↩️`);
+  L253: toast.success('5 transaksi contoh anak kos berhasil dimuat! 🎉');
+  L327: <span>📊</span>
+  L359: 📋 Daftar
+  L368: 📅 Kalender
+  L464: <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+  L488: {cat !== 'Semua' && (CATEGORY_ICONS[cat] || '💳')} {cat}
+  L512: <span className="text-5xl block mb-3">📭</span>
+  L531: <span>📸</span>
+  L540: <span>{loadingSamples ? '⏳' : '✨'}</span>
+  L579: {CATEGORY_ICONS[expense.category] || '💳'}
+  L615: <span className="text-amber-400">🗑️</span>
+  L648: {CATEGORY_ICONS[selectedExpense.category] || '💳'}
+  L708: <span>✏️</span>
+  L715: <span>🗑️</span>
+  L725: <span>✏️</span>
+  L844: 📊 Ekspor Bulan {selectedMonthName} {selectedYear}
+  L859: 📁 Ekspor Semua Riwayat (Semua Waktu)
+
+=== src/pages/Landing.jsx (13 occurrences) ===
+  L16: icon: '💰',
+  L21: icon: '🧾',
+  L26: icon: '🍕',
+  L152: <span>👋 Halo <strong>{user?.user_metadata?.full_name || 'Mahasiswa'}</strong>!</span>
+  L157: Buka Dashboard 🚀
+  L172: 🧾
+  L191: Dashboard 🚀
+  L245: {user ? '🚀 Buka Dashboard' : '🚀 Daftar Gratis'}
+  L371: <span className="text-3xl block mb-3">🌱</span>
+  L383: {user ? '📝 Kirim Masukan di Profil' : '🚀 Daftar & Bantu Kembangkan StrukKu'}
+  L431: 🎓
+  L445: {user ? '🚀 Buka Dashboard' : 'Daftar Gratis Sekarang'}
+  L469: © {new Date().getFullYear()} StrukKu. Mengutamakan kejujuran, privasi, dan transparansi data mahasiswa.
+
+=== src/pages/Login.jsx (5 occurrences) ===
+  L70: toast.success('Masuk sebagai Akun Demo Mahasiswa! 🎓');
+  L87: 🧾
+  L97: <span>✅</span>
+  L104: <span>⚠️</span>
+  L196: <span>⚡</span>
+
+=== src/pages/Profile.jsx (28 occurrences) ===
+  L97: toast.success('Foto profil berhasil dipasang! 📸');
+  L183: toast.success('File arsip JSON berhasil diunduh! 📦');
+  L204: toast.success('File Excel data lengkap berhasil diunduh! 📊');
+  L291: {isUploadingPhoto ? '⏳' : '📷'}
+  L332: ✏️
+  L339: 🎓 Mahasiswa StrukKu
+  L369: Upgrade ⚡
+  L401: <span>📷</span>
+  L416: <span>✏️</span>
+  L428: <span>🌐</span>
+  L440: <span>🎯</span>
+  L452: <span>📊</span>
+  L464: <span>🍕</span>
+  L475: <span>💡</span>
+  L496: <span>🔄</span>
+  L499: <span className="text-amber-600">⚠️</span>
+  L513: <span>📝</span>
+  L528: <span className="text-base">💬</span>
+  L544: <span>🔒</span>
+  L554: <span>📋</span>
+  L564: <span>🟢</span>
+  L585: <span>📦</span>
+  L600: <span>📊</span>
+  L617: <span>⚠️</span>
+  L632: <span className="text-base">🚪</span>
+  L641: <div className="w-12 h-12 bg-primary/10 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-2">🧾</div>
+  L656: ⚠️
+  L703: 🚨
+
+=== src/pages/Register.jsx (2 occurrences) ===
+  L48: 👋
+  L126: {loading ? 'Mendaftarkan...' : 'Daftar Sekarang ✨'}
+
+=== src/pages/ResetPassword.jsx (2 occurrences) ===
+  L67: 🔑
+  L84: ✉️
+
+=== src/pages/Scan.jsx (22 occurrences) ===
+  L316: { id: 'scan', label: '📸 Scan Struk' },
+  L317: { id: 'manual', label: '✏️ Manual' },
+  L318: { id: 'voice', label: '🎙️ Suara' },
+  L361: 🧾
+  L374: <span>📸</span> <span>Foto Struk</span>
+  L381: <span>🖼️</span> <span>Galeri / File</span>
+  L429: <span className="text-3xl block">🔍</span>
+  L441: 🔄 Scan Ulang
+  L450: ✏️ Isi Manual
+  L460: <span className="text-xl">✅</span>
+  L492: 🎙️
+  L525: ⚠️ Cek lagi ya
+  L545: ⚠️ {errors.title}
+  L556: ⚠️ Cek lagi ya
+  L581: ⚠️ {errors.amount}
+  L596: ⚠️ Cek lagi ya
+  L613: {CATEGORY_ICONS[cat] || '💳'} {cat}
+  L625: ⚠️ Cek lagi ya
+  L645: ⚠️ {errors.date}
+  L666: ✅ Pengeluaran tersimpan! Mengalihkan...
+  L687: <span>💾</span>
+  L700: <span>💡</span> Tips Scan Struk Jernih
+
+=== src/pages/Social.jsx (42 occurrences) ===
+  L220: toast.success(`Berhasil mengenali ${extracted.items.length} item dari struk! 🧾`);
+  L313: let text = `🧾 *TAGIHAN SPLIT BILL — ${(placeName || 'PATUNGAN').toUpperCase()}*\n`;
+  L323: text += `👤 *${person.name.toUpperCase()}*: *${formatRupiah(person.finalTotal)}*\n`;
+  L331: text += `💳 *Pembayaran via:*\n${paymentInfo.method}\nNo/Rek: *${paymentInfo.accountNumber}*\n\n`;
+  L332: text += `_Dihitung otomatis tanpa pusing pakai StrukKu_ 🧾✨`;
+  L376: let text = `🧾 *TAGIHAN SPLIT BILL (BAGI RATA)*\n`;
+  L381: text += `👉 ${quickResult.people} orang masing-masing: *${formatRupiah(quickResult.baseAmount)}*\n`;
+  L383: text += `👉 ${quickResult.baseCount} orang masing-masing: *${formatRupiah(quickResult.baseAmount)}*\n`;
+  L384: text += `👉 ${quickResult.higherCount} orang masing-masing: *${formatRupiah(quickResult.higherAmount)}*\n`;
+  L389: text += `💳 *Pembayaran via:*\n${paymentInfo.method}\nNo/Rek: *${paymentInfo.accountNumber}*\n\n`;
+  L391: text += `_Dihitung otomatis tanpa pusing pakai StrukKu_ 🧾✨`;
+  L404: <p className="text-white/70 text-xs">Satu Scan, Semua Tercatat tanpa ribet e-wallet 🤝</p>
+  L409: { id: 'itemized', label: '🍕 Split per Item' },
+  L410: { id: 'quick', label: '⚡ Bagi Rata' },
+  L411: { id: 'circle', label: '👥 Circle' },
+  L412: { id: 'campus', label: '📍 Peta Hemat' },
+  L448: 📸
+  L463: <span>{isScanningOcr ? '⏳' : '⚡'}</span>
+  L486: <span className="text-base">🏷️</span>
+  L506: 🍕
+  L517: <span>💡</span> Lihat Contoh Perhitungan
+  L546: {f === 'Kamu' ? '👤 Kamu' : f}
+  L680: {f === 'Kamu' ? '👤 Kamu' : f} {isAssigned ? '✓' : '+'}
+  L767: <span>📲 Share WA</span>
+  L791: {isMe ? '👤 Kamu (Bagian Sendiri)' : person.name}
+  L802: {isPaid ? '✅ Lunas' : '⏳ Belum Bayar'}
+  L825: {savedPortion ? '✅ Sudah masuk pengeluaran!' : 'Otomatis catat porsi ini ke akunmu:'}
+  L836: {savedPortion ? 'Tersimpan' : '💾 Catat Bagianku'}
+  L900: ⚠️ {quickError}
+  L936: Hitung Bagi Rata 🧮
+  L963: 💡 Bebas selisih! {quickResult.baseCount} orang {formatRupiah(quickResult.baseAmount)}, {quickResult.higherCount} orang {formatRupiah(quickResult.higherAmount)}. Total tepat {formatRupiah(quickResult.total)}.
+  L972: <span>📱</span> Bagikan Rincian ke WhatsApp
+  L987: 👥
+  L991: ✨ Fitur Mendatang
+  L1008: { name: 'Kamu', pct: '88% di bawah budget', rank: '1 👑', color: 'text-yellow-600' },
+  L1023: 🔒 <strong>Privasi Terjamin:</strong> Teman satu circle hanya melihat persentase kedisiplinan hemat, bukan nominal saldo rekening atau detail transaksi pribadimu.
+  L1033: <span className="text-2xl">📍</span>
+  L1050: { menu: 'Nasi Ayam Geprek + Es Teh', range: 'Rp 12.000 - Rp 16.000', badge: 'Terfavorit 🔥' },
+  L1051: { menu: 'Nasi Pecel / Warteg 2 Lauk', range: 'Rp 10.000 - Rp 14.000', badge: 'Paling Hemat 🥗' },
+  L1052: { menu: 'Kopi Susu Gula Aren', range: 'Rp 12.000 - Rp 18.000', badge: 'Tempat Nugas ☕' },
+  L1053: { menu: 'Laundry Kiloan', range: 'Rp 6.000 - Rp 8.000 / kg', badge: 'Kebutuhan Kos 👕' },
+  L1066: 💡 <strong>Data Komparasi Mahasiswa:</strong> Mahasiswa kos di area kampus rata-rata menghabiskan{' '}
+
+=== src/pages/Status.jsx (7 occurrences) ===
+  L147: <span>🔄</span>
+  L168: <span className="text-2xl">{allOperational ? '🟢' : '🟡'}</span>
+  L223: <span>⚡</span>
+  L226: <span className="text-slate-400">status.supabase.com ↗</span>
+  L239: <span className="text-slate-400">vercel-status.com ↗</span>
+  L249: <span>🐙</span>
+  L252: <span className="text-slate-400">githubstatus.com ↗</span>
+
+=== src/utils/analytics.js (2 occurrences) ===
+  L18: console.info('ℹ️ [PostHog] VITE_POSTHOG_KEY belum di-set. Event analytics akan dicatat di konsol browser.');
+  L57: console.debug(`📊 [PostHog Event] ${eventName}:`, sanitizedProps);
+
+=== src/utils/challenges.js (4 occurrences) ===
+  L255: badge: '🧘',
+  L266: badge: '💚',
+  L277: badge: '🍳',
+  L288: badge: '🏆',
+
+=== src/utils/exportUserData.js (1 occurrences) ===
+  L92: Status: ch.completed ? 'Selesai 🏆' : 'Sedang Berjalan 🏃',
+
+=== src/utils/ocr.js (10 occurrences) ===
+  L99: Makanan: '🍽️',
+  L100: Minuman: '🥤',
+  L101: 'Kebutuhan Kos': '🏠',
+  L102: Transport: '🚗',
+  L103: Belanja: '🛒',
+  L104: Hiburan: '🎬',
+  L105: Kesehatan: '💊',
+  L106: Pendidikan: '📚',
+  L107: Fashion: '👕',
+  L108: Lainnya: '💳',
+
+=== src/utils/prediction.js (33 occurrences) ===
+  L58: { tip: 'Coba masak sendiri 3x seminggu, bisa hemat Rp 150.000/bulan! 🍳', icon: '🍳' },
+  L59: { tip: 'Beli bahan makanan di pasar tradisional lebih murah 20-30% dari supermarket', icon: '🛒' },
+  L60: { tip: 'Batch cooking di hari Minggu bisa hemat waktu dan uang sekaligus', icon: '🥗' },
+  L61: { tip: 'Bawa bekal ke kampus bisa hemat hingga Rp 50.000/hari!', icon: '🍱' },
+  L64: { tip: 'Gunakan KRL/MRT daripada ojol, bisa hemat Rp 30.000/hari!', icon: '🚇' },
+  L65: { tip: 'Naik sepeda ke kampus jika jarak < 5km, hemat dan sehat', icon: '🚲' },
+  L66: { tip: 'Gabung perjalanan dengan teman (share ojol) untuk hemat ongkos', icon: '🤝' },
+  L67: { tip: 'Manfaatkan promo GoPay/OVO untuk cashback transportasi', icon: '💰' },
+  L70: { tip: 'Buat daftar belanja sebelum ke toko, hindari impulsif buying', icon: '📝' },
+  L71: { tip: 'Belanja di akhir bulan sering ada diskon clearance', icon: '🏷️' },
+  L72: { tip: 'Bandingkan harga di 2-3 toko sebelum memutuskan beli', icon: '🔍' },
+  L73: { tip: 'Manfaatkan cashback kartu kredit/e-wallet saat belanja', icon: '💳' },
+  L76: { tip: 'Nonton film gunakan voucher/promo hari Selasa yang lebih murah', icon: '🎬' },
+  L77: { tip: 'Gabung Netflix/Spotify dengan teman, bagi biaya langganan', icon: '📺' },
+  L78: { tip: 'Cari event/pameran gratis di kotamu untuk hiburan murah', icon: '🎪' },
+  L81: { tip: '📊 Catat setiap pengeluaran agar lebih sadar pola belanjamu', icon: '📊' },
+  L82: { tip: '💡 Aturan 50-30-20: 50% kebutuhan, 30% keinginan, 20% tabungan', icon: '💡' },
+  L83: { tip: '🏆 Ikuti tantangan hemat untuk menjaga disiplin pengeluaran!', icon: '🏆' },
+  L84: { tip: '🛡️ Evaluasi pengeluaran mingguan agar tidak kaget di akhir bulan', icon: '🛡️' },
+  L99: tip: `🎯 Jatah harian amanmu saat ini ${formatRupiah(safeDailySpend)}/hari. Usahakan total belanja hari ini di bawah angka ini ya!`,
+  L100: icon: '🎯',
+  L104: tip: `🛡️ Dengan jatah ${formatRupiah(safeDailySpend)}/hari, masak sendiri atau bawa bekal bisa bikin sisa uangmu awet sampai kiriman berikutnya.`,
+  L105: icon: '💡',
+  L109: tip: `⚡ Batasi belanja harianmu di kisaran ${formatRupiah(safeDailySpend)}/hari agar tidak defisit sebelum tanggal kiriman.`,
+  L110: icon: '⚖️',
+  L146: tip: `🎯 Jatah harian amanmu adalah ${formatRupiah(safeDailySpend)}/hari. Kendalikan belanja harian di batas ini agar cukup sampai kiriman berikutnya.`,
+  L147: icon: '🎯',
+  L189: emoji: '🍳',
+  L196: emoji: '🍜',
+  L203: emoji: '🥬',
+  L210: emoji: '🍲',
+  L217: emoji: '🥪',
+  L224: emoji: '🍌',
+
+=== src/utils/sentry.js (1 occurrences) ===
+  L62: console.info('ℹ️ [Sentry] VITE_SENTRY_DSN belum di-set. Error logging lokal aktif di konsol browser.');
+
+=== src/utils/storage.js (4 occurrences) ===
+  L329: { id: 'ch_1', title: 'Tidak Jajan 3 Hari', description: 'Hindari pengeluaran jajan selama 3 hari berturut-turut', target: 3, progress: 0, unit: 'hari', badge: '🧘', completed: false, category: 'streak' },
+  L330: { id: 'ch_2', title: 'Hemat 20% Bulan Ini', description: 'Kurangi total pengeluaran 20% dibanding bulan lalu', target: 20, progress: 0, unit: '%', badge: '💚', completed: false, category: 'saving' },
+  L331: { id: 'ch_3', title: 'Masak Sendiri 5x', description: 'Catat 5 pengeluaran bahan masakan, bukan beli makanan jadi', target: 5, progress: 0, unit: 'kali', badge: '🍳', completed: false, category: 'cooking' },
+  L332: { id: 'ch_4', title: 'Budget Master', description: 'Tetap dalam budget selama 7 hari', target: 7, progress: 0, unit: 'hari', badge: '🏆', completed: false, category: 'budget' },
+
+=== src/utils/supabase.js (2 occurrences) ===
+  L14: '⚠️ [StrukKu] Kredensial Supabase (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY) belum terpasang di .env.local.\n' +
+  L19: '🚨 [StrukKu Prod] Konfigurasi environment Supabase belum di-set di hosting (Vercel).'
+
+TOTAL EMOJI OCCURRENCES: 285

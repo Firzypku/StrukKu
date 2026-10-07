@@ -7,7 +7,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { scanReceipt, detectCategory, CATEGORY_ICONS } from '../utils/ocr';
+import { scanReceipt, detectCategory } from '../utils/ocr';
 import { useExpenses } from '../hooks/useExpenses';
 import { useAuth } from '../context/AuthContext';
 import { formatRupiah, parseVoiceInput } from '../utils/prediction';
@@ -15,6 +15,23 @@ import { todayLocal } from '../utils/date';
 import { useToast } from '../context/ToastContext';
 import { preprocessImageForOcr, uploadReceiptToStorage } from '../utils/imageProcess';
 import { analytics } from '../utils/analytics';
+import CategoryIcon from '../components/CategoryIcon';
+import { validateAmount, MAX_AMOUNT } from '../utils/validation';
+import {
+  ChevronLeft,
+  Camera,
+  Edit3,
+  Mic,
+  Image as ImageIcon,
+  Receipt,
+  Search,
+  RotateCcw,
+  CheckCircle2,
+  AlertCircle,
+  Lightbulb,
+  BookmarkCheck,
+  X,
+} from 'lucide-react';
 
 const CATEGORIES = ['Makanan', 'Minuman', 'Kebutuhan Kos', 'Transport', 'Belanja', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Fashion', 'Lainnya'];
 
@@ -213,14 +230,20 @@ export default function Scan() {
 
   const handleSave = async () => {
     const newErrors = {};
-    const parsedAmount = parseFloat(form.amount);
 
     if (!form.title.trim()) {
       newErrors.title = 'Keterangan pengeluaran wajib diisi.';
     }
 
-    if (!form.amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      newErrors.amount = 'Nominal harus berupa angka lebih besar dari 0.';
+    const amountValidation = validateAmount(form.amount, {
+      fieldName: 'Nominal pengeluaran',
+      min: 1,
+      max: MAX_AMOUNT,
+      required: true,
+    });
+
+    if (!amountValidation.isValid) {
+      newErrors.amount = amountValidation.error;
     }
 
     const todayStr = todayLocal();
@@ -252,7 +275,7 @@ export default function Scan() {
 
       await add({
         title: form.title.trim(),
-        amount: parsedAmount,
+        amount: amountValidation.value,
         category: form.category,
         date: form.date || todayStr,
         note: form.note || null,
@@ -275,13 +298,27 @@ export default function Scan() {
   };
 
   const handleChange = (field, value) => {
-    setForm((f) => ({ ...f, [field]: value }));
+    let finalValue = value;
+    if (field === 'amount') {
+      // Sanitasi karakter: hanya angka
+      finalValue = String(value).replace(/\D/g, '');
+      const parsed = parseInt(finalValue, 10);
+      if (parsed > MAX_AMOUNT) {
+        setErrors((prev) => ({
+          ...prev,
+          amount: `Nominal terlalu besar. Masukkan nominal maksimal Rp${MAX_AMOUNT.toLocaleString('id-ID')}.`,
+        }));
+        finalValue = String(MAX_AMOUNT);
+      }
+    }
+
+    setForm((f) => ({ ...f, [field]: finalValue }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
     // Jika user mengubah nominal dari hasil OCR
     if (field === 'amount' && ocrResult?.amount) {
-      const numVal = parseFloat(value);
+      const numVal = parseFloat(finalValue);
       if (!isNaN(numVal) && numVal !== ocrResult.amount) {
         analytics.scanEditedAmount();
       }
@@ -295,42 +332,47 @@ export default function Scan() {
   return (
     <div className="min-h-screen bg-surface pb-36">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#0B1E36] via-[#123E6B] to-[#1E40AF] px-4 pt-12 pb-6 relative overflow-hidden shadow-lg">
-        <div className="absolute top-0 right-0 w-44 h-44 bg-blue-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
+      <div className="bg-gradient-to-br from-[#064E3B] via-[#047857] to-[#059669] px-4 pt-12 pb-6 relative overflow-hidden shadow-lg">
+        <div className="absolute top-0 right-0 w-44 h-44 bg-amber-400/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl pointer-events-none" />
         <div className="relative z-10 flex items-center gap-3 mb-4">
           <button
             onClick={() => navigate(-1)}
+            aria-label="Kembali"
             className="w-9 h-9 bg-white/15 rounded-xl flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95 border border-white/20"
           >
-            ←
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <div>
             <h1 className="text-xl font-black text-white tracking-tight">Catat Pengeluaran</h1>
-            <p className="text-white/60 text-xs mt-0.5">Scan struk fisik, QRIS, atau catat manual</p>
+            <p className="text-emerald-100 text-xs mt-0.5">Scan struk fisik, QRIS, atau catat manual</p>
           </div>
         </div>
 
         {/* Mode Tabs */}
         <div className="flex bg-white/15 rounded-2xl p-1 gap-1">
           {[
-            { id: 'scan', label: '📸 Scan Struk' },
-            { id: 'manual', label: '✏️ Manual' },
-            { id: 'voice', label: '🎙️ Suara' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              id={`tab-${tab.id}`}
-              onClick={() => {
-                setMode(tab.id);
-                setOcrFailed(false);
-              }}
-              className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                mode === tab.id ? 'bg-white text-primary shadow-sm' : 'text-white/70 hover:text-white'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+            { id: 'scan', label: 'Scan Struk', icon: Camera },
+            { id: 'manual', label: 'Manual', icon: Edit3 },
+            { id: 'voice', label: 'Suara', icon: Mic },
+          ].map((tab) => {
+            const TabIcon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                id={`tab-${tab.id}`}
+                onClick={() => {
+                  setMode(tab.id);
+                  setOcrFailed(false);
+                }}
+                className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 ${
+                  mode === tab.id ? 'bg-white text-emerald-800 shadow-sm font-bold' : 'text-white/80 hover:text-white'
+                }`}
+              >
+                <TabIcon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -356,9 +398,9 @@ export default function Scan() {
             />
 
             {!previewUrl ? (
-              <div className="bg-white rounded-2xl border-2 border-dashed border-primary/30 p-8 flex flex-col items-center gap-4 text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-3xl">
-                  🧾
+              <div className="bg-white rounded-2xl border-2 border-dashed border-emerald-500/30 p-8 flex flex-col items-center gap-4 text-center">
+                <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center">
+                  <Receipt className="w-8 h-8 text-emerald-600" />
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-800 text-base">Ambil Foto atau Upload Struk</h3>
@@ -369,16 +411,18 @@ export default function Scan() {
                   <button
                     type="button"
                     onClick={() => cameraInputRef.current?.click()}
-                    className="flex items-center justify-center gap-1.5 py-3 px-2 sm:px-4 rounded-xl bg-primary text-white font-semibold text-xs sm:text-sm shadow-sm hover:bg-primary-dark active:scale-95 transition-all"
+                    className="flex items-center justify-center gap-1.5 py-3 px-2 sm:px-4 rounded-xl bg-emerald-600 text-white font-semibold text-xs sm:text-sm shadow-sm hover:bg-emerald-700 active:scale-95 transition-all"
                   >
-                    <span>📸</span> <span>Foto Struk</span>
+                    <Camera className="w-4 h-4" />
+                    <span>Foto Struk</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => galleryInputRef.current?.click()}
-                    className="flex items-center justify-center gap-1.5 py-3 px-2 sm:px-4 rounded-xl bg-blue-50 text-primary border border-primary/20 font-semibold text-xs sm:text-sm hover:bg-blue-100 active:scale-95 transition-all"
+                    className="flex items-center justify-center gap-1.5 py-3 px-2 sm:px-4 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold text-xs sm:text-sm hover:bg-emerald-100 active:scale-95 transition-all"
                   >
-                    <span>🖼️</span> <span>Galeri / File</span>
+                    <ImageIcon className="w-4 h-4" />
+                    <span>Galeri / File</span>
                   </button>
                 </div>
               </div>
@@ -393,9 +437,10 @@ export default function Scan() {
                   {!scanning && (
                     <button
                       onClick={resetScan}
-                      className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white text-xs px-2.5 py-1.5 rounded-lg backdrop-blur-sm transition-all"
+                      className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white text-xs px-2.5 py-1.5 rounded-lg backdrop-blur-sm transition-all flex items-center gap-1"
                     >
-                      Ganti Foto ✕
+                      <span>Ganti Foto</span>
+                      <X className="w-3 h-3" />
                     </button>
                   )}
                 </div>
@@ -426,7 +471,7 @@ export default function Scan() {
             {/* OCR GAGAL — Pesan Ramah & 2 Tombol Tindakan */}
             {ocrFailed && !scanning && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-3 text-center animate-fade-in">
-                <span className="text-3xl block">🔍</span>
+                <Search className="w-8 h-8 text-amber-600 mx-auto" />
                 <div>
                   <h4 className="font-bold text-gray-800 text-sm">Struk kurang jelas terbaca</h4>
                   <p className="text-xs text-gray-600 mt-1 leading-relaxed">
@@ -436,18 +481,20 @@ export default function Scan() {
                 <div className="flex gap-2 pt-1">
                   <button
                     onClick={resetScan}
-                    className="flex-1 py-2.5 px-3 bg-white border border-amber-300 text-amber-900 rounded-xl text-xs font-semibold hover:bg-amber-100/50 transition-all active:scale-95"
+                    className="flex-1 py-2.5 px-3 bg-white border border-amber-300 text-amber-900 rounded-xl text-xs font-semibold hover:bg-amber-100/50 transition-all active:scale-95 flex items-center justify-center gap-1.5"
                   >
-                    🔄 Scan Ulang
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Scan Ulang</span>
                   </button>
                   <button
                     onClick={() => {
                       setOcrFailed(false);
                       setMode('manual');
                     }}
-                    className="flex-1 py-2.5 px-3 bg-amber-600 text-white rounded-xl text-xs font-semibold hover:bg-amber-700 transition-all active:scale-95"
+                    className="flex-1 py-2.5 px-3 bg-amber-600 text-white rounded-xl text-xs font-semibold hover:bg-amber-700 transition-all active:scale-95 flex items-center justify-center gap-1.5"
                   >
-                    ✏️ Isi Manual
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Isi Manual</span>
                   </button>
                 </div>
               </div>
@@ -457,7 +504,7 @@ export default function Scan() {
             {ocrResult && !scanning && !ocrFailed && (
               <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <span className="text-xl">✅</span>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
                   <div>
                     <p className="font-bold text-emerald-800 text-xs">Struk berhasil dibaca!</p>
                     <p className="text-[11px] text-emerald-600">Periksa detail di bawah sebelum menyimpan.</p>
@@ -483,13 +530,14 @@ export default function Scan() {
                 id="btn-start-voice"
                 onClick={startVoice}
                 disabled={listening}
-                className={`w-28 h-28 rounded-full flex flex-col items-center justify-center text-4xl mx-auto mb-4 transition-all duration-300 shadow-lg active:scale-95 ${
+                aria-label={listening ? 'Mendengarkan suara' : 'Mulai rekam suara'}
+                className={`w-28 h-28 rounded-full flex flex-col items-center justify-center mx-auto mb-4 transition-all duration-300 shadow-lg active:scale-95 ${
                   listening
                     ? 'bg-red-100 border-4 border-danger animate-pulse-soft'
                     : 'bg-primary/10 border-4 border-primary hover:bg-primary/20'
                 }`}
               >
-                🎙️
+                <Mic className={`w-10 h-10 ${listening ? 'text-danger' : 'text-primary'}`} />
               </button>
               <p className="font-bold text-gray-700">
                 {listening ? 'Mendengarkan...' : 'Tekan untuk bicara'}
@@ -522,7 +570,7 @@ export default function Scan() {
                 <label className="text-xs font-semibold text-gray-600">Keterangan / Toko *</label>
                 {fieldConfidence.merchant === 'low' && (
                   <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1">
-                    ⚠️ Cek lagi ya
+                    <AlertCircle className="w-3 h-3 text-amber-700" /> Cek lagi ya
                   </span>
                 )}
               </div>
@@ -542,7 +590,8 @@ export default function Scan() {
               />
               {errors.title && (
                 <p className="text-xs text-danger font-medium mt-1.5 flex items-center gap-1">
-                  ⚠️ {errors.title}
+                  <AlertCircle className="w-3.5 h-3.5 text-danger flex-shrink-0" />
+                  <span>{errors.title}</span>
                 </p>
               )}
             </div>
@@ -553,7 +602,7 @@ export default function Scan() {
                 <label className="text-xs font-semibold text-gray-600">Total Pengeluaran (Rp) *</label>
                 {fieldConfidence.amount === 'low' && (
                   <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1">
-                    ⚠️ Cek lagi ya
+                    <AlertCircle className="w-3 h-3 text-amber-700" /> Cek lagi ya
                   </span>
                 )}
               </div>
@@ -563,9 +612,16 @@ export default function Scan() {
                   id="input-amount"
                   type="number"
                   min="1"
+                  max={MAX_AMOUNT}
                   inputMode="numeric"
                   value={form.amount}
                   onChange={(e) => handleChange('amount', e.target.value)}
+                  onKeyDown={(e) => {
+                    // Mencegah minus, plus, atau e (scientific notation)
+                    if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') {
+                      e.preventDefault();
+                    }
+                  }}
                   placeholder="0"
                   className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none transition-all bg-gray-50 font-bold text-gray-800 ph-no-capture ${
                     errors.amount
@@ -578,7 +634,8 @@ export default function Scan() {
               </div>
               {errors.amount ? (
                 <p className="text-xs text-danger font-medium mt-1.5 flex items-center gap-1">
-                  ⚠️ {errors.amount}
+                  <AlertCircle className="w-3.5 h-3.5 text-danger flex-shrink-0" />
+                  <span>{errors.amount}</span>
                 </p>
               ) : form.amount ? (
                 <p className="text-xs text-primary font-semibold mt-1 ml-1">
@@ -593,7 +650,7 @@ export default function Scan() {
                 <label className="text-xs font-semibold text-gray-600">Kategori</label>
                 {fieldConfidence.category === 'low' && (
                   <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1">
-                    ⚠️ Cek lagi ya
+                    <AlertCircle className="w-3 h-3 text-amber-700" /> Cek lagi ya
                   </span>
                 )}
               </div>
@@ -604,13 +661,14 @@ export default function Scan() {
                     type="button"
                     id={`cat-${cat.toLowerCase()}`}
                     onClick={() => handleChange('category', cat)}
-                    className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-all duration-150 active:scale-95 ${
+                    className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 ${
                       form.category === cat
                         ? 'bg-primary text-white border-primary shadow-sm'
                         : 'bg-gray-50 text-gray-600 border-gray-100 hover:border-primary/30'
                     }`}
                   >
-                    {CATEGORY_ICONS[cat] || '💳'} {cat}
+                    <CategoryIcon category={cat} className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{cat}</span>
                   </button>
                 ))}
               </div>
@@ -622,7 +680,7 @@ export default function Scan() {
                 <label className="text-xs font-semibold text-gray-600">Tanggal Transaksi</label>
                 {fieldConfidence.date === 'low' && (
                   <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1">
-                    ⚠️ Cek lagi ya
+                    <AlertCircle className="w-3 h-3 text-amber-700" /> Cek lagi ya
                   </span>
                 )}
               </div>
@@ -642,7 +700,8 @@ export default function Scan() {
               />
               {errors.date && (
                 <p className="text-xs text-danger font-medium mt-1.5 flex items-center gap-1">
-                  ⚠️ {errors.date}
+                  <AlertCircle className="w-3.5 h-3.5 text-danger flex-shrink-0" />
+                  <span>{errors.date}</span>
                 </p>
               )}
             </div>
@@ -662,8 +721,9 @@ export default function Scan() {
 
             {/* Tombol Simpan */}
             {saved ? (
-              <div className="bg-success rounded-2xl p-4 text-white text-center font-bold animate-bounce-in">
-                ✅ Pengeluaran tersimpan! Mengalihkan...
+              <div className="bg-emerald-600 rounded-2xl p-4 text-white text-center font-bold flex items-center justify-center gap-2 animate-bounce-in">
+                <CheckCircle2 className="w-5 h-5 text-white" />
+                <span>Pengeluaran tersimpan! Mengalihkan...</span>
               </div>
             ) : (
               <button
@@ -684,7 +744,7 @@ export default function Scan() {
                   </>
                 ) : (
                   <>
-                    <span>💾</span>
+                    <BookmarkCheck className="w-5 h-5" />
                     <span>Simpan Pengeluaran</span>
                   </>
                 )}
@@ -695,11 +755,12 @@ export default function Scan() {
 
         {/* Tips Scan Mahasiswa */}
         {mode === 'scan' && !previewUrl && !scanning && (
-          <div className="bg-blue-50/80 border border-blue-100 rounded-2xl p-4">
-            <p className="text-xs font-semibold text-primary mb-2 flex items-center gap-1.5">
-              <span>💡</span> Tips Scan Struk Jernih
+          <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-2xl p-4">
+            <p className="text-xs font-semibold text-emerald-800 mb-2 flex items-center gap-1.5">
+              <Lightbulb className="w-4 h-4 text-emerald-700" />
+              <span>Tips Scan Struk Jernih</span>
             </p>
-            <ul className="text-xs text-gray-600 space-y-1.5">
+            <ul className="text-xs text-emerald-900/80 space-y-1.5">
               <li>• Letakkan struk di permukaan datar dengan pencahayaan terang.</li>
               <li>• Pastikan bagian TOTAL atau rincian harga tidak terpotong.</li>
               <li>• Untuk struk e-wallet (GoPay, OVO, ShopeePay), gunakan screenshot penuh.</li>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { MessageCircle, X, ExternalLink } from 'lucide-react';
 
 export default function FloatingWhatsApp() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,14 +21,16 @@ export default function FloatingWhatsApp() {
       {isOpen && (
         <div className="mb-2 bg-white text-gray-800 p-3 rounded-2xl shadow-xl border border-emerald-100 max-w-[210px] text-xs animate-slide-up">
           <div className="flex items-start justify-between gap-1 mb-1">
-            <span className="font-extrabold text-emerald-700 flex items-center gap-1">
-              <span>💬</span> Bantuan StrukKu
+            <span className="font-extrabold text-emerald-700 flex items-center gap-1.5">
+              <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Bantuan StrukKu</span>
             </span>
             <button
               onClick={() => setIsOpen(false)}
-              className="text-gray-400 hover:text-gray-600 text-xs px-1"
+              className="text-gray-400 hover:text-gray-600 p-0.5 rounded-md transition-colors"
+              aria-label="Tutup"
             >
-              ✕
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
           <p className="text-[11px] text-gray-500 leading-snug">
@@ -37,9 +40,10 @@ export default function FloatingWhatsApp() {
             href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 block w-full text-center py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[10px] transition-all shadow-sm"
+            className="mt-2 flex items-center justify-center gap-1.5 w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[10px] transition-all shadow-sm"
           >
-            Buka WhatsApp →
+            <span>Buka WhatsApp</span>
+            <ExternalLink className="w-3 h-3" />
           </a>
         </div>
       )}
