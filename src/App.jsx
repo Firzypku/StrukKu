@@ -21,12 +21,16 @@ function GreenworthApp() {
   const [activeTab, setActiveTab] = useState('beranda');
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-800 selection:bg-amber-400 selection:text-slate-950 font-sans antialiased">
-      {/* Container Mobile Terpusat (Max Width 448px) */}
-      <div className="max-w-md mx-auto min-h-screen flex flex-col bg-[#F8FAFC] shadow-xl relative border-x border-slate-200/80">
+    <div className="min-h-screen bg-[#02140b] text-slate-100 selection:bg-amber-400 selection:text-slate-950 font-sans antialiased">
+      {/* Container Mobile Terpusat (Max Width 448px) dengan border glass elegan */}
+      <div className="max-w-md mx-auto min-h-screen flex flex-col bg-[#031d10] shadow-2xl relative border-x border-emerald-900/60 overflow-hidden">
+        {/* Ambient Backlight Glow (Vibe Design Lighting) */}
+        <div className="absolute top-0 right-[-10%] w-72 h-72 bg-amber-400/[0.08] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-96 left-[-15%] w-80 h-80 bg-emerald-500/[0.09] rounded-full blur-3xl pointer-events-none" />
+
         {!isAuthenticated ? (
           /* Layar Masuk / Daftar dengan Verifikasi OTP Demo */
-          <div className="flex-1 px-4 py-4 flex flex-col justify-between">
+          <div className="flex-1 px-4 py-4 flex flex-col justify-between relative z-10">
             <Auth onSuccess={() => setActiveTab('beranda')} />
             <Footer />
           </div>
@@ -37,7 +41,7 @@ function GreenworthApp() {
             <Header />
 
             {/* Konten Halaman Aktif dengan Ruang Bawah Aman untuk Navigasi */}
-            <main className="flex-1 px-4 py-4 pb-28">
+            <main className="flex-1 px-4 py-4 pb-28 relative z-10">
               {activeTab === 'beranda' && <Beranda onPindahMenu={setActiveTab} />}
               {activeTab === 'setor' && <Setor onPindahMenu={setActiveTab} />}
               {activeTab === 'lacak' && <Lacak />}
@@ -63,3 +67,4 @@ export default function App() {
     </GreenworthProvider>
   );
 }
+
