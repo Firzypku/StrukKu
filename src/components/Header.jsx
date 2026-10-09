@@ -1,36 +1,36 @@
 /**
- * Header.jsx — Header Atas GREENWORTH Surabaya
- * Bersih, elegan, modern dengan palet Hijau + Putih + Emas.
+ * Header.jsx — App Bar GREENWORTH Surabaya
+ * Minimalis, profesional, dan elegan (Vibe Design Standard).
  */
 
-import { MapPin } from 'lucide-react';
+import { MapPin, Recycle } from 'lucide-react';
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 py-3 shadow-sm">
+    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 px-4 py-3">
       <div className="max-w-md mx-auto flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#065F46] to-[#047857] border border-emerald-600/30 flex items-center justify-center text-xl shadow-md shadow-emerald-900/10 text-white">
-            🌱
+          <div className="w-9 h-9 rounded-xl bg-[#0B3B24] text-white flex items-center justify-center shadow-xs">
+            <Recycle className="w-5 h-5 text-emerald-300 stroke-[2.2]" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-base font-extrabold tracking-tight text-slate-900">
+              <span className="text-sm font-black tracking-tight text-slate-900">
                 GREENWORTH
               </span>
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-300 px-1.5 py-0.2 rounded-md">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded-md">
                 Surabaya
               </span>
             </div>
-            <p className="text-xs text-emerald-800 font-semibold leading-none mt-0.5">
-              Turning Waste into Worth, Worth into Impact
+            <p className="text-[11px] text-slate-500 font-medium leading-tight">
+              Turning Waste into Worth
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-emerald-50 border border-emerald-200 rounded-xl px-2.5 py-1 text-xs text-emerald-800">
-          <MapPin className="w-3.5 h-3.5 text-amber-600" />
-          <span className="font-bold text-xs">Jatim</span>
+        <div className="flex items-center gap-1 bg-slate-50 border border-slate-200/80 rounded-full px-2.5 py-1 text-xs text-slate-700 font-semibold">
+          <MapPin className="w-3.5 h-3.5 text-emerald-700" />
+          <span>Surabaya</span>
         </div>
       </div>
     </header>

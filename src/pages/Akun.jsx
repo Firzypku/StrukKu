@@ -1,8 +1,7 @@
 /**
- * Akun.jsx — Halaman Profil & Statistik Dampak GREENWORTH Surabaya
- * Bersih, modern, dan elegan (Hijau + Putih + Emas).
- * Menampilkan rincian akun Ahmad Rizky Pratama (GW-SBY-042),
- * akumulasi angka terhitung dari store, tombol reset demo, dan tombol keluar.
+ * Akun.jsx — Halaman Profil & Pengaturan GREENWORTH Surabaya
+ * Vibe Design Framework: profil elegan bergaya modern banking, rekap metrik rapi,
+ * dan kontrol akun yang lugas dan berkelas.
  */
 
 import { useState } from 'react';
@@ -12,13 +11,13 @@ import {
   MapPin,
   Calendar,
   RotateCcw,
-  Award,
   Coffee,
   Package,
   ShieldCheck,
   CheckCircle2,
   AlertCircle,
   LogOut,
+  ChevronRight,
 } from 'lucide-react';
 import { useGreenworth } from '../context/GreenworthContext';
 
@@ -49,44 +48,35 @@ export default function Akun() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* ── NOTIFIKASI RESET SUKSES ────────────────────────────────────────── */}
+    <div className="space-y-4 animate-fade-in pb-3">
+      {/* ── NOTIFIKASI RESET ──────────────────────────────────────────────── */}
       {pesanResetSukses && (
-        <div className="bg-emerald-50 border-2 border-emerald-500 rounded-3xl p-4 text-slate-800 shadow-md flex items-center gap-3">
-          <CheckCircle2 className="w-6 h-6 text-emerald-700 flex-shrink-0" />
-          <div>
-            <h4 className="text-sm font-black text-emerald-950">
-              Data Demo Berhasil Direset!
-            </h4>
-            <p className="text-xs text-slate-600">
-              Data akun, 5 setoran, dan 2 status sumbangan telah dipulihkan ke kondisi awal.
-            </p>
-          </div>
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-slate-800 text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+          <span>Data demo berhasil dipulihkan ke pengaturan awal proposal.</span>
         </div>
       )}
 
-      {/* ── KARTU PROFIL ANGGOTA (HIJAU ZAMRUD MEWAH) ───────────────────────── */}
-      <div className="bg-gradient-to-br from-[#065F46] via-[#047857] to-[#064E3B] rounded-3xl p-6 text-white border border-emerald-400/20 shadow-xl shadow-emerald-900/10 relative overflow-hidden">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3.5">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-500 text-slate-950 font-black text-2xl flex items-center justify-center shadow-md border-2 border-amber-300">
+      {/* ── KARTU PROFIL ANGGOTA (FOREST GREEN ELEGAN) ──────────────────────── */}
+      <div className="bg-[#0B3B24] rounded-2xl p-4 text-white shadow-md space-y-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 font-black text-xl flex items-center justify-center shadow-xs">
               {akun.nama.charAt(0)}
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-200">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">
                   Anggota Aktif
                 </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                <span className="text-[11px] font-bold text-amber-300">
-                  Surabaya
-                </span>
+                <span className="w-1 h-1 rounded-full bg-emerald-400" />
+                <span className="text-[10px] text-amber-300 font-semibold">Surabaya</span>
               </div>
-              <h2 className="text-lg font-black text-white leading-tight mt-0.5">
+              <h2 className="text-base font-extrabold text-white mt-0.5">
                 {akun.nama}
               </h2>
-              <span className="text-xs font-mono font-bold bg-emerald-950/60 text-amber-300 px-2 py-0.5 rounded-lg border border-emerald-400/30 inline-block mt-1">
-                ID: {akun.id}
+              <span className="text-[11px] font-mono font-semibold text-emerald-200">
+                {akun.id}
               </span>
             </div>
           </div>
@@ -98,14 +88,14 @@ export default function Akun() {
               setTeleponEdit(akun.telepon);
               setBukaEditModal(true);
             }}
-            className="text-xs font-bold text-amber-950 bg-amber-400 hover:bg-amber-300 px-3 py-1.5 rounded-xl transition-all active:scale-95 shadow-xs"
+            className="text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 px-3 py-1.5 rounded-lg transition-all active:scale-95"
           >
             Edit
           </button>
         </div>
 
-        {/* Informasi Kontak */}
-        <div className="mt-4 pt-3.5 border-t border-emerald-500/30 grid grid-cols-1 gap-1.5 text-xs text-emerald-100">
+        {/* Informasi Kontak Ringkas */}
+        <div className="pt-2.5 border-t border-white/10 grid grid-cols-1 gap-1 text-[11px] text-emerald-100">
           <div className="flex items-center gap-2">
             <Mail className="w-3.5 h-3.5 text-amber-300 flex-shrink-0" />
             <span>{akun.email}</span>
@@ -127,11 +117,11 @@ export default function Akun() {
 
       {/* ── MODAL EDIT PROFIL ──────────────────────────────────────────────── */}
       {bukaEditModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 w-full max-w-sm rounded-3xl p-5 text-slate-900 space-y-4 shadow-2xl animate-scale-up">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 w-full max-w-sm rounded-2xl p-4 text-slate-900 space-y-3.5 shadow-xl animate-scale-up">
             <div className="border-b border-slate-100 pb-2">
-              <h3 className="text-base font-extrabold text-slate-900">Perbarui Profil Akun</h3>
-              <p className="text-xs text-slate-500">Sesuaikan nama dan nomor kontak</p>
+              <h3 className="text-sm font-bold text-slate-900">Perbarui Profil Akun</h3>
+              <p className="text-[11px] text-slate-500">Sesuaikan nama dan nomor kontak</p>
             </div>
 
             <form onSubmit={handleSimpanProfil} className="space-y-3">
@@ -143,7 +133,7 @@ export default function Akun() {
                   type="text"
                   value={namaEdit}
                   onChange={(e) => setNamaEdit(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-600"
                   required
                 />
               </div>
@@ -156,22 +146,22 @@ export default function Akun() {
                   type="text"
                   value={teleponEdit}
                   onChange={(e) => setTeleponEdit(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-600"
                   required
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setBukaEditModal(false)}
-                  className="flex-1 py-2 rounded-xl bg-slate-100 text-xs font-bold text-slate-700 hover:bg-slate-200"
+                  className="flex-1 py-2 rounded-xl bg-slate-100 text-xs font-bold text-slate-600 hover:bg-slate-200"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 text-xs font-black shadow-xs"
+                  className="flex-1 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold"
                 >
                   Simpan
                 </button>
@@ -181,223 +171,162 @@ export default function Akun() {
         </div>
       )}
 
-      {/* ── REKAP STATISTIK DAMPAK (KARTU PUTIH BERSIH) ──────────────────────── */}
-      <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm space-y-4">
-        <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
-          <div>
-            <h3 className="text-base font-extrabold text-slate-900">
-              Rekapitulasi Kebaikan
-            </h3>
-            <p className="text-xs text-slate-500">
-              Dihitung otomatis dan transparan dari transaksi akun
-            </p>
-          </div>
-          <Award className="w-5 h-5 text-amber-500" />
-        </div>
+      {/* ── REKAPITULASI STATISTIK DAMPAK (GRID BERSIH) ──────────────────────── */}
+      <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-2xs space-y-3">
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
+          Rekapitulasi Akun
+        </span>
 
-        <div className="grid grid-cols-2 gap-3">
-          {/* Saldo Poin Aktif */}
-          <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-            <span className="text-xs text-slate-500 block font-medium">Saldo Poin Aktif</span>
-            <span className="text-2xl font-black text-amber-700 block mt-1">
+        <div className="grid grid-cols-2 gap-2.5">
+          {/* Saldo Aktif */}
+          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/80">
+            <span className="text-[11px] text-slate-400 block font-medium">Saldo Poin Aktif</span>
+            <span className="text-xl font-black text-amber-700 block mt-0.5">
               {ringkasan.saldoPoin.toLocaleString('id-ID')}
             </span>
-            <span className="text-xs text-slate-500 font-semibold">
+            <span className="text-[10px] text-slate-400">
               ≈ Rp {ringkasan.saldoRupiah.toLocaleString('id-ID')}
             </span>
           </div>
 
-          {/* Total Poin Pernah Didapat */}
-          <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-            <span className="text-xs text-slate-500 block font-medium">Total Poin</span>
-            <span className="text-2xl font-black text-slate-900 block mt-1">
+          {/* Total Perolehan */}
+          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/80">
+            <span className="text-[11px] text-slate-400 block font-medium">Total Perolehan</span>
+            <span className="text-xl font-black text-slate-900 block mt-0.5">
               {ringkasan.totalPoinPernahDidapat.toLocaleString('id-ID')}
             </span>
-            <span className="text-[11px] text-slate-400">
-              (Bonus {akun.bonusPendaftaranPoin} poin)
+            <span className="text-[10px] text-slate-400">
+              (Bonus {akun.bonusPendaftaranPoin} pt)
             </span>
           </div>
 
-          {/* Total Poin Disumbangkan */}
-          <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-            <span className="text-xs text-slate-500 block font-medium">Disumbangkan</span>
-            <span className="text-2xl font-black text-emerald-800 block mt-1">
+          {/* Poin Tersumbang */}
+          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/80">
+            <span className="text-[11px] text-slate-400 block font-medium">Tersumbang</span>
+            <span className="text-xl font-black text-emerald-800 block mt-0.5">
               {ringkasan.totalPoinDisumbangkan.toLocaleString('id-ID')}
             </span>
-            <span className="text-xs text-emerald-700 font-bold">
+            <span className="text-[10px] text-emerald-700 font-semibold">
               = Rp {ringkasan.totalRupiahDisumbangkan.toLocaleString('id-ID')}
             </span>
           </div>
 
-          {/* Frekuensi Transaksi */}
-          <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-            <span className="text-xs text-slate-500 block font-medium">Transaksi</span>
-            <div className="flex items-baseline gap-1 mt-1">
-              <span className="text-2xl font-black text-slate-900">
+          {/* Transaksi */}
+          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/80">
+            <span className="text-[11px] text-slate-400 block font-medium">Aktivitas</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xl font-black text-slate-900">
                 {ringkasan.totalTransaksiSetor + ringkasan.totalTransaksiSumbang}
               </span>
-              <span className="text-xs text-slate-500">kali</span>
+              <span className="text-xs text-slate-400">kali</span>
             </div>
-            <span className="text-[11px] text-slate-400">
-              ({ringkasan.totalTransaksiSetor} setor, {ringkasan.totalTransaksiSumbang} sumbang)
+            <span className="text-[10px] text-slate-400">
+              {ringkasan.totalTransaksiSetor} setor, {ringkasan.totalTransaksiSumbang} sumbang
             </span>
           </div>
         </div>
 
-        {/* Rincian Berat Sampah yang Dipilah */}
-        <div className="bg-emerald-50/60 rounded-2xl p-4 border border-emerald-100 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-extrabold uppercase tracking-wider text-emerald-900">
-              Total Sampah Terkumpul
-            </span>
-            <span className="font-black text-sm text-emerald-950">
-              {ringkasan.totalBeratSampahKg} kg
-            </span>
+        {/* Sampah Terselamatkan */}
+        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/80 flex items-center justify-between text-xs">
+          <div>
+            <span className="text-slate-400 text-[11px] block">Sampah Terkumpul:</span>
+            <span className="font-bold text-slate-800 text-sm">{ringkasan.totalBeratSampahKg} kg total</span>
           </div>
+          <div className="text-right text-[11px] text-slate-500">
+            <div>{ringkasan.totalGelasPlastik} Cup ({ringkasan.totalBeratPlastikKg} kg)</div>
+            <div>{ringkasan.totalBeratKardusKg} kg Kardus</div>
+          </div>
+        </div>
+      </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="bg-white p-2.5 rounded-xl border border-emerald-100 flex items-center gap-2 shadow-2xs">
-              <Coffee className="w-4 h-4 text-emerald-700 flex-shrink-0" />
-              <div>
-                <span className="text-slate-500 block text-[11px]">Cup Plastik</span>
-                <span className="font-black text-slate-900">
-                  {ringkasan.totalGelasPlastik} cup
-                </span>
+      {/* ── PUSAT KONTROL DEMO & KELUAR (GROUPED LIST ALA IOS) ───────────────── */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-2xs divide-y divide-slate-100 overflow-hidden">
+        {/* Reset Demo */}
+        <div className="p-3.5">
+          {!tampilkanKonfirmasiReset ? (
+            <button
+              type="button"
+              onClick={() => setTampilkanKonfirmasiReset(true)}
+              className="w-full flex items-center justify-between text-xs font-bold text-slate-700 hover:text-slate-900 transition-all text-left"
+            >
+              <div className="flex items-center gap-2">
+                <RotateCcw className="w-4 h-4 text-slate-500" />
+                <span>Reset ke Data Awal Demo Juri</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </button>
+          ) : (
+            <div className="space-y-2 text-xs">
+              <p className="text-slate-600 text-[11px]">
+                Pulihkan saldo, 5 setoran, dan status sumbangan ke data proposal awal?
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTampilkanKonfirmasiReset(false)}
+                  className="flex-1 py-1.5 bg-slate-100 rounded-lg font-bold text-slate-600"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="flex-1 py-1.5 bg-rose-600 text-white rounded-lg font-bold"
+                >
+                  Ya, Reset
+                </button>
               </div>
             </div>
+          )}
+        </div>
 
-            <div className="bg-white p-2.5 rounded-xl border border-emerald-100 flex items-center gap-2 shadow-2xs">
-              <Package className="w-4 h-4 text-amber-600 flex-shrink-0" />
-              <div>
-                <span className="text-slate-500 block text-[11px]">Kardus Boks</span>
-                <span className="font-black text-slate-900">
-                  {ringkasan.totalBeratKardusKg} kg
-                </span>
+        {/* Keluar */}
+        <div className="p-3.5">
+          {!tampilkanKonfirmasiLogout ? (
+            <button
+              type="button"
+              onClick={() => setTampilkanKonfirmasiLogout(true)}
+              className="w-full flex items-center justify-between text-xs font-bold text-rose-600 hover:text-rose-700 transition-all text-left"
+            >
+              <div className="flex items-center gap-2">
+                <LogOut className="w-4 h-4" />
+                <span>Keluar dari Akun</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-300" />
+            </button>
+          ) : (
+            <div className="space-y-2 text-xs">
+              <p className="text-slate-600 text-[11px]">
+                Keluar dari akun {akun.nama}? Anda dapat masuk kembali kapan saja.
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTampilkanKonfirmasiLogout(false)}
+                  className="flex-1 py-1.5 bg-slate-100 rounded-lg font-bold text-slate-600"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTampilkanKonfirmasiLogout(false);
+                    logout();
+                  }}
+                  className="flex-1 py-1.5 bg-rose-600 text-white rounded-lg font-bold"
+                >
+                  Ya, Keluar
+                </button>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* ── KONTROL RESET DATA DEMO ─────────────────────────────────────────── */}
-      <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm space-y-3">
-        <div className="flex items-start gap-2.5">
-          <RotateCcw className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-base font-extrabold text-slate-900">
-              Pusat Kontrol Demo Juri
-            </h3>
-            <p className="text-xs text-slate-500 leading-relaxed mt-0.5">
-              Kembalikan seluruh saldo, 5 setoran, dan status sumbangan ke setelan pabrik proposal.
-            </p>
-          </div>
-        </div>
-
-        {!tampilkanKonfirmasiReset ? (
-          <button
-            type="button"
-            onClick={() => setTampilkanKonfirmasiReset(true)}
-            className="w-full py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-sm rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95"
-          >
-            <RotateCcw className="w-4 h-4 text-amber-600" />
-            <span>Reset ke Data Awal Demo</span>
-          </button>
-        ) : (
-          <div className="bg-rose-50 border border-rose-200 p-4 rounded-2xl space-y-3 animate-fade-in">
-            <div className="flex items-start gap-2 text-rose-700 text-xs">
-              <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
-              <span>
-                Yakin ingin mereset data? Riwayat baru yang baru saja diinputkan akan kembali ke data awal proposal.
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setTampilkanKonfirmasiReset(false)}
-                className="flex-1 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl transition-all"
-              >
-                Ya, Reset Sekarang
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── KELUAR DARI AKUN (LOGOUT) ───────────────────────────────────────── */}
-      <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-base font-extrabold text-slate-900">
-              Sesi Masuk Akun
-            </h3>
-            <p className="text-xs text-slate-500">
-              Keluar untuk mencoba kembali alur pendaftaran dan OTP demo
-            </p>
-          </div>
-          <LogOut className="w-5 h-5 text-slate-400" />
-        </div>
-
-        {!tampilkanKonfirmasiLogout ? (
-          <button
-            type="button"
-            onClick={() => setTampilkanKonfirmasiLogout(true)}
-            className="w-full py-3 bg-rose-50/80 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-sm rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Keluar dari Akun</span>
-          </button>
-        ) : (
-          <div className="bg-rose-50 border border-rose-200 p-4 rounded-2xl space-y-3 animate-fade-in">
-            <div className="flex items-start gap-2 text-rose-700 text-xs">
-              <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
-              <span>
-                Apakah kamu yakin ingin keluar dari akun <strong>{akun.nama}</strong>?
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setTampilkanKonfirmasiLogout(false)}
-                className="flex-1 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setTampilkanKonfirmasiLogout(false);
-                  logout();
-                }}
-                className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl transition-all flex items-center justify-center gap-1.5"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Ya, Keluar</span>
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── CATATAN KHUSUS KOMPETISI ────────────────────────────────────────── */}
-      <div className="bg-slate-50 rounded-3xl p-4 border border-slate-200/80 space-y-1.5 text-xs text-slate-600">
-        <div className="flex items-center gap-2 text-emerald-900 font-bold">
-          <ShieldCheck className="w-4 h-4 text-emerald-700" />
-          <span>Informasi Prototipe Bisnis Syariah</span>
-        </div>
-        <p className="leading-relaxed">
-          GREENWORTH Surabaya dirancang sebagai platform sirkular berbasis <em>fiqh muamalah</em> dan <em>maqashid syariah</em> (menjaga lingkungan/<em>hifzhul bi'ah</em> dan harta/<em>hifzhul mal</em>).
-        </p>
-        <p className="text-slate-400 text-[11px]">
-          Semua nama kedai kopi dan yayasan pengelola adalah <strong>fiktif</strong> untuk peragaan lomba Business Plan.
+      {/* Catatan Legal Singkat */}
+      <div className="px-2 text-center">
+        <p className="text-[11px] text-slate-400">
+          GREENWORTH Surabaya · Prototipe Syariah Business Plan Competition 2026.
         </p>
       </div>
     </div>
