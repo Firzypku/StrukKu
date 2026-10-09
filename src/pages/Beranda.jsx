@@ -1,6 +1,8 @@
 /**
  * Beranda.jsx — Halaman Beranda GREENWORTH Surabaya
- * Tema: Hijau-Putih Segar & Bersih (Non-Gelap, Rapi, Seimbang & Terstruktur).
+ * Tema: Hijau-Putih Segar, Bersih, Seimbang & Terstruktur.
+ * Layout rapi & ergonomis: Kartu Saldo Utama di atas, Banner edukasi ramah & to-the-point,
+ * Metrik dampak seimbang, serta daftar pos sumbangan dan kedai mitra yang tertata.
  */
 
 import {
@@ -12,7 +14,7 @@ import {
   MapPin,
   Clock,
   ChevronRight,
-  ShieldCheck,
+  Sparkles,
   CheckCircle2,
 } from 'lucide-react';
 import { useGreenworth } from '../context/GreenworthContext';
@@ -23,48 +25,30 @@ export default function Beranda({ onPindahMenu, onOpenQr }) {
 
   return (
     <div className="space-y-4 animate-fade-in pb-4">
-      {/* ── 1. BANNER PROGRAM DAUR ULANG (RAMAH & LANGSUNG TO-THE-POINT) ─────── */}
-      <div className="bg-gradient-to-r from-emerald-50/80 via-white to-white rounded-2xl p-4 border border-emerald-100 shadow-2xs relative overflow-hidden">
-        <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/70 px-2.5 py-0.5 rounded-full border border-emerald-200">
-            🌱 Program Mitra Kedai Surabaya
-          </span>
-          <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-            1 Poin = Rp 100
-          </span>
-        </div>
-
-        <h1 className="text-base font-black text-slate-900 leading-snug">
-          Tukar Sampah Jadi <span className="text-emerald-700">Berkah</span>, Kumpulkan Poin Jadi <span className="text-amber-700">Manfaat</span>.
-        </h1>
-
-        <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-          Bawa cup kopi dan kardus bekasmu ke kedai mitra terdekat. Dapatkan poin reward yang bisa kamu simpan atau salurkan ke sesama.
-        </p>
-      </div>
-
-      {/* ── 2. KARTU SALDO UTAMA (HIJAU SEGAR SEIMBANG - EMERALD 600) ────────── */}
-      <div className="bg-emerald-600 rounded-2xl p-5 text-white shadow-sm space-y-3.5">
-        {/* Sapaan & ID Anggota */}
+      {/* ── 1. KARTU SALDO UTAMA (HERO FINTECH HIJAU SEGAR - EMERALD 600) ────── */}
+      <div className="bg-emerald-600 rounded-2xl p-5 text-white shadow-sm space-y-4">
+        {/* Sapaan Pengguna & ID Anggota */}
         <div className="flex items-center justify-between">
           <div>
             <span className="text-xs text-emerald-100 font-medium block">
               Assalamu'alaikum,
             </span>
-            <h2 className="text-base font-extrabold text-white">
+            <h1 className="text-base font-extrabold text-white leading-tight">
               {akun.nama}
-            </h2>
+            </h1>
           </div>
-          <span className="text-xs font-mono font-bold bg-white/20 text-white px-2.5 py-1 rounded-lg border border-white/20">
-            {akun.id}
-          </span>
+          <div className="text-right">
+            <span className="text-[11px] font-mono font-bold bg-white/20 text-white px-2.5 py-1 rounded-lg border border-white/20 inline-block">
+              {akun.id}
+            </span>
+          </div>
         </div>
 
-        {/* Kotak Saldo Poin */}
+        {/* Kotak Ringkasan Saldo Poin */}
         <div className="bg-white/10 rounded-xl p-3.5 border border-white/20 space-y-2">
           <div className="flex items-center justify-between text-xs text-emerald-100">
-            <span>Saldo Poin Aktif</span>
-            <span className="font-semibold text-amber-200">1 Poin = Rp {NILAI_POIN}</span>
+            <span>Saldo Poin Kebaikan</span>
+            <span className="font-semibold text-emerald-100">1 Poin = Rp {NILAI_POIN}</span>
           </div>
 
           <div className="flex items-baseline gap-2">
@@ -72,12 +56,12 @@ export default function Beranda({ onPindahMenu, onOpenQr }) {
               {ringkasan.saldoPoin.toLocaleString('id-ID')}
             </span>
             <span className="text-sm font-bold text-emerald-100 uppercase">Poin</span>
-            <span className="text-xs font-bold text-white ml-auto bg-black/10 px-2 py-0.5 rounded-md">
+            <span className="text-xs font-bold text-white ml-auto bg-black/15 px-2.5 py-1 rounded-md">
               ≈ Rp {ringkasan.saldoRupiah.toLocaleString('id-ID')}
             </span>
           </div>
 
-          {/* Indikator Poin Tertunda */}
+          {/* Notifikasi Poin Menunggu Verifikasi */}
           <div className="pt-2 border-t border-white/15 flex items-center justify-between text-[11px] text-emerald-100">
             <div className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-amber-200 flex-shrink-0" />
@@ -89,8 +73,8 @@ export default function Beranda({ onPindahMenu, onOpenQr }) {
           </div>
         </div>
 
-        {/* 2 Tombol Aksi Utama Rapi */}
-        <div className="grid grid-cols-2 gap-2.5 pt-0.5">
+        {/* 2 Tombol Aksi Cepat (High Contrast & Rapi) */}
+        <div className="grid grid-cols-2 gap-2.5">
           <button
             type="button"
             onClick={() => onPindahMenu('setor')}
@@ -103,22 +87,58 @@ export default function Beranda({ onPindahMenu, onOpenQr }) {
           <button
             type="button"
             onClick={() => onPindahMenu('lacak')}
-            className="py-2.5 px-3 bg-emerald-700/70 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs rounded-xl border border-white/30 transition-all flex items-center justify-center gap-1.5"
+            className="py-2.5 px-3 bg-emerald-700/80 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs rounded-xl border border-white/30 transition-all flex items-center justify-center gap-1.5"
           >
             <HeartHandshake className="w-4 h-4 text-emerald-100 stroke-[2.2]" />
-            <span>Sumbangkan</span>
+            <span>Salurkan Poin</span>
           </button>
         </div>
       </div>
 
-      {/* ── 3. RINGKASAN DAMPAK SAMPAH (KARTU PUTIH, 3 KOLOM RAPI) ───────────── */}
+      {/* ── 2. BANNER PROGRAM KEDAI KOPI (RAMAH, BERSIH & TIDAK JARGON) ──────── */}
+      <div className="bg-white rounded-2xl p-4 border border-emerald-100 shadow-xs relative overflow-hidden space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+            ☕ Mitra Kedai Kopi Surabaya
+          </span>
+          <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+            1 Cup = 5 Poin (Rp 500)
+          </span>
+        </div>
+
+        <div>
+          <h2 className="text-sm font-extrabold text-slate-900 leading-snug">
+            Kopi Habis? <span className="text-emerald-700">Cup & Kardusnya Jangan Dibuang!</span>
+          </h2>
+          <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+            Bawa cup plastik atau kardus bekasmu ke kedai kopi mitra terdekat. Dapatkan poin langsung untuk ditabung atau disedekahkan ke program sosial.
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
+          <span className="flex items-center gap-1 font-semibold text-emerald-700">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+            Mudah • Nyata • Berkah
+          </span>
+          <button
+            type="button"
+            onClick={() => onPindahMenu('setor')}
+            className="font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-0.5"
+          >
+            <span>Cari Kedai Terdekat</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* ── 3. RINGKASAN DAMPAK LINGKUNGAN (3 KOLOM SEIMBANG) ────────────────── */}
       <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
             Dampak Sampah Terkumpul
           </h3>
           <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-            {ringkasan.totalTransaksiSetor} Transaksi
+            {ringkasan.totalTransaksiSetor} Transaksi Selesai
           </span>
         </div>
 
@@ -167,12 +187,12 @@ export default function Beranda({ onPindahMenu, onOpenQr }) {
         </p>
       </div>
 
-      {/* ── 4. 3 POS SUMBANGAN SOSIAL SYARIAH (KARTU PUTIH BERSIH) ───────────── */}
+      {/* ── 4. POS SUMBANGAN SOSIAL SYARIAH (KARTU PUTIH BERSIH) ─────────────── */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
           <div>
             <h3 className="text-sm font-extrabold text-slate-900">
-              3 Pos Sumbangan Sosial Syariah
+              Pos Sumbangan Sosial Syariah
             </h3>
             <p className="text-[11px] text-slate-500">
               Poin setoran dialirkan untuk kemaslahatan warga
@@ -241,12 +261,12 @@ export default function Beranda({ onPindahMenu, onOpenQr }) {
         </div>
       </div>
 
-      {/* ── 5. 4 TITIK KUMPUL KEDAI KOPI SURABAYA (KARTU PUTIH BERSIH) ───────── */}
+      {/* ── 5. TITIK KUMPUL KEDAI KOPI SURABAYA (KARTU PUTIH BERSIH) ─────────── */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
           <div>
             <h3 className="text-sm font-extrabold text-slate-900">
-              4 Titik Kumpul Kedai Kopi
+              Titik Kumpul Kedai Kopi
             </h3>
             <p className="text-[11px] text-slate-500">
               Lokasi setor sampah cup plastik dan kardus di Surabaya

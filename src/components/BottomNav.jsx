@@ -54,7 +54,7 @@ export default function BottomNav({ activeTab, onTabChange }) {
                   className={`w-13 h-13 rounded-full flex items-center justify-center shadow-lg transition-all border-4 border-[#F8FAFC] ${
                     isActive
                       ? 'bg-amber-400 text-slate-950 scale-105 shadow-amber-400/20'
-                      : 'bg-[#064E3B] text-white hover:bg-[#043E2E] shadow-emerald-950/20'
+                      : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/30'
                   }`}
                 >
                   <Icon className="w-6 h-6 stroke-[2.4]" />
@@ -77,13 +77,13 @@ export default function BottomNav({ activeTab, onTabChange }) {
               onClick={() => onTabChange(item.id)}
               className={`flex-1 py-1 flex flex-col items-center justify-center rounded-xl transition-all active:scale-95 ${
                 isActive
-                  ? 'text-[#064E3B] font-black'
+                  ? 'text-emerald-700 font-black'
                   : 'text-slate-400 hover:text-slate-700'
               }`}
             >
               <div
                 className={`p-1 rounded-lg transition-colors ${
-                  isActive ? 'text-[#064E3B]' : 'text-slate-400'
+                  isActive ? 'text-emerald-700' : 'text-slate-400'
                 }`}
               >
                 <Icon className="w-5 h-5 stroke-[2.2]" />
