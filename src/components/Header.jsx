@@ -7,7 +7,7 @@ import { MapPin, Recycle, QrCode } from 'lucide-react';
 
 export default function Header({ onOpenQr }) {
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-slate-200/80 shadow-2xs px-4 py-3">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-2xs px-4 py-3">
       <div className="flex items-center justify-between">
         {/* Brand & Logo Hijau Segar */}
         <div className="flex items-center gap-2.5">
