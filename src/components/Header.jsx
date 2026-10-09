@@ -3,9 +3,9 @@
  * Minimalis, profesional, dan elegan (Vibe Design Standard).
  */
 
-import { MapPin, Recycle } from 'lucide-react';
+import { MapPin, Recycle, QrCode } from 'lucide-react';
 
-export default function Header() {
+export default function Header({ onOpenQr }) {
   return (
     <header className="sticky top-0 z-40 bg-[#031d10]/95 backdrop-blur-md border-b border-emerald-500/20 shadow-md">
       {/* ── TICKER ATAS: LEDGER REAL-TIME SURABAYA (PERSIS SEPERTI DESKTOP WEB) ── */}
@@ -44,9 +44,24 @@ export default function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-emerald-950/80 border border-emerald-500/30 rounded-full px-2.5 py-1 text-[11px] text-emerald-200 font-semibold shadow-xs">
-          <MapPin className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-          <span>Surabaya</span>
+        <div className="flex items-center gap-1.5">
+          {onOpenQr && (
+            <button
+              type="button"
+              onClick={onOpenQr}
+              className="p-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black shadow-xs transition-all active:scale-95 flex items-center gap-1 text-[11px]"
+              aria-label="Buka QR Paspor"
+              title="Paspor QR Publik"
+            >
+              <QrCode className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-extrabold pr-0.5">QR</span>
+            </button>
+          )}
+
+          <div className="flex items-center gap-1 bg-emerald-950/80 border border-emerald-500/30 rounded-full px-2.5 py-1 text-[11px] text-emerald-200 font-semibold shadow-xs">
+            <MapPin className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+            <span>Surabaya</span>
+          </div>
         </div>
       </div>
     </header>

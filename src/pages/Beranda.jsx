@@ -1,9 +1,11 @@
 /**
  * Beranda.jsx — Halaman Beranda GREENWORTH Surabaya
- * Memadukan Vibe Design Framework & Estetika Mewah Cyber-Emerald & Warm Amber:
- * Bersih, kontras tinggi, tipografi punchy ("cat eye"), tanpa elemen murahan/AI slop.
+ * Vibe Design Framework & Cyber-Emerald Luxury:
+ * Tipografi punchy, Quick Action Dock (Setor Cup, Kardus, Wakaf, Paspor QR),
+ * Watermark Geometris Syariah, dan 4 Pilar Metrik Terintegrasi.
  */
 
+import { useState } from 'react';
 import {
   ArrowRight,
   PlusCircle,
@@ -16,13 +18,23 @@ import {
   ChevronRight,
   TrendingUp,
   TreeDeciduous,
+  QrCode,
   ShieldCheck,
 } from 'lucide-react';
 import { useGreenworth } from '../context/GreenworthContext';
 import { NILAI_POIN } from '../config';
 
-export default function Beranda({ onPindahMenu }) {
+export default function Beranda({ onPindahMenu, onOpenQr }) {
   const { akun, ringkasan, titikKumpulList, posSumbanganList } = useGreenworth();
+  const [filterKategori, setFilterKategori] = useState('Semua');
+
+  // Filter pos sumbangan
+  const posTerfilter =
+    filterKategori === 'Semua'
+      ? ringkasan.ringkasanPosSumbangan
+      : ringkasan.ringkasanPosSumbangan.filter((p) =>
+          p.kategori.toLowerCase().includes(filterKategori.toLowerCase())
+        );
 
   return (
     <div className="space-y-4 animate-fade-in pb-3">
@@ -55,10 +67,25 @@ export default function Beranda({ onPindahMenu }) {
         </p>
       </div>
 
-      {/* ── KARTU SALDO UTAMA: EMERALD OBSIDIAN DENGAN GLOW EMAS ─────────────── */}
+      {/* ── KARTU SALDO UTAMA: EMERALD OBSIDIAN DENGAN WATERMARK SACRED GEOMETRY ── */}
       <div className="bg-gradient-to-br from-[#064E3B] via-[#053B27] to-[#022013] rounded-3xl p-5 text-white shadow-2xl border border-emerald-400/35 relative overflow-hidden">
         {/* Glow Ambient dalam Kartu */}
         <div className="absolute -top-10 -right-10 w-44 h-44 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
+
+        {/* Sacred Circular Islamic Geometry Watermark */}
+        <svg
+          className="absolute -right-8 -bottom-8 w-56 h-56 text-emerald-300/[0.08] pointer-events-none"
+          viewBox="0 0 100 100"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.2"
+        >
+          <circle cx="50" cy="50" r="46" strokeDasharray="3 3" />
+          <circle cx="50" cy="50" r="36" />
+          <circle cx="50" cy="50" r="26" strokeDasharray="2 2" />
+          <polygon points="50,14 62,38 86,50 62,62 50,86 38,62 14,50 38,38" />
+          <polygon points="50,22 58,42 78,50 58,58 50,78 42,58 22,50 42,42" strokeDasharray="1 2" />
+        </svg>
 
         {/* Header Kartu: Sapaan & ID Anggota */}
         <div className="flex items-center justify-between mb-3.5 relative z-10">
@@ -124,6 +151,61 @@ export default function Beranda({ onPindahMenu }) {
             <span>Sumbangkan</span>
           </button>
         </div>
+      </div>
+
+      {/* ── QUICK ACTION DOCK (4 PILAR AKSI TAKTIL ALA FINTECH LUXURY) ───────── */}
+      <div className="grid grid-cols-4 gap-2">
+        {/* Aksi 1: Setor Cup */}
+        <button
+          type="button"
+          onClick={() => onPindahMenu('setor')}
+          className="bg-[#042416]/90 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 rounded-2xl p-2.5 text-center flex flex-col items-center justify-center group active:scale-95 transition-all shadow-md"
+        >
+          <div className="w-9 h-9 rounded-xl bg-emerald-950/90 border border-emerald-500/30 flex items-center justify-center text-emerald-300 group-hover:text-white transition-colors mb-1">
+            <Coffee className="w-4.5 h-4.5" />
+          </div>
+          <span className="text-[10px] font-black text-white leading-tight">Cup Kopi</span>
+          <span className="text-[9px] text-emerald-300/80 font-mono">10 pt/kg</span>
+        </button>
+
+        {/* Aksi 2: Setor Kardus */}
+        <button
+          type="button"
+          onClick={() => onPindahMenu('setor')}
+          className="bg-[#042416]/90 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 rounded-2xl p-2.5 text-center flex flex-col items-center justify-center group active:scale-95 transition-all shadow-md"
+        >
+          <div className="w-9 h-9 rounded-xl bg-amber-950/90 border border-amber-500/30 flex items-center justify-center text-amber-300 group-hover:text-white transition-colors mb-1">
+            <Package className="w-4.5 h-4.5" />
+          </div>
+          <span className="text-[10px] font-black text-white leading-tight">Kardus</span>
+          <span className="text-[9px] text-amber-300/80 font-mono">5 pt/kg</span>
+        </button>
+
+        {/* Aksi 3: Wakaf Uang */}
+        <button
+          type="button"
+          onClick={() => onPindahMenu('lacak')}
+          className="bg-[#042416]/90 backdrop-blur-md border border-emerald-500/20 hover:border-emerald-400/40 rounded-2xl p-2.5 text-center flex flex-col items-center justify-center group active:scale-95 transition-all shadow-md"
+        >
+          <div className="w-9 h-9 rounded-xl bg-emerald-950/90 border border-emerald-500/30 flex items-center justify-center text-emerald-300 group-hover:text-white transition-colors mb-1">
+            <HeartHandshake className="w-4.5 h-4.5" />
+          </div>
+          <span className="text-[10px] font-black text-white leading-tight">Wakaf</span>
+          <span className="text-[9px] text-emerald-300/80 font-mono">Syariah</span>
+        </button>
+
+        {/* Aksi 4: Paspor QR Publik */}
+        <button
+          type="button"
+          onClick={onOpenQr}
+          className="bg-[#042416]/90 backdrop-blur-md border border-amber-400/30 hover:border-amber-400/60 rounded-2xl p-2.5 text-center flex flex-col items-center justify-center group active:scale-95 transition-all shadow-md"
+        >
+          <div className="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-black shadow-sm group-hover:scale-105 transition-transform mb-1">
+            <QrCode className="w-4.5 h-4.5" />
+          </div>
+          <span className="text-[10px] font-black text-amber-300 leading-tight">Paspor QR</span>
+          <span className="text-[9px] text-emerald-200/80 font-mono">Barista</span>
+        </button>
       </div>
 
       {/* ── 4 PILAR METRIK DAMPAK (PERSIS DENGAN LANDING PAGE WEB) ────────────── */}
@@ -215,7 +297,7 @@ export default function Beranda({ onPindahMenu }) {
         </div>
       </div>
 
-      {/* ── 3 POS SUMBANGAN SOSIAL SYARIAH ──────────────────────────────────── */}
+      {/* ── 3 POS SUMBANGAN SOSIAL SYARIAH (DENGAN FILTER KATEGORI INTERAKTIF) ── */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
           <div>
@@ -236,8 +318,26 @@ export default function Beranda({ onPindahMenu }) {
           </button>
         </div>
 
+        {/* Filter Chips Kategori */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+          {['Semua', 'Wakaf', 'Pendidikan', 'Bencana'].map((kat) => (
+            <button
+              key={kat}
+              type="button"
+              onClick={() => setFilterKategori(kat)}
+              className={`px-3 py-1 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                filterKategori === kat
+                  ? 'bg-amber-400 text-slate-950 shadow-sm'
+                  : 'bg-[#02180e] text-emerald-200/80 border border-emerald-500/20 hover:border-emerald-400/40'
+              }`}
+            >
+              {kat}
+            </button>
+          ))}
+        </div>
+
         <div className="space-y-2">
-          {ringkasan.ringkasanPosSumbangan.map((pos) => (
+          {posTerfilter.map((pos) => (
             <div
               key={pos.id}
               className="bg-[#042416]/90 backdrop-blur-md rounded-2xl p-4 border border-emerald-500/20 shadow-md hover:border-emerald-400/40 transition-all space-y-2.5"

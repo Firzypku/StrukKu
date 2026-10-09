@@ -18,7 +18,7 @@ import {
 import { useGreenworth } from '../context/GreenworthContext';
 import { NILAI_POIN } from '../config';
 
-export default function Lacak() {
+export default function Lacak({ onPindahMenu }) {
   const { sumbanganList, ringkasan, posSumbanganList, tambahSumbangan } = useGreenworth();
 
   // State untuk form donasi

@@ -19,10 +19,11 @@ import {
   LogOut,
   ChevronRight,
   Sparkles,
+  QrCode,
 } from 'lucide-react';
 import { useGreenworth } from '../context/GreenworthContext';
 
-export default function Akun() {
+export default function Akun({ onOpenQr }) {
   const { akun, ringkasan, resetKeDataAwal, perbaruiAkun, logout } = useGreenworth();
 
   const [tampilkanKonfirmasiReset, setTampilkanKonfirmasiReset] = useState(false);
@@ -244,6 +245,23 @@ export default function Akun() {
 
       {/* ── PUSAT KONTROL DEMO & KELUAR ──────────────────────────────────────── */}
       <div className="bg-[#042416]/90 backdrop-blur-md rounded-3xl border border-emerald-500/25 shadow-xl divide-y divide-emerald-800/40 overflow-hidden text-white">
+        {/* Paspor QR Digital */}
+        {onOpenQr && (
+          <div className="p-4">
+            <button
+              type="button"
+              onClick={onOpenQr}
+              className="w-full flex items-center justify-between text-xs font-bold text-amber-300 hover:text-amber-200 transition-all text-left"
+            >
+              <div className="flex items-center gap-2.5">
+                <QrCode className="w-4 h-4 text-amber-400" />
+                <span>Buka Paspor QR Digital (Mitra Kedai)</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-amber-400" />
+            </button>
+          </div>
+        )}
+
         {/* Reset Demo */}
         <div className="p-4">
           {!tampilkanKonfirmasiReset ? (

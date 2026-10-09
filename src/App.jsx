@@ -16,9 +16,12 @@ import Lacak from './pages/Lacak';
 import Akun from './pages/Akun';
 import Auth from './pages/Auth';
 
+import QrPasporModal from './components/QrPasporModal';
+
 function GreenworthApp() {
   const { isAuthenticated } = useGreenworth();
   const [activeTab, setActiveTab] = useState('beranda');
+  const [showQrModal, setShowQrModal] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#02140b] text-slate-100 selection:bg-amber-400 selection:text-slate-950 font-sans antialiased">
@@ -37,15 +40,22 @@ function GreenworthApp() {
         ) : (
           /* Aplikasi Utama Setelah Masuk */
           <>
-            {/* Header Tetap di Atas */}
-            <Header />
+            {/* Header Tetap di Atas dengan Tombol Buka QR Paspor */}
+            <Header onOpenQr={() => setShowQrModal(true)} />
 
             {/* Konten Halaman Aktif dengan Ruang Bawah Aman untuk Navigasi */}
             <main className="flex-1 px-4 py-4 pb-28 relative z-10">
-              {activeTab === 'beranda' && <Beranda onPindahMenu={setActiveTab} />}
+              {activeTab === 'beranda' && (
+                <Beranda
+                  onPindahMenu={setActiveTab}
+                  onOpenQr={() => setShowQrModal(true)}
+                />
+              )}
               {activeTab === 'setor' && <Setor onPindahMenu={setActiveTab} />}
-              {activeTab === 'lacak' && <Lacak />}
-              {activeTab === 'akun' && <Akun />}
+              {activeTab === 'lacak' && <Lacak onPindahMenu={setActiveTab} />}
+              {activeTab === 'akun' && (
+                <Akun onOpenQr={() => setShowQrModal(true)} />
+              )}
 
               {/* Footer Resmi Prototipe */}
               <Footer />
@@ -53,6 +63,12 @@ function GreenworthApp() {
 
             {/* Navigasi Bawah 4 Menu */}
             <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+            {/* Modal Paspor QR Digital Publik */}
+            <QrPasporModal
+              isOpen={showQrModal}
+              onClose={() => setShowQrModal(false)}
+            />
           </>
         )}
       </div>

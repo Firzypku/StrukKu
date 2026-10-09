@@ -300,23 +300,33 @@ export default function Setor() {
           />
         </div>
 
-        {/* 5. Pratinjau Perhitungan (Digital Receipt Style) */}
-        <div className="bg-[#02180e] rounded-2xl p-4 border border-dashed border-emerald-500/40 space-y-2 font-mono">
-          <div className="flex items-center justify-between text-[11px] text-emerald-300/80 font-bold uppercase tracking-wider">
+        {/* 5. Pratinjau Perhitungan (Digital Receipt Style dengan Perforasi Taktil) */}
+        <div className="bg-[#02180e] rounded-2xl p-4 border border-dashed border-emerald-500/40 space-y-2 font-mono relative overflow-hidden">
+          {/* Perforated ticket side notches */}
+          <div className="absolute top-1/2 -left-2.5 w-5 h-5 bg-[#042416] rounded-full -translate-y-1/2 border-r border-emerald-500/40" />
+          <div className="absolute top-1/2 -right-2.5 w-5 h-5 bg-[#042416] rounded-full -translate-y-1/2 border-l border-emerald-500/40" />
+
+          <div className="flex items-center justify-between text-[11px] text-emerald-300/80 font-bold uppercase tracking-wider px-1">
             <span>Struk Estimasi Konversi</span>
-            <span className="text-amber-400">● LIVE</span>
+            <span className="text-amber-400 font-mono">● SURABAYA LIVE</span>
           </div>
-          <div className="flex items-center justify-between text-xs text-emerald-100">
+          <div className="flex items-center justify-between text-xs text-emerald-100 px-1">
             <span>Estimasi Bobot:</span>
             <strong className="text-white font-mono">{estimasiBeratKg} kg</strong>
           </div>
-          <div className="flex items-center justify-between text-xs text-emerald-100">
+          <div className="flex items-center justify-between text-xs text-emerald-100 px-1">
             <span>Perolehan Poin:</span>
             <strong className="text-amber-300 font-mono text-sm">+{estimasiPoin} Poin</strong>
           </div>
-          <div className="pt-2 border-t border-emerald-800/60 flex items-center justify-between text-xs font-bold">
+          <div className="flex items-center justify-between text-xs text-emerald-200/80 px-1">
+            <span>Reduksi Emisi:</span>
+            <span className="text-emerald-300 font-mono text-[11px]">~{(estimasiBeratKg * 1.45).toFixed(2)} kg CO2e</span>
+          </div>
+          <div className="pt-2 border-t border-emerald-800/60 flex items-center justify-between text-xs font-bold px-1">
             <span className="text-emerald-200">Setara Nilai Rupiah:</span>
-            <span className="text-emerald-300 font-mono text-sm">Rp {estimasiRupiah.toLocaleString('id-ID')}</span>
+            <span className="text-amber-300 font-mono text-base drop-shadow-[0_0_8px_rgba(252,211,77,0.3)]">
+              Rp {estimasiRupiah.toLocaleString('id-ID')}
+            </span>
           </div>
         </div>
 
