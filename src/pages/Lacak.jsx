@@ -121,16 +121,31 @@ export default function Lacak({ onPindahMenu, navParams = {} }) {
 
       {/* ── NOTIFIKASI SUKSES ──────────────────────────────────────────────── */}
       {pesanSukses && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 text-slate-800 flex items-start gap-2.5 shadow-xs">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <h4 className="text-xs font-bold text-emerald-950">
-              Sumbangan Berhasil Dicatat
-            </h4>
-            <p className="text-[11px] text-slate-600 mt-0.5">
-              Tersalurkan <strong>{pesanSukses.poin} Poin</strong> (Rp {pesanSukses.rupiah.toLocaleString('id-ID')}) ke {pesanSukses.namaPos}. Saat ini berada di Tahap 1.
-            </p>
+        <div className="bg-gradient-to-r from-emerald-500/10 via-teal-50/60 to-white border-2 border-emerald-300 rounded-2xl p-4 text-slate-800 flex items-start justify-between gap-2.5 shadow-md animate-slide-down">
+          <div className="flex items-start gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h4 className="text-sm font-extrabold text-slate-900">
+                  Sumbangan Berhasil Dicatat!
+                </h4>
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.2 rounded-full">
+                  Tahap 1
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                Tersalurkan <strong className="text-emerald-700 font-bold">+{pesanSukses.poin} Poin</strong> (Rp {pesanSukses.rupiah.toLocaleString('id-ID')}) ke <strong>{pesanSukses.namaPos}</strong>. Tim pengelola akan memverifikasi alokasi dana ke tahap berikutnya.
+              </p>
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={() => setPesanSukses(null)}
+            className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-all flex-shrink-0"
+            aria-label="Tutup"
+          >
+            ✕
+          </button>
         </div>
       )}
 

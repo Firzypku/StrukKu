@@ -350,6 +350,14 @@ export function GreenworthProvider({ children }) {
     return setoranBaru;
   };
 
+  // 1b. Hapus Riwayat Setoran Tertentu
+  const hapusSetoran = (id) => {
+    const itemDihapus = setoranList.find((s) => s.id === id);
+    if (!itemDihapus) return null;
+    setSetoranList((prev) => prev.filter((s) => s.id !== id));
+    return itemDihapus;
+  };
+
   // 2. Tambah Sumbangan Poin Baru
   const tambahSumbangan = ({ posId, jumlahPoin, pesanDoa }) => {
     const poin = Number(jumlahPoin) || 0;
@@ -449,6 +457,7 @@ export function GreenworthProvider({ children }) {
     login,
     logout,
     tambahSetoran,
+    hapusSetoran,
     tambahSumbangan,
     perbaruiAkun,
     resetKeDataAwal,

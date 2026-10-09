@@ -1,6 +1,11 @@
 /**
  * Setor.jsx — Halaman Setor Sampah GREENWORTH Surabaya
- * Tema: Hijau-Putih Segar & Bersih (Non-Gelap, Rapi, Seimbang & Terstruktur).
+ * Fitur Lengkap:
+ * 1. Formulir Setor Sampah Pintar (Cup Plastik & Kardus Boks)
+ * 2. Notifikasi Berhasil Input yang Jelas & Aplikatif (dengan aksi instan Salurkan Poin & Batal)
+ * 3. Fitur Hapus Riwayat Setoran dengan Modal Konfirmasi Aman (Saldo Poin diperbarui otomatis)
+ * 4. Filter Riwayat Setoran (Semua, Cup Plastik, Kardus) & Empty State yang rapi
+ * 5. Desain Hijau-Putih Segar, Seimbang & Bebas Bug
  */
 
 import { useState, useEffect } from 'react';
@@ -13,12 +18,17 @@ import {
   CheckCircle2,
   Calendar,
   ChevronDown,
+  Trash2,
+  AlertTriangle,
+  ArrowRight,
+  X,
+  Sparkles,
 } from 'lucide-react';
 import { useGreenworth } from '../context/GreenworthContext';
 import { NILAI_POIN, POIN_PER_KG, BERAT_PER_GELAS_KG } from '../config';
 
 export default function Setor({ onPindahMenu, navParams = {} }) {
-  const { titikKumpulList, setoranList, tambahSetoran } = useGreenworth();
+  const { titikKumpulList, setoranList, tambahSetoran, hapusSetoran } = useGreenworth();
 
   // Form states
   const [titikKumpulId, setTitikKumpulId] = useState(navParams?.titikKumpulId || titikKumpulList[0]?.id || 'kumpul-tunjungan');
@@ -26,7 +36,12 @@ export default function Setor({ onPindahMenu, navParams = {} }) {
   const [jumlahGelas, setJumlahGelas] = useState(25);
   const [beratKardusKg, setBeratKardusKg] = useState(2.0);
   const [catatan, setCatatan] = useState('');
+
+  // Notifikasi & Modal States
   const [pesanSukses, setPesanSukses] = useState(null);
+  const [pesanHapus, setPesanHapus] = useState(null);
+  const [itemMauDihapus, setItemMauDihapus] = useState(null);
+  const [filterRiwayat, setFilterRiwayat] = useState('semua');
 
   // Sinkronisasi otomatis saat parameter dari halaman lain berubah
   useEffect(() => {
@@ -53,11 +68,12 @@ export default function Setor({ onPindahMenu, navParams = {} }) {
 
   const kedaiTerpilih = titikKumpulList.find((k) => k.id === titikKumpulId) || titikKumpulList[0];
 
+  // Submit Setoran
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (jenisSampah === 'gelasPlastik' && (!jumlahGelas || jumlahGelas <= 0)) {
-      alert('Masukkan jumlah gelas plastik yang disetor (minimal 1).');
+      alert('Masukkan jumlah gelas plastik yang disetor (minimal 1 cup).');
       return;
     }
     if (jenisSampah === 'kardus' && (!beratKardusKg || beratKardusKg <= 0)) {
@@ -73,7 +89,9 @@ export default function Setor({ onPindahMenu, navParams = {} }) {
       catatan,
     });
 
+    setPesanHapus(null);
     setPesanSukses({
+      id: setoranBaru.id,
       label: setoranBaru.labelSampah,
       poin: setoranBaru.poinDidapat,
       rupiah: setoranBaru.poinDidapat * NILAI_POIN,
@@ -82,7 +100,43 @@ export default function Setor({ onPindahMenu, navParams = {} }) {
     });
 
     setCatatan('');
+    // Auto-scroll halus ke notifikasi
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Konfirmasi Eksekusi Hapus Setoran
+  const handleKonfirmasiHapus = () => {
+    if (!itemMauDihapus) return;
+    const itemDihapus = hapusSetoran(itemMauDihapus.id);
+    setItemMauDihapus(null);
+
+    // Jika yang dihapus adalah setoran yang baru saja ditampilkan di pesanSukses, tutup notifnya
+    if (pesanSukses && pesanSukses.id === itemMauDihapus.id) {
+      setPesanSukses(null);
+    }
+
+    if (itemDihapus) {
+      setPesanHapus(`Setoran ${itemDihapus.labelSampah} (+${itemDihapus.poinDidapat} Poin) berhasil dihapus.`);
+      setTimeout(() => setPesanHapus(null), 4000);
+    }
+  };
+
+  // Batalkan langsung setoran yang baru saja dibuat
+  const handleBatalkanSetoranBaru = () => {
+    if (!pesanSukses) return;
+    hapusSetoran(pesanSukses.id);
+    const label = pesanSukses.label;
+    setPesanSukses(null);
+    setPesanHapus(`Setoran ${label} berhasil dibatalkan.`);
+    setTimeout(() => setPesanHapus(null), 4000);
+  };
+
+  // Filter List Riwayat
+  const riwayatTersaring = setoranList.filter((item) => {
+    if (filterRiwayat === 'gelasPlastik') return item.jenisSampah === 'gelasPlastik';
+    if (filterRiwayat === 'kardus') return item.jenisSampah === 'kardus';
+    return true;
+  });
 
   return (
     <div className="space-y-4 animate-fade-in pb-4">
@@ -99,40 +153,82 @@ export default function Setor({ onPindahMenu, navParams = {} }) {
         </p>
       </div>
 
-      {/* ── NOTIFIKASI SUKSES ──────────────────────────────────────────────── */}
+      {/* ── 1. NOTIFIKASI BERHASIL INPUT (LENGKAP & INTERAKTIF) ─────────────── */}
       {pesanSukses && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 text-slate-800 flex items-start gap-2.5 shadow-xs">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <h4 className="text-xs font-bold text-emerald-900">
-              Setoran Berhasil Dicatat
-            </h4>
-            <p className="text-[11px] text-slate-600 mt-0.5">
-              {pesanSukses.label} ({pesanSukses.berat} kg) di {pesanSukses.kedai}. Mendapatkan <strong className="text-emerald-700">+{pesanSukses.poin} Poin</strong> (Rp {pesanSukses.rupiah.toLocaleString('id-ID')}).
-            </p>
+        <div className="bg-gradient-to-r from-emerald-500/10 via-teal-50/60 to-white border-2 border-emerald-300 rounded-2xl p-4 text-slate-800 shadow-md animate-slide-down space-y-3">
+          <div className="flex items-start justify-between gap-2.5">
+            <div className="flex items-start gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h4 className="text-sm font-extrabold text-slate-900">
+                    Setoran Berhasil Dicatat!
+                  </h4>
+                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.2 rounded-full">
+                    Sukses
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                  Kamu mendapatkan <strong className="text-emerald-700 font-black">+{pesanSukses.poin} Poin</strong> (Rp {pesanSukses.rupiah.toLocaleString('id-ID')}) dari setoran <strong>{pesanSukses.label}</strong> ({pesanSukses.berat} kg) di {pesanSukses.kedai}.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setPesanSukses(null)}
+              className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-all flex-shrink-0"
+              aria-label="Tutup Notifikasi"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0 self-start">
+
+          {/* Tombol Aksi Cepat Pasca-Setor */}
+          <div className="flex items-center justify-between pt-2 border-t border-emerald-200/60 text-xs">
+            <button
+              type="button"
+              onClick={handleBatalkanSetoranBaru}
+              className="text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:underline flex items-center gap-1"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Salah Input? Batalkan</span>
+            </button>
+
             {onPindahMenu && (
               <button
                 type="button"
                 onClick={() => onPindahMenu('lacak')}
-                className="text-xs text-white bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 rounded-lg font-bold shadow-2xs transition-all active:scale-95 whitespace-nowrap"
+                className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold rounded-xl shadow-xs transition-all flex items-center gap-1 text-xs"
               >
-                Salurkan Poin →
+                <span>Salurkan Poin</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => setPesanSukses(null)}
-              className="text-xs text-slate-500 hover:text-slate-700 font-bold px-1"
-            >
-              Tutup
-            </button>
           </div>
         </div>
       )}
 
-      {/* ── FORMULIR SETOR UTAMA ───────────────────────────────────────────── */}
+      {/* ── 2. NOTIFIKASI BERHASIL DIHAPUS ─────────────────────────────────── */}
+      {pesanHapus && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-amber-900 text-xs flex items-center justify-between gap-2 shadow-2xs animate-fade-in">
+          <div className="flex items-center gap-2">
+            <Trash2 className="w-4 h-4 text-amber-700 flex-shrink-0" />
+            <span className="font-medium">{pesanHapus}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setPesanHapus(null)}
+            className="text-amber-700 hover:text-amber-900 font-bold text-xs"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* ── 3. FORMULIR SETOR UTAMA ─────────────────────────────────────────── */}
       <form
         onSubmit={handleSubmit}
         className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-4"
@@ -242,7 +338,7 @@ export default function Setor({ onPindahMenu, navParams = {} }) {
                   onClick={() => setJumlahGelas(jml)}
                   className={`flex-1 py-1 rounded-lg text-xs font-semibold border transition-all ${
                     jumlahGelas === jml
-                      ? 'bg-emerald-600 text-white border-emerald-600'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
                       : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
@@ -291,7 +387,7 @@ export default function Setor({ onPindahMenu, navParams = {} }) {
                   onClick={() => setBeratKardusKg(kg)}
                   className={`flex-1 py-1 rounded-lg text-xs font-semibold border transition-all ${
                     beratKardusKg === kg
-                      ? 'bg-amber-600 text-white border-amber-600'
+                      ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
                       : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
@@ -302,7 +398,7 @@ export default function Setor({ onPindahMenu, navParams = {} }) {
           </div>
         )}
 
-        {/* 4. Catatan Kondisi */}
+        {/* 4. Catatan Tambahan */}
         <div className="space-y-1">
           <label className="block text-xs font-bold text-slate-700">
             Catatan Tambahan (Opsional)
@@ -317,7 +413,7 @@ export default function Setor({ onPindahMenu, navParams = {} }) {
         </div>
 
         {/* 5. Pratinjau Perhitungan */}
-        <div className="bg-emerald-50/60 rounded-xl p-3 border border-emerald-200/80 space-y-1.5 font-mono">
+        <div className="bg-emerald-50/70 rounded-xl p-3 border border-emerald-200/80 space-y-1.5 font-mono">
           <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">
             Rincian Estimasi Poin
           </span>
@@ -338,70 +434,176 @@ export default function Setor({ onPindahMenu, navParams = {} }) {
         {/* Tombol Setor */}
         <button
           type="submit"
-          className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-extrabold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5"
+          className="w-full py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 active:scale-98 text-white font-extrabold text-xs rounded-xl transition-all shadow-md shadow-emerald-700/20 flex items-center justify-center gap-1.5"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Kirim Setoran Sampah</span>
         </button>
       </form>
 
-      {/* ── DAFTAR RIWAYAT SETORAN ─────────────────────────────────────────── */}
+      {/* ── 4. DAFTAR RIWAYAT SETORAN DENGAN FITUR HAPUS ─────────────────────── */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-sm font-bold text-slate-900">
-            Riwayat Setoran ({setoranList.length})
-          </h3>
-          <span className="text-[11px] text-slate-400">Terverifikasi</span>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">
+              Riwayat Setoran ({setoranList.length})
+            </h3>
+            <p className="text-[11px] text-slate-400">Pilah & dapatkan poin</p>
+          </div>
+
+          {/* Filter Chips */}
+          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl text-[11px]">
+            <button
+              type="button"
+              onClick={() => setFilterRiwayat('semua')}
+              className={`px-2 py-0.5 rounded-lg font-bold transition-all ${
+                filterRiwayat === 'semua' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'
+              }`}
+            >
+              Semua
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterRiwayat('gelasPlastik')}
+              className={`px-2 py-0.5 rounded-lg font-bold transition-all ${
+                filterRiwayat === 'gelasPlastik' ? 'bg-white text-emerald-700 shadow-2xs' : 'text-slate-500'
+              }`}
+            >
+              Cup
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterRiwayat('kardus')}
+              className={`px-2 py-0.5 rounded-lg font-bold transition-all ${
+                filterRiwayat === 'kardus' ? 'bg-white text-amber-700 shadow-2xs' : 'text-slate-500'
+              }`}
+            >
+              Kardus
+            </button>
+          </div>
         </div>
 
-        <div className="space-y-2">
-          {setoranList.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-xs hover:border-emerald-300 transition-all space-y-1.5"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center font-bold">
-                    {item.jenisSampah === 'gelasPlastik' ? (
-                      <Coffee className="w-4 h-4 text-emerald-700" />
-                    ) : (
-                      <Package className="w-4 h-4 text-amber-700" />
-                    )}
+        {/* Empty State jika belum ada riwayat */}
+        {riwayatTersaring.length === 0 ? (
+          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 text-center space-y-2">
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+              <Package className="w-6 h-6" />
+            </div>
+            <h4 className="text-xs font-bold text-slate-800">
+              Belum Ada Riwayat Setoran
+            </h4>
+            <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
+              {filterRiwayat === 'semua'
+                ? 'Mulai setor sampah cup plastik atau kardus di kedai mitra Surabaya untuk mengumpulkan poin pertamamu!'
+                : 'Tidak ada riwayat setoran untuk filter ini.'}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {riwayatTersaring.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-xs hover:border-emerald-300 transition-all space-y-2 group"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-center flex-shrink-0">
+                      {item.jenisSampah === 'gelasPlastik' ? (
+                        <Coffee className="w-4.5 h-4.5 text-emerald-600" />
+                      ) : (
+                        <Package className="w-4.5 h-4.5 text-amber-600" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-slate-900 truncate">
+                        {item.labelSampah}
+                      </h4>
+                      <span className="text-[11px] text-slate-500 truncate block">
+                        {item.namaKedai} ({item.wilayah})
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-900">
-                      {item.labelSampah}
-                    </h4>
-                    <span className="text-[11px] text-slate-400">
-                      {item.namaKedai} ({item.wilayah})
-                    </span>
+
+                  {/* Nilai Poin & Tombol Hapus */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="text-right">
+                      <span className="text-xs font-black text-emerald-700 block">
+                        +{item.poinDidapat} Poin
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        Rp {(item.poinDidapat * NILAI_POIN).toLocaleString('id-ID')}
+                      </span>
+                    </div>
+
+                    {/* Tombol Hapus Setoran */}
+                    <button
+                      type="button"
+                      onClick={() => setItemMauDihapus(item)}
+                      title="Hapus setoran ini"
+                      className="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors active:scale-95"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <span className="text-xs font-black text-emerald-700 block">
-                    +{item.poinDidapat} Poin
+                <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 text-[11px] text-slate-400">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    <span>{item.tanggal}</span>
                   </span>
-                  <span className="text-[10px] text-slate-400">
-                    Rp {(item.poinDidapat * NILAI_POIN).toLocaleString('id-ID')}
+                  <span className="font-semibold text-slate-600">
+                    {item.jumlahGelas > 0 ? `${item.jumlahGelas} Cup · ` : ''}{item.beratKg} kg
                   </span>
                 </div>
               </div>
+            ))}
+          </div>
+        )}
+      </div>
 
-              <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 text-[11px] text-slate-400">
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  <span>{item.tanggal}</span>
-                </span>
-                <span className="font-semibold text-slate-600">
-                  {item.jumlahGelas > 0 ? `${item.jumlahGelas} Cup · ` : ''}{item.beratKg} kg
+      {/* ── 5. MODAL KONFIRMASI HAPUS SETORAN ──────────────────────────────── */}
+      {itemMauDihapus && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white border border-slate-200 w-full max-w-sm rounded-3xl p-5 text-slate-900 shadow-2xl relative space-y-3.5 animate-scale-up">
+            <div className="flex items-center gap-2.5 text-rose-600 border-b border-slate-100 pb-2.5">
+              <div className="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-4.5 h-4.5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-extrabold text-slate-900">
+                  Hapus Riwayat Setoran?
+                </h4>
+                <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider">
+                  Konfirmasi Penghapusan
                 </span>
               </div>
             </div>
-          ))}
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Setoran <strong>{itemMauDihapus.labelSampah}</strong> di <strong>{itemMauDihapus.namaKedai}</strong> sebesar <strong className="text-rose-600">+{itemMauDihapus.poinDidapat} Poin</strong> akan dihapus permanen. Saldo poin aktif akunmu akan otomatis disesuaikan kembali.
+            </p>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setItemMauDihapus(null)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleKonfirmasiHapus}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition-all active:scale-95 flex items-center justify-center gap-1"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Ya, Hapus</span>
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
