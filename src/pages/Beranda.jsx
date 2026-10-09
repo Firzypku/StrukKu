@@ -23,20 +23,23 @@ export default function Beranda({ onPindahMenu, onOpenQr }) {
 
   return (
     <div className="space-y-4 animate-fade-in pb-4">
-      {/* ── 1. PROPOSISI NILAI (KARTU PUTIH BERSIH & RAPI) ───────────────────── */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-            Ekonomi Sirkular Syariah
+      {/* ── 1. BANNER PROGRAM DAUR ULANG (RAMAH & LANGSUNG TO-THE-POINT) ─────── */}
+      <div className="bg-gradient-to-r from-emerald-50/80 via-white to-white rounded-2xl p-4 border border-emerald-100 shadow-2xs relative overflow-hidden">
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/70 px-2.5 py-0.5 rounded-full border border-emerald-200">
+            🌱 Program Mitra Kedai Surabaya
           </span>
-          <span className="text-[11px] text-slate-400 font-medium">Surabaya</span>
+          <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+            1 Poin = Rp 100
+          </span>
         </div>
-        <h1 className="text-lg font-black text-slate-900 leading-snug">
-          Mengubah Sampah Jadi <span className="text-emerald-600">Berkah</span>,<br />
-          Mengubah Nilai Jadi <span className="text-amber-600">Dampak</span>.
+
+        <h1 className="text-base font-black text-slate-900 leading-snug">
+          Tukar Sampah Jadi <span className="text-emerald-700">Berkah</span>, Kumpulkan Poin Jadi <span className="text-amber-700">Manfaat</span>.
         </h1>
-        <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-          Kumpulkan cup plastik dan kardus di kedai kopi Surabaya. Konversi sampahmu menjadi poin untuk wakaf dan sedekah produktif.
+
+        <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+          Bawa cup kopi dan kardus bekasmu ke kedai mitra terdekat. Dapatkan poin reward yang bisa kamu simpan atau salurkan ke sesama.
         </p>
       </div>
 
