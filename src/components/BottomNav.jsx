@@ -34,7 +34,7 @@ export default function BottomNav({ activeTab, onTabChange }) {
   return (
     <nav
       aria-label="Navigasi Utama"
-      className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto bg-[#031d10]/95 backdrop-blur-xl border-t border-emerald-500/20 shadow-[0_-8px_24px_rgba(0,0,0,0.4)] px-3 py-2"
+      className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] px-3 py-2"
     >
       <div className="flex items-center justify-around">
         {navItems.map((item) => {
@@ -51,17 +51,17 @@ export default function BottomNav({ activeTab, onTabChange }) {
                 aria-label="Setor Sampah"
               >
                 <div
-                  className={`w-13 h-13 rounded-full flex items-center justify-center shadow-xl transition-all border-4 border-[#031d10] ${
+                  className={`w-13 h-13 rounded-full flex items-center justify-center shadow-lg transition-all border-4 border-[#F8FAFC] ${
                     isActive
-                      ? 'bg-gradient-to-r from-amber-400 to-amber-300 text-slate-950 scale-105 shadow-amber-400/30'
-                      : 'bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-slate-950 hover:brightness-110 shadow-amber-500/30'
+                      ? 'bg-amber-400 text-slate-950 scale-105 shadow-amber-400/20'
+                      : 'bg-[#064E3B] text-white hover:bg-[#043E2E] shadow-emerald-950/20'
                   }`}
                 >
-                  <Icon className="w-6 h-6 stroke-[2.6]" />
+                  <Icon className="w-6 h-6 stroke-[2.4]" />
                 </div>
                 <span
                   className={`text-[11px] font-black mt-0.5 transition-colors ${
-                    isActive ? 'text-amber-300 drop-shadow-[0_0_8px_rgba(252,211,77,0.5)]' : 'text-emerald-200/90'
+                    isActive ? 'text-amber-800' : 'text-slate-700'
                   }`}
                 >
                   {item.label}
@@ -77,16 +77,16 @@ export default function BottomNav({ activeTab, onTabChange }) {
               onClick={() => onTabChange(item.id)}
               className={`flex-1 py-1 flex flex-col items-center justify-center rounded-xl transition-all active:scale-95 ${
                 isActive
-                  ? 'text-emerald-300 font-extrabold'
-                  : 'text-emerald-500/60 hover:text-emerald-300'
+                  ? 'text-[#064E3B] font-black'
+                  : 'text-slate-400 hover:text-slate-700'
               }`}
             >
               <div
                 className={`p-1 rounded-lg transition-colors ${
-                  isActive ? 'text-emerald-300 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]' : 'text-emerald-500/60'
+                  isActive ? 'text-[#064E3B]' : 'text-slate-400'
                 }`}
               >
-                <Icon className="w-5 h-5 stroke-[2.1]" />
+                <Icon className="w-5 h-5 stroke-[2.2]" />
               </div>
               <span className="text-[11px] font-semibold tracking-tight">
                 {item.label}
