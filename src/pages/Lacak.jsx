@@ -1,7 +1,7 @@
 /**
  * Lacak.jsx — Halaman Pelacakan Penyaluran Sumbangan Syariah GREENWORTH Surabaya
+ * Bersih, modern, dan transparan (Hijau + Putih + Emas).
  * Menampilkan pelacakan 5 tahap penyaluran dari poin sampah menjadi dampak nyata.
- * Memuat 2 data demo (Tahap 2 dan Tahap 5) serta formulir donasi poin baru.
  */
 
 import { useState } from 'react';
@@ -9,17 +9,11 @@ import {
   Compass,
   HeartHandshake,
   CheckCircle2,
-  Clock,
-  Sparkles,
-  ArrowRight,
-  ShieldCheck,
-  Building,
-  GraduationCap,
-  AlertTriangle,
   Gift,
-  FileText,
   ChevronDown,
   ChevronUp,
+  AlertTriangle,
+  ShieldCheck,
 } from 'lucide-react';
 import { useGreenworth } from '../context/GreenworthContext';
 import { NILAI_POIN } from '../config';
@@ -37,8 +31,6 @@ export default function Lacak() {
 
   // State untuk detail tahap yang di-expand
   const [expandedId, setExpandedId] = useState(sumbanganList[0]?.id || null);
-
-  const posAktif = posSumbanganList.find((p) => p.id === posTerpilihId) || posSumbanganList[0];
 
   const handleDonasiSubmit = (e) => {
     e.preventDefault();
@@ -76,33 +68,33 @@ export default function Lacak() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* ── HEADER HALAMAN ─────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-r from-emerald-950 via-[#064E3B] to-emerald-900 p-4 rounded-3xl border border-emerald-600/40">
-        <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
-          <Compass className="w-4 h-4" />
-          <span>Amanah & Transparan</span>
+    <div className="space-y-6 animate-fade-in">
+      {/* ── HEADER BANNER BERSIH ────────────────────────────────────────────── */}
+      <div className="bg-gradient-to-br from-[#065F46] to-[#047857] p-5 rounded-3xl text-white shadow-lg shadow-emerald-900/10">
+        <div className="flex items-center gap-1.5 text-amber-300 text-xs font-black uppercase tracking-wider mb-1">
+          <Compass className="w-4 h-4 text-amber-300" />
+          <span>Amanah & Transparansi Syariah</span>
         </div>
         <h2 className="text-lg font-black text-white">
-          Lacak Penyaluran Sumbangan
+          Lacak Penyaluran Berkah Nyata
         </h2>
-        <p className="text-sm text-emerald-200 mt-1 leading-relaxed">
-          Setiap poin sampah yang kamu wakafkan atau sedekahkan dapat dilacak secara transparan melalui 5 tahap penyaluran resmi.
+        <p className="text-xs text-emerald-100 mt-1 leading-relaxed">
+          Dari sampah menjadi berkah jariyah. Pantau 5 tahap penyaluran poin wakaf dan sedekahmu secara transparan hingga memberi dampak nyata bagi warga Surabaya.
         </p>
       </div>
 
-      {/* ── KARTU SALDO POIN SIAP DISUMBANGKAN ───────────────────────────────── */}
-      <div className="bg-[#042614] rounded-3xl p-4 border border-emerald-800/80 shadow-md flex items-center justify-between gap-3">
+      {/* ── KARTU SALDO POIN SIAP DISUMBANGKAN (PUTIH BERSIH) ───────────────── */}
+      <div className="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-sm flex items-center justify-between gap-3">
         <div>
-          <span className="text-xs font-bold text-emerald-300 block uppercase tracking-wider">
+          <span className="text-[11px] font-bold text-slate-500 block uppercase tracking-wider">
             Saldo Poin Tersedia
           </span>
           <div className="flex items-baseline gap-2 mt-0.5">
-            <span className="text-2xl font-black text-amber-300">
+            <span className="text-2xl font-black text-amber-700">
               {ringkasan.saldoPoin.toLocaleString('id-ID')}
             </span>
-            <span className="text-sm font-bold text-emerald-200">Poin</span>
-            <span className="text-xs text-emerald-400/90 font-medium">
+            <span className="text-xs font-bold text-slate-700">Poin</span>
+            <span className="text-xs text-slate-400 font-semibold">
               (Rp {ringkasan.saldoRupiah.toLocaleString('id-ID')})
             </span>
           </div>
@@ -115,7 +107,7 @@ export default function Lacak() {
             setPesanSukses(null);
             setErrorDonasi('');
           }}
-          className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black text-sm active:scale-95 transition-all shadow-md flex items-center gap-1.5"
+          className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black text-xs active:scale-95 transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 border border-amber-300"
         >
           <HeartHandshake className="w-4 h-4 stroke-[2.5]" />
           <span>{bukaFormDonasi ? 'Tutup Form' : 'Sumbang'}</span>
@@ -124,14 +116,14 @@ export default function Lacak() {
 
       {/* ── NOTIFIKASI SUKSES ──────────────────────────────────────────────── */}
       {pesanSukses && (
-        <div className="bg-emerald-900/90 border-2 border-amber-400 rounded-2xl p-4 text-white shadow-xl">
+        <div className="bg-emerald-50 border-2 border-emerald-500 rounded-3xl p-4 text-slate-800 shadow-md">
           <div className="flex items-start gap-2.5">
-            <CheckCircle2 className="w-5 h-5 text-amber-300 flex-shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-5 h-5 text-emerald-700 flex-shrink-0 mt-0.5" />
             <div>
-              <h3 className="text-base font-black text-amber-300">
+              <h3 className="text-sm font-black text-emerald-950">
                 Jazakallahu Khairan! Sumbangan Diterima
               </h3>
-              <p className="text-sm text-emerald-100 mt-0.5 leading-relaxed">
+              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
                 Kamu telah menyumbangkan <strong>{pesanSukses.poin} Poin</strong> (Rp {pesanSukses.rupiah.toLocaleString('id-ID')}) ke pos <strong>{pesanSukses.namaPos}</strong>. Poin kini masuk <strong>Tahap 1 (Penerimaan Sumbangan)</strong>.
               </p>
             </div>
@@ -139,35 +131,35 @@ export default function Lacak() {
         </div>
       )}
 
-      {/* ── FORMULIR SUMBANG POIN ───────────────────────────────────────────── */}
+      {/* ── FORMULIR SUMBANG POIN (KARTU PUTIH BERSIH) ──────────────────────── */}
       {bukaFormDonasi && (
         <form
           onSubmit={handleDonasiSubmit}
-          className="bg-[#042614] rounded-3xl p-5 border border-emerald-600/80 shadow-2xl space-y-4 animate-fade-in"
+          className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-xl space-y-4 animate-fade-in"
         >
-          <div className="border-b border-emerald-900/80 pb-3 flex items-center justify-between">
+          <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
             <div>
-              <h3 className="text-base font-extrabold text-white">
+              <h3 className="text-base font-extrabold text-slate-900">
                 Sumbangkan Poin Sampah
               </h3>
-              <p className="text-xs text-emerald-300">
-                1 Poin bernilai Rp {NILAI_POIN} dana sosial
+              <p className="text-xs text-slate-500">
+                1 Poin bernilai Rp {NILAI_POIN} dana sosial syariah
               </p>
             </div>
-            <Gift className="w-5 h-5 text-amber-300" />
+            <Gift className="w-5 h-5 text-amber-600" />
           </div>
 
           {errorDonasi && (
-            <div className="bg-rose-950/80 border border-rose-600/60 p-3 rounded-xl text-rose-200 text-xs flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+            <div className="bg-rose-50 border border-rose-200 p-3 rounded-2xl text-rose-700 text-xs flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-500 flex-shrink-0" />
               <span>{errorDonasi}</span>
             </div>
           )}
 
           {/* 1. Pilih Pos Sumbangan */}
           <div className="space-y-1.5">
-            <label className="block text-sm font-bold text-emerald-100">
-              Pilih Pos Sumbangan Sosial Syariah
+            <label className="block text-xs font-bold text-slate-700">
+              Pilih Pos Sumbangan
             </label>
             <div className="space-y-2">
               {posSumbanganList.map((pos) => (
@@ -176,22 +168,22 @@ export default function Lacak() {
                   onClick={() => setPosTerpilihId(pos.id)}
                   className={`p-3 rounded-2xl border cursor-pointer transition-all ${
                     posTerpilihId === pos.id
-                      ? 'bg-emerald-900/90 border-amber-400 ring-2 ring-amber-400/30'
-                      : 'bg-[#05371a] border-emerald-800/80 hover:border-emerald-700'
+                      ? 'bg-emerald-50 border-2 border-emerald-600 ring-2 ring-emerald-500/10'
+                      : 'bg-slate-50 border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-300">
                       {pos.kategori}
                     </span>
-                    <span className="text-xs text-emerald-300 font-medium">
+                    <span className="text-[11px] text-slate-500">
                       Pengelola: {pos.lembagaPengelola.split('(')[0]}
                     </span>
                   </div>
-                  <h4 className="text-sm font-black text-white mt-0.5">
+                  <h4 className="text-sm font-black text-slate-900 mt-1">
                     {pos.nama}
                   </h4>
-                  <p className="text-xs text-emerald-200/90 mt-1">
+                  <p className="text-xs text-slate-600 mt-0.5">
                     {pos.manfaatRingkas}
                   </p>
                 </div>
@@ -202,10 +194,10 @@ export default function Lacak() {
           {/* 2. Jumlah Poin yang Disumbangkan */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-bold text-emerald-100">
+              <label className="text-xs font-bold text-slate-700">
                 Jumlah Poin yang Disumbangkan
               </label>
-              <span className="text-xs font-semibold text-emerald-300">
+              <span className="text-xs font-bold text-emerald-800">
                 Saldo: {ringkasan.saldoPoin} Poin
               </span>
             </div>
@@ -214,7 +206,7 @@ export default function Lacak() {
               <button
                 type="button"
                 onClick={() => setPoinDonasi((prev) => Math.max(1, (Number(prev) || 0) - 5))}
-                className="w-12 h-12 rounded-2xl bg-[#05371a] hover:bg-emerald-800 border border-emerald-700 text-white font-black text-lg active:scale-95 transition-all"
+                className="w-12 h-12 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-black text-lg active:scale-95 transition-all"
               >
                 -5
               </button>
@@ -224,18 +216,18 @@ export default function Lacak() {
                 max={ringkasan.saldoPoin}
                 value={poinDonasi}
                 onChange={(e) => setPoinDonasi(Math.max(1, parseInt(e.target.value) || 0))}
-                className="flex-1 bg-[#05371a] border border-emerald-700 text-center text-white text-lg font-black rounded-2xl py-3 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="flex-1 bg-slate-50 border border-slate-200 text-center text-slate-900 text-xl font-black rounded-2xl py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
               <button
                 type="button"
                 onClick={() => setPoinDonasi((prev) => Math.min(ringkasan.saldoPoin, (Number(prev) || 0) + 5))}
-                className="w-12 h-12 rounded-2xl bg-[#05371a] hover:bg-emerald-800 border border-emerald-700 text-white font-black text-lg active:scale-95 transition-all"
+                className="w-12 h-12 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-black text-lg active:scale-95 transition-all"
               >
                 +5
               </button>
             </div>
 
-            {/* Tombol Opsi Cepat */}
+            {/* Opsi Cepat */}
             <div className="flex items-center gap-2 pt-1">
               {[5, 10, 25].map((p) => (
                 <button
@@ -243,10 +235,10 @@ export default function Lacak() {
                   type="button"
                   disabled={ringkasan.saldoPoin < p}
                   onClick={() => setPoinDonasi(p)}
-                  className={`flex-1 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                  className={`flex-1 py-1.5 rounded-xl text-xs font-extrabold border transition-all ${
                     poinDonasi === p
-                      ? 'bg-amber-400 text-slate-950 border-amber-300'
-                      : 'bg-[#05371a] text-emerald-200 border-emerald-800 hover:border-emerald-600 disabled:opacity-40'
+                      ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs'
+                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 disabled:opacity-40'
                   }`}
                 >
                   {p} Poin
@@ -256,24 +248,24 @@ export default function Lacak() {
                 type="button"
                 disabled={ringkasan.saldoPoin <= 0}
                 onClick={() => setPoinDonasi(ringkasan.saldoPoin)}
-                className="flex-1 py-1.5 rounded-xl text-xs font-bold bg-[#05371a] text-amber-300 border border-amber-500/50 hover:bg-emerald-800 disabled:opacity-40"
+                className="flex-1 py-1.5 rounded-xl text-xs font-extrabold bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 disabled:opacity-40"
               >
                 Semua ({ringkasan.saldoPoin})
               </button>
             </div>
 
-            {/* Konversi Nilai Rupiah */}
-            <div className="bg-[#05371a] rounded-xl p-3 border border-emerald-800 text-xs flex items-center justify-between">
-              <span className="text-emerald-300">Setara Nilai Bantuan:</span>
-              <span className="text-base font-black text-amber-300">
+            {/* Nilai Bantuan Rupiah */}
+            <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200 text-xs flex items-center justify-between">
+              <span className="text-slate-500">Nilai Bantuan:</span>
+              <span className="text-sm font-black text-emerald-800">
                 Rp {((Number(poinDonasi) || 0) * NILAI_POIN).toLocaleString('id-ID')}
               </span>
             </div>
           </div>
 
-          {/* 3. Pesan atau Doa */}
+          {/* 3. Pesan / Niat Doa */}
           <div className="space-y-1">
-            <label className="block text-sm font-bold text-emerald-100">
+            <label className="block text-xs font-bold text-slate-700">
               Pesan atau Niat Doa (Opsional)
             </label>
             <input
@@ -281,14 +273,14 @@ export default function Lacak() {
               value={pesanDoa}
               onChange={(e) => setPesanDoa(e.target.value)}
               placeholder="Contoh: Semoga berkah dan bermanfaat bagi sesama"
-              className="w-full bg-[#05371a] border border-emerald-700 text-white text-sm rounded-2xl px-4 py-3 placeholder-emerald-500/70 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-2xl px-4 py-3 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
           <button
             type="submit"
             disabled={ringkasan.saldoPoin <= 0}
-            className="w-full py-3.5 bg-gradient-to-r from-emerald-500 via-emerald-400 to-amber-400 hover:from-emerald-400 hover:to-amber-300 active:scale-98 text-slate-950 font-black text-base rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3.5 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 active:scale-98 text-slate-950 font-black text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 border border-amber-300 disabled:opacity-50"
           >
             <HeartHandshake className="w-5 h-5 stroke-[2.5]" />
             <span>Kirim Sumbangan Sekarang</span>
@@ -296,18 +288,18 @@ export default function Lacak() {
         </form>
       )}
 
-      {/* ── DAFTAR SUMBANGAN & STEPPER 5 TAHAP ──────────────────────────────── */}
+      {/* ── DAFTAR SUMBANGAN & STEPPER 5 TAHAP (KARTU PUTIH BERSIH) ─────────── */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-base font-black text-white">
-              Riwayat & Status Penyaluran ({sumbanganList.length})
+            <h3 className="text-base font-extrabold text-slate-900">
+              Riwayat Penyaluran ({sumbanganList.length})
             </h3>
-            <p className="text-xs text-emerald-300">
+            <p className="text-xs text-slate-500">
               Pantau progres nyata dari poin yang disumbangkan
             </p>
           </div>
-          <span className="text-xs font-semibold text-emerald-300 bg-[#042614] border border-emerald-800 px-2.5 py-1 rounded-xl">
+          <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl">
             Amanah
           </span>
         </div>
@@ -320,55 +312,54 @@ export default function Lacak() {
           return (
             <div
               key={item.id}
-              className="bg-[#042614] rounded-3xl p-5 border border-emerald-800/80 shadow-md space-y-4"
+              className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm space-y-4"
             >
-              {/* Header Kartu Sumbangan */}
+              {/* Header Kartu */}
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-amber-400 bg-amber-950/60 border border-amber-600/40 px-2 py-0.5 rounded-lg">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-md">
                       {posData.kategori}
                     </span>
-                    <span className="text-xs text-emerald-300 font-mono">
+                    <span className="text-xs text-slate-400 font-mono">
                       {item.id}
                     </span>
                   </div>
-                  <h4 className="text-base font-black text-white mt-1">
+                  <h4 className="text-base font-black text-slate-900 mt-1">
                     {item.namaPos}
                   </h4>
-                  <p className="text-xs text-emerald-300 mt-0.5">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     Lembaga: {item.lembagaPengelola}
                   </p>
                 </div>
 
                 <div className="text-right">
-                  <span className="text-base font-black text-amber-300 block">
+                  <span className="text-base font-black text-amber-700 block">
                     {item.jumlahPoin} Poin
                   </span>
-                  <span className="text-xs font-semibold text-emerald-200">
+                  <span className="text-xs font-semibold text-emerald-800">
                     Rp {item.nilaiRupiah.toLocaleString('id-ID')}
-                  </span>
-                  <span className="text-xs text-emerald-400/80 block mt-0.5">
-                    {item.tanggal.split(',')[0]}
                   </span>
                 </div>
               </div>
 
               {/* Status Badge Saat Ini */}
-              <div className="bg-[#05371a] rounded-2xl p-3.5 border border-emerald-700/60 flex items-center justify-between gap-3">
+              <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-100 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs ${
-                    item.tahapSaatIni === 5
-                      ? 'bg-amber-400 text-slate-950'
-                      : 'bg-emerald-600 text-white'
-                  }`}>
+                  <div
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs ${
+                      item.tahapSaatIni === 5
+                        ? 'bg-amber-400 text-slate-950'
+                        : 'bg-emerald-700 text-white'
+                    }`}
+                  >
                     {item.tahapSaatIni}/5
                   </div>
                   <div>
-                    <span className="text-xs text-emerald-300 block font-medium">
+                    <span className="text-[11px] text-slate-400 block font-medium">
                       Status Saat Ini:
                     </span>
-                    <span className="text-sm font-black text-white block">
+                    <span className="text-sm font-black text-slate-900 block">
                       {item.judulTahap}
                     </span>
                   </div>
@@ -377,7 +368,7 @@ export default function Lacak() {
                 <button
                   type="button"
                   onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                  className="p-1.5 rounded-xl bg-emerald-900/80 hover:bg-emerald-800 text-amber-300 transition-all"
+                  className="p-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 transition-all"
                   aria-label="Lihat Rincian 5 Tahap"
                 >
                   {isExpanded ? (
@@ -388,47 +379,45 @@ export default function Lacak() {
                 </button>
               </div>
 
-              {/* Pesan Doa / Niat */}
               {item.pesanDoa && (
-                <p className="text-xs text-emerald-200/90 italic bg-emerald-950/70 border border-emerald-900 px-3 py-2 rounded-xl">
+                <p className="text-xs text-slate-600 italic bg-slate-50/80 border border-slate-100 px-3 py-2 rounded-xl">
                   "{item.pesanDoa}"
                 </p>
               )}
 
-              {/* ── STEPPER 5 TAHAP VISUAL ─────────────────────────────────── */}
+              {/* ── STEPPER 5 TAHAP VISUAL (ELEGAN) ─────────────────────────── */}
               {isExpanded && (
-                <div className="pt-3 border-t border-emerald-900/80 space-y-3 animate-fade-in">
+                <div className="pt-3 border-t border-slate-100 space-y-3 animate-fade-in">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">
-                      Alur 5 Tahap Penyaluran Amanah
+                    <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Alur 5 Tahap Penyaluran
                     </span>
                     {item.tahapSaatIni === 5 ? (
-                      <span className="text-xs font-bold text-emerald-300 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-700">
+                      <span className="text-xs font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                         Selesai 100%
                       </span>
                     ) : (
-                      <span className="text-xs font-bold text-amber-300 bg-amber-950/70 px-2 py-0.5 rounded border border-amber-600/40">
+                      <span className="text-xs font-black text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-300">
                         Progres Tahap {item.tahapSaatIni}
                       </span>
                     )}
                   </div>
 
-                  <div className="space-y-3 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-emerald-800 before:pointer-events-none">
+                  <div className="space-y-3 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-200 before:pointer-events-none">
                     {tahapConfig.map((thp) => {
                       const isPast = thp.nomor < item.tahapSaatIni;
                       const isCurrent = thp.nomor === item.tahapSaatIni;
-                      const isUpcoming = thp.nomor > item.tahapSaatIni;
 
                       return (
                         <div key={thp.nomor} className="relative flex items-start gap-3 pl-1">
                           {/* Lingkaran Stepper */}
                           <div
-                            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold z-10 flex-shrink-0 transition-all ${
+                            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black z-10 flex-shrink-0 transition-all ${
                               isPast
-                                ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                                ? 'bg-emerald-600 text-white shadow-xs'
                                 : isCurrent
-                                ? 'bg-amber-400 text-slate-950 ring-4 ring-amber-400/20 font-black'
-                                : 'bg-emerald-950 border border-emerald-800 text-emerald-500'
+                                ? 'bg-amber-400 text-slate-950 ring-4 ring-amber-400/20'
+                                : 'bg-white border-2 border-slate-300 text-slate-400'
                             }`}
                           >
                             {isPast ? (
@@ -442,20 +431,20 @@ export default function Lacak() {
                           <div
                             className={`flex-1 rounded-2xl p-3 border transition-all ${
                               isCurrent
-                                ? 'bg-emerald-900/70 border-amber-400/80 shadow-md'
+                                ? 'bg-amber-50/60 border-amber-300 shadow-xs'
                                 : isPast
-                                ? 'bg-[#05371a]/80 border-emerald-800/80 opacity-90'
-                                : 'bg-[#052e16]/40 border-emerald-900/40 opacity-60'
+                                ? 'bg-slate-50 border-slate-200'
+                                : 'bg-slate-50/40 border-slate-100 opacity-60'
                             }`}
                           >
                             <div className="flex items-center justify-between gap-1">
                               <h5
-                                className={`text-sm font-extrabold ${
+                                className={`text-sm font-black ${
                                   isCurrent
-                                    ? 'text-amber-300'
+                                    ? 'text-amber-900'
                                     : isPast
-                                    ? 'text-white'
-                                    : 'text-emerald-400'
+                                    ? 'text-slate-900'
+                                    : 'text-slate-400'
                                 }`}
                               >
                                 {thp.nomor}. {thp.judul}
@@ -468,18 +457,18 @@ export default function Lacak() {
                               )}
                             </div>
 
-                            <p className="text-xs text-emerald-200 mt-1 leading-relaxed">
+                            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                               {thp.keterangan}
                             </p>
 
                             {isCurrent && item.keteranganTahap && (
-                              <div className="mt-2 pt-2 border-t border-emerald-700/60 text-xs text-amber-200 bg-emerald-950/60 p-2 rounded-xl">
-                                <strong>Pembaruan Terkini:</strong> {item.keteranganTahap}
+                              <div className="mt-2 pt-2 border-t border-amber-200 text-xs text-amber-900 bg-white p-2.5 rounded-xl border border-amber-200 shadow-2xs">
+                                <strong>Pembaruan:</strong> {item.keteranganTahap}
                               </div>
                             )}
 
                             {isPast && thp.nomor === 5 && item.tanggalPenyaluranAkhir && (
-                              <span className="text-[11px] text-emerald-300 block mt-1">
+                              <span className="text-[11px] text-emerald-800 font-bold block mt-1">
                                 Diserahkan pada: {item.tanggalPenyaluranAkhir}
                               </span>
                             )}
@@ -495,14 +484,14 @@ export default function Lacak() {
         })}
       </div>
 
-      {/* ── PRINSIP KEADILAN & TRANSPARANSI SYARIAH ────────────────────────── */}
-      <div className="bg-[#042614] rounded-3xl p-4 border border-emerald-900/80 space-y-2 text-xs text-emerald-300">
-        <div className="flex items-center gap-2 text-white font-extrabold text-sm">
-          <ShieldCheck className="w-4 h-4 text-amber-400" />
+      {/* ── KOMITMEN AMANAH SYARIAH ────────────────────────────────────────── */}
+      <div className="bg-white rounded-3xl p-4 border border-slate-200/80 space-y-1.5 text-xs text-slate-600">
+        <div className="flex items-center gap-2 text-slate-900 font-extrabold text-sm">
+          <ShieldCheck className="w-4 h-4 text-emerald-700" />
           <span>Komitmen Transparansi Amanah Syariah</span>
         </div>
         <p className="leading-relaxed">
-          Semua dana hasil konversi poin sampah dicatat dengan prinsip <em>tabarru'</em> (kebajikan bersama) tanpa potongan tersembunyi. Pengadaan dan penyaluran disalurkan langsung ke penerima manfaat yang berhak di wilayah Surabaya.
+          Semua dana hasil konversi poin sampah disalurkan dengan prinsip <em>tabarru'</em> tanpa potongan tersembunyi langsung ke penerima manfaat yang berhak di Surabaya.
         </p>
       </div>
     </div>

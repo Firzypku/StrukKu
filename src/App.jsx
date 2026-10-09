@@ -21,9 +21,9 @@ function GreenworthApp() {
   const [activeTab, setActiveTab] = useState('beranda');
 
   return (
-    <div className="min-h-screen bg-[#021a0d] text-slate-100 selection:bg-amber-400 selection:text-slate-950 font-sans antialiased">
+    <div className="min-h-screen bg-slate-100 text-slate-800 selection:bg-amber-400 selection:text-slate-950 font-sans antialiased">
       {/* Container Mobile Terpusat (Max Width 448px) */}
-      <div className="max-w-md mx-auto min-h-screen flex flex-col bg-[#032010] shadow-2xl relative border-x border-emerald-950/60">
+      <div className="max-w-md mx-auto min-h-screen flex flex-col bg-[#F8FAFC] shadow-xl relative border-x border-slate-200/80">
         {!isAuthenticated ? (
           /* Layar Masuk / Daftar dengan Verifikasi OTP Demo */
           <div className="flex-1 px-4 py-4 flex flex-col justify-between">

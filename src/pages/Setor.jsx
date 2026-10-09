@@ -1,7 +1,7 @@
 /**
  * Setor.jsx — Halaman Setor Sampah GREENWORTH Surabaya
- * Memungkinkan pengguna menyetor cup plastik atau kardus di titik kumpul kedai kopi Surabaya.
- * Dilengkapi kalkulator poin real-time dinamis dan riwayat setoran terverifikasi.
+ * Copywriting kuat, bersih, modern, dan bernuansa syariah (Hijau + Putih + Emas).
+ * Memungkinkan pengguna menyetor cup plastik atau kardus dengan kalkulator poin real-time.
  */
 
 import { useState } from 'react';
@@ -14,20 +14,16 @@ import {
   Sparkles,
   CheckCircle2,
   Calendar,
-  Info,
-  Scale,
-  Coins,
-  ArrowRight,
 } from 'lucide-react';
 import { useGreenworth } from '../context/GreenworthContext';
 import { NILAI_POIN, POIN_PER_KG, BERAT_PER_GELAS_KG } from '../config';
 
-export default function Setor({ onPindahMenu }) {
+export default function Setor() {
   const { titikKumpulList, setoranList, tambahSetoran } = useGreenworth();
 
   // Form states
   const [titikKumpulId, setTitikKumpulId] = useState(titikKumpulList[0]?.id || 'kumpul-tunjungan');
-  const [jenisSampah, setJenisSampah] = useState('gelasPlastik'); // 'gelasPlastik' | 'kardus'
+  const [jenisSampah, setJenisSampah] = useState('gelasPlastik');
   const [jumlahGelas, setJumlahGelas] = useState(25);
   const [beratKardusKg, setBeratKardusKg] = useState(2.0);
   const [catatan, setCatatan] = useState('');
@@ -76,44 +72,43 @@ export default function Setor({ onPindahMenu }) {
       berat: setoranBaru.beratKg,
     });
 
-    // Reset form ringan
     setCatatan('');
   };
 
   return (
-    <div className="space-y-6">
-      {/* ── HEADER HALAMAN ─────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-r from-emerald-950 via-[#064E3B] to-emerald-900 p-4 rounded-3xl border border-emerald-600/40">
-        <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
-          <Sparkles className="w-4 h-4" />
-          <span>Setor Sampah Berkah</span>
+    <div className="space-y-5 animate-fade-in pb-2">
+      {/* ── HEADER BANNER BERSIH ────────────────────────────────────────────── */}
+      <div className="bg-gradient-to-br from-[#065F46] to-[#047857] p-5 rounded-3xl text-white shadow-lg shadow-emerald-900/10">
+        <div className="flex items-center gap-1.5 text-amber-300 text-xs font-black uppercase tracking-wider mb-1">
+          <Sparkles className="w-4 h-4 text-amber-300" />
+          <span>Ekonomi Sirkular Kedai Kopi</span>
         </div>
         <h2 className="text-lg font-black text-white">
-          Ubah Sampah Jadi Poin Berkah
+          Setor Sampah, Raih Poin Berkah
         </h2>
-        <p className="text-sm text-emerald-200 mt-1 leading-relaxed">
-          Pilah cup kopi dan kardus dari kedaimu atau rumah. Bawa ke titik kumpul terdekat di Surabaya, dapatkan poin untuk disumbangkan.
+        <p className="text-xs text-emerald-100 mt-1 leading-relaxed">
+          Setiap cup kopi dan kardus yang kamu pilah dan setor bernilai <strong>1 Poin = Rp 100</strong>. Poin langsung masuk ke akunmu dan siap disedekahkan atau diwakafkan untuk kebaikan bersama.
         </p>
       </div>
 
-      {/* ── NOTIFIKASI SUKSES SETELAH SETOR ─────────────────────────────────── */}
+      {/* ── NOTIFIKASI SUKSES ──────────────────────────────────────────────── */}
       {pesanSukses && (
-        <div className="bg-emerald-900/90 border-2 border-amber-400/80 rounded-2xl p-4 text-white shadow-xl animate-fade-in relative">
+        <div className="bg-emerald-50 border-2 border-emerald-500 rounded-3xl p-4 text-slate-800 shadow-md">
           <div className="flex items-start gap-3">
-            <CheckCircle2 className="w-6 h-6 text-amber-300 flex-shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-6 h-6 text-emerald-700 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <h3 className="text-base font-black text-amber-300">
+              <h3 className="text-base font-black text-emerald-900">
                 Alhamdulillah! Setoran Berhasil Dicatat
               </h3>
-              <p className="text-sm text-emerald-100 mt-1">
+              <p className="text-xs text-slate-600 mt-1">
                 Kamu menyetor <strong>{pesanSukses.label}</strong> ({pesanSukses.berat} kg) di <strong>{pesanSukses.kedai}</strong>.
               </p>
-              <div className="mt-2.5 inline-flex items-center gap-2 bg-emerald-950/80 border border-emerald-500/50 px-3 py-1.5 rounded-xl">
-                <span className="text-sm text-emerald-200">Tambahan Poin:</span>
-                <span className="text-base font-black text-amber-300">
+              <div className="mt-2.5 inline-flex items-center gap-2 bg-white border border-emerald-300 px-3 py-1.5 rounded-xl shadow-xs">
+                <span className="text-xs text-slate-600">Perolehan:</span>
+                <span className="text-sm font-black text-amber-700">
                   +{pesanSukses.poin} Poin
                 </span>
-                <span className="text-xs text-emerald-300 font-semibold">
+                <span className="text-xs text-slate-500 font-semibold">
                   (Rp {pesanSukses.rupiah.toLocaleString('id-ID')})
                 </span>
               </div>
@@ -122,67 +117,64 @@ export default function Setor({ onPindahMenu }) {
           <button
             type="button"
             onClick={() => setPesanSukses(null)}
-            className="mt-3 w-full py-2 bg-emerald-800 hover:bg-emerald-700 text-xs font-bold text-white rounded-xl transition-all"
+            className="mt-3 w-full py-2 bg-emerald-100 hover:bg-emerald-200 text-xs font-bold text-emerald-900 rounded-xl transition-all"
           >
-            Tutup Pemberitahuan
+            Tutup
           </button>
         </div>
       )}
 
-      {/* ── FORMULIR SETOR SAMPAH ───────────────────────────────────────────── */}
+      {/* ── FORMULIR SETOR SAMPAH (KARTU PUTIH BERSIH) ──────────────────────── */}
       <form
         onSubmit={handleSubmit}
-        className="bg-[#042614] rounded-3xl p-5 border border-emerald-800/80 shadow-lg space-y-4"
+        className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-xs space-y-4"
       >
-        <div className="border-b border-emerald-900/80 pb-3">
-          <h3 className="text-base font-extrabold text-white">
-            Formulir Setor Sampah Baru
+        <div className="border-b border-slate-100 pb-3">
+          <h3 className="text-base font-extrabold text-slate-900">
+            Formulir Setor Sampah Kedai Kopi
           </h3>
-          <p className="text-xs text-emerald-300">
-            Isi data setoran dengan jujur dan sesuai sampah yang dibawa
+          <p className="text-xs text-slate-500">
+            Pilih titik kumpul terdekat di Surabaya dan masukkan jumlah sampah yang dibawa
           </p>
         </div>
 
         {/* 1. Pilih Titik Kumpul */}
         <div className="space-y-1.5">
-          <label className="block text-sm font-bold text-emerald-100">
+          <label className="block text-xs font-bold text-slate-700">
             Pilih Titik Kumpul Kedai Kopi
           </label>
           <div className="relative">
             <select
               value={titikKumpulId}
               onChange={(e) => setTitikKumpulId(e.target.value)}
-              className="w-full bg-[#05371a] border border-emerald-700 text-white rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all appearance-none pr-10"
+              className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none pr-10"
             >
               {titikKumpulList.map((kedai) => (
-                <option key={kedai.id} value={kedai.id} className="bg-[#052E16] text-white py-2">
+                <option key={kedai.id} value={kedai.id} className="text-slate-900 py-2">
                   {kedai.namaKedai} ({kedai.wilayah})
                 </option>
               ))}
             </select>
-            <MapPin className="w-4 h-4 text-amber-300 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <MapPin className="w-4 h-4 text-emerald-700 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
           {/* Info Lokasi Terpilih */}
-          <div className="bg-[#05371a]/70 rounded-xl p-3 border border-emerald-800/60 text-xs space-y-1 mt-1.5">
-            <div className="flex items-center gap-1.5 text-emerald-200">
-              <MapPin className="w-3.5 h-3.5 text-amber-300 flex-shrink-0" />
+          <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100 text-xs space-y-1 mt-1">
+            <div className="flex items-center gap-1.5 text-slate-600">
+              <MapPin className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
               <span>{kedaiTerpilih.alamat}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-emerald-300">
-              <Clock className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+            <div className="flex items-center gap-1.5 text-slate-500">
+              <Clock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
               <span>{kedaiTerpilih.jamBuka}</span>
             </div>
-            <p className="text-amber-200/90 pt-0.5 italic">
-              Petunjuk: {kedaiTerpilih.keterangan}
-            </p>
           </div>
         </div>
 
         {/* 2. Pilih Jenis Sampah */}
         <div className="space-y-1.5">
-          <label className="block text-sm font-bold text-emerald-100">
-            Pilih Jenis Sampah
+          <label className="block text-xs font-bold text-slate-700">
+            Jenis Sampah
           </label>
           <div className="grid grid-cols-2 gap-2.5">
             <button
@@ -190,13 +182,13 @@ export default function Setor({ onPindahMenu }) {
               onClick={() => setJenisSampah('gelasPlastik')}
               className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${
                 jenisSampah === 'gelasPlastik'
-                  ? 'bg-emerald-800/90 border-amber-400 text-white shadow-md ring-2 ring-amber-400/30'
-                  : 'bg-[#05371a] border-emerald-800/80 text-emerald-300 hover:border-emerald-700'
+                  ? 'bg-emerald-50 border-2 border-emerald-600 text-emerald-950 shadow-xs ring-2 ring-emerald-500/10'
+                  : 'bg-slate-50 border border-slate-200 text-slate-600 hover:border-slate-300'
               }`}
             >
-              <Coffee className="w-6 h-6 mb-1 text-amber-300" />
+              <Coffee className="w-6 h-6 mb-1 text-emerald-700" />
               <span className="text-sm font-black">Cup Gelas Plastik</span>
-              <span className="text-xs text-emerald-200 mt-0.5">
+              <span className="text-[11px] text-emerald-700 font-bold mt-0.5">
                 10 Poin / kg (~12g/cup)
               </span>
             </button>
@@ -206,13 +198,13 @@ export default function Setor({ onPindahMenu }) {
               onClick={() => setJenisSampah('kardus')}
               className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${
                 jenisSampah === 'kardus'
-                  ? 'bg-emerald-800/90 border-amber-400 text-white shadow-md ring-2 ring-amber-400/30'
-                  : 'bg-[#05371a] border-emerald-800/80 text-emerald-300 hover:border-emerald-700'
+                  ? 'bg-amber-50 border-2 border-amber-500 text-amber-950 shadow-xs ring-2 ring-amber-500/10'
+                  : 'bg-slate-50 border border-slate-200 text-slate-600 hover:border-slate-300'
               }`}
             >
-              <Package className="w-6 h-6 mb-1 text-amber-300" />
+              <Package className="w-6 h-6 mb-1 text-amber-600" />
               <span className="text-sm font-black">Kardus Boks</span>
-              <span className="text-xs text-emerald-200 mt-0.5">
+              <span className="text-[11px] text-amber-700 font-bold mt-0.5">
                 5 Poin / kg
               </span>
             </button>
@@ -223,11 +215,11 @@ export default function Setor({ onPindahMenu }) {
         {jenisSampah === 'gelasPlastik' ? (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-bold text-emerald-100">
+              <label className="text-xs font-bold text-slate-700">
                 Jumlah Gelas Cup (buah)
               </label>
-              <span className="text-xs font-semibold text-emerald-300">
-                Rata-rata 1 cup ≈ 12 gram
+              <span className="text-[11px] font-semibold text-slate-400">
+                1 cup ≈ 12 gram
               </span>
             </div>
 
@@ -235,7 +227,7 @@ export default function Setor({ onPindahMenu }) {
               <button
                 type="button"
                 onClick={() => setJumlahGelas((prev) => Math.max(1, (Number(prev) || 0) - 5))}
-                className="w-12 h-12 rounded-2xl bg-[#05371a] hover:bg-emerald-800 border border-emerald-700 text-white font-black text-lg active:scale-95 transition-all"
+                className="w-12 h-12 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-black text-lg active:scale-95 transition-all"
               >
                 -5
               </button>
@@ -245,12 +237,12 @@ export default function Setor({ onPindahMenu }) {
                 step="1"
                 value={jumlahGelas}
                 onChange={(e) => setJumlahGelas(Math.max(1, parseInt(e.target.value) || 0))}
-                className="flex-1 bg-[#05371a] border border-emerald-700 text-center text-white text-lg font-black rounded-2xl py-3 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="flex-1 bg-slate-50 border border-slate-200 text-center text-slate-900 text-xl font-black rounded-2xl py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
               <button
                 type="button"
                 onClick={() => setJumlahGelas((prev) => (Number(prev) || 0) + 5)}
-                className="w-12 h-12 rounded-2xl bg-[#05371a] hover:bg-emerald-800 border border-emerald-700 text-white font-black text-lg active:scale-95 transition-all"
+                className="w-12 h-12 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-black text-lg active:scale-95 transition-all"
               >
                 +5
               </button>
@@ -263,10 +255,10 @@ export default function Setor({ onPindahMenu }) {
                   key={jml}
                   type="button"
                   onClick={() => setJumlahGelas(jml)}
-                  className={`flex-1 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                  className={`flex-1 py-1.5 rounded-xl text-xs font-extrabold border transition-all ${
                     jumlahGelas === jml
-                      ? 'bg-amber-400 text-slate-950 border-amber-300'
-                      : 'bg-[#05371a] text-emerald-200 border-emerald-800 hover:border-emerald-600'
+                      ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs'
+                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                   }`}
                 >
                   {jml} Cup
@@ -277,11 +269,11 @@ export default function Setor({ onPindahMenu }) {
         ) : (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-bold text-emerald-100">
-                Perkiraan Berat Kardus (Kilogram)
+              <label className="text-xs font-bold text-slate-700">
+                Berat Kardus (Kilogram)
               </label>
-              <span className="text-xs font-semibold text-emerald-300">
-                1 kg kardus = 5 Poin
+              <span className="text-[11px] font-semibold text-slate-400">
+                1 kg = 5 Poin
               </span>
             </div>
 
@@ -289,7 +281,7 @@ export default function Setor({ onPindahMenu }) {
               <button
                 type="button"
                 onClick={() => setBeratKardusKg((prev) => Math.max(0.5, Number(((Number(prev) || 0) - 0.5).toFixed(1))))}
-                className="w-12 h-12 rounded-2xl bg-[#05371a] hover:bg-emerald-800 border border-emerald-700 text-white font-black text-lg active:scale-95 transition-all"
+                className="w-12 h-12 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-black text-lg active:scale-95 transition-all"
               >
                 -
               </button>
@@ -299,12 +291,12 @@ export default function Setor({ onPindahMenu }) {
                 step="0.5"
                 value={beratKardusKg}
                 onChange={(e) => setBeratKardusKg(parseFloat(e.target.value) || 0)}
-                className="flex-1 bg-[#05371a] border border-emerald-700 text-center text-white text-lg font-black rounded-2xl py-3 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="flex-1 bg-slate-50 border border-slate-200 text-center text-slate-900 text-xl font-black rounded-2xl py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
               <button
                 type="button"
                 onClick={() => setBeratKardusKg((prev) => Number(((Number(prev) || 0) + 0.5).toFixed(1)))}
-                className="w-12 h-12 rounded-2xl bg-[#05371a] hover:bg-emerald-800 border border-emerald-700 text-white font-black text-lg active:scale-95 transition-all"
+                className="w-12 h-12 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-black text-lg active:scale-95 transition-all"
               >
                 +
               </button>
@@ -317,10 +309,10 @@ export default function Setor({ onPindahMenu }) {
                   key={kg}
                   type="button"
                   onClick={() => setBeratKardusKg(kg)}
-                  className={`flex-1 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                  className={`flex-1 py-1.5 rounded-xl text-xs font-extrabold border transition-all ${
                     beratKardusKg === kg
-                      ? 'bg-amber-400 text-slate-950 border-amber-300'
-                      : 'bg-[#05371a] text-emerald-200 border-emerald-800 hover:border-emerald-600'
+                      ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
+                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                   }`}
                 >
                   {kg} kg
@@ -332,7 +324,7 @@ export default function Setor({ onPindahMenu }) {
 
         {/* 4. Catatan Opsional */}
         <div className="space-y-1">
-          <label className="block text-sm font-bold text-emerald-100">
+          <label className="block text-xs font-bold text-slate-700">
             Catatan Kondisi Sampah (Opsional)
           </label>
           <input
@@ -340,67 +332,63 @@ export default function Setor({ onPindahMenu }) {
             value={catatan}
             onChange={(e) => setCatatan(e.target.value)}
             placeholder="Contoh: Cup sudah dibilas bersih dan kering"
-            className="w-full bg-[#05371a] border border-emerald-700 text-white text-sm rounded-2xl px-4 py-3 placeholder-emerald-500/70 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-2xl px-4 py-3 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
         {/* ── KOTAK PREVIEW PERHITUNGAN REAL-TIME ──────────────────────────── */}
-        <div className="bg-emerald-950/90 rounded-2xl p-4 border border-emerald-700/60 space-y-2.5">
-          <span className="text-xs font-bold uppercase tracking-wider text-amber-300 block">
-            Pratinjau Perolehan Poin
+        <div className="bg-amber-50/70 rounded-2xl p-4 border border-amber-200/80 space-y-2">
+          <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
+            Pratinjau Perolehan Poin Berkah
           </span>
 
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="bg-[#05371a] p-2.5 rounded-xl border border-emerald-800/80">
-              <span className="text-xs text-emerald-300 block">Estimasi Berat</span>
-              <span className="text-base font-black text-white block mt-0.5">
+            <div className="bg-white p-2.5 rounded-xl border border-amber-100 shadow-2xs">
+              <span className="text-[11px] text-slate-500 block">Estimasi Berat</span>
+              <span className="text-base font-black text-slate-900 block mt-0.5">
                 {estimasiBeratKg} kg
               </span>
             </div>
 
-            <div className="bg-[#05371a] p-2.5 rounded-xl border border-emerald-800/80">
-              <span className="text-xs text-emerald-300 block">Perolehan Poin</span>
-              <span className="text-base font-black text-amber-300 block mt-0.5">
+            <div className="bg-white p-2.5 rounded-xl border border-amber-100 shadow-2xs">
+              <span className="text-[11px] text-slate-500 block">Poin Didapat</span>
+              <span className="text-base font-black text-amber-700 block mt-0.5">
                 +{estimasiPoin} Poin
               </span>
             </div>
 
-            <div className="bg-[#05371a] p-2.5 rounded-xl border border-emerald-800/80">
-              <span className="text-xs text-emerald-300 block">Nilai Rupiah</span>
-              <span className="text-base font-black text-emerald-200 block mt-0.5">
+            <div className="bg-white p-2.5 rounded-xl border border-amber-100 shadow-2xs">
+              <span className="text-[11px] text-slate-500 block">Nilai Rupiah</span>
+              <span className="text-base font-black text-emerald-800 block mt-0.5">
                 Rp {estimasiRupiah.toLocaleString('id-ID')}
               </span>
             </div>
           </div>
-
-          <p className="text-xs text-emerald-300/80 leading-normal">
-            Poin akan langsung ditambahkan ke akunmu dan bisa segera disumbangkan ke pos wakaf atau sedekah syariah.
-          </p>
         </div>
 
         {/* Tombol Simpan Setoran */}
         <button
           type="submit"
-          className="w-full py-3.5 bg-gradient-to-r from-emerald-500 via-emerald-400 to-amber-400 hover:from-emerald-400 hover:to-amber-300 active:scale-98 text-slate-950 font-black text-base rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2"
+          className="w-full py-3.5 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 active:scale-98 text-slate-950 font-black text-base rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 border border-amber-200"
         >
           <PlusCircle className="w-5 h-5 stroke-[2.5]" />
-          <span>Kirim Setoran Sampah</span>
+          <span>Kirim Setoran Sampah (Raih Poin)</span>
         </button>
       </form>
 
-      {/* ── DAFTAR RIWAYAT SETORAN ─────────────────────────────────────────── */}
+      {/* ── DAFTAR RIWAYAT SETORAN (KARTU PUTIH BERSIH) ─────────────────────── */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-base font-black text-white">
+            <h3 className="text-base font-extrabold text-slate-900">
               Riwayat Setoranmu ({setoranList.length})
             </h3>
-            <p className="text-xs text-emerald-300">
+            <p className="text-xs text-slate-500">
               Tercatat otomatis di akun GREENWORTH Surabaya
             </p>
           </div>
-          <span className="text-xs font-semibold text-emerald-300 bg-[#042614] border border-emerald-800 px-2.5 py-1 rounded-xl">
-            Semua Terverifikasi
+          <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl">
+            Terverifikasi
           </span>
         </div>
 
@@ -408,11 +396,11 @@ export default function Setor({ onPindahMenu }) {
           {setoranList.map((item) => (
             <div
               key={item.id}
-              className="bg-[#042614] rounded-2xl p-4 border border-emerald-900/80 hover:border-emerald-700 transition-all space-y-2"
+              className="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-xs hover:shadow-md transition-all space-y-2"
             >
               <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-950 border border-emerald-700 flex items-center justify-center text-amber-300">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center font-bold">
                     {item.jenisSampah === 'gelasPlastik' ? (
                       <Coffee className="w-4 h-4" />
                     ) : (
@@ -420,42 +408,40 @@ export default function Setor({ onPindahMenu }) {
                     )}
                   </div>
                   <div>
-                    <h4 className="text-sm font-extrabold text-white">
+                    <h4 className="text-sm font-black text-slate-900">
                       {item.labelSampah}
                     </h4>
-                    <span className="text-xs text-emerald-300">
+                    <span className="text-xs text-slate-500">
                       {item.namaKedai} ({item.wilayah})
                     </span>
                   </div>
                 </div>
 
                 <div className="text-right">
-                  <span className="text-sm font-black text-amber-300 block">
+                  <span className="text-sm font-black text-amber-700 block">
                     +{item.poinDidapat} Poin
                   </span>
-                  <span className="text-xs text-emerald-300 font-medium">
+                  <span className="text-xs text-slate-500 font-medium">
                     Rp {(item.poinDidapat * NILAI_POIN).toLocaleString('id-ID')}
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-emerald-900/60 text-xs text-emerald-200/90">
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
                 <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
                   <span>{item.tanggal}</span>
                 </div>
-                <div className="flex items-center gap-2 font-medium">
-                  {item.jumlahGelas > 0 && (
-                    <span>{item.jumlahGelas} Cup</span>
-                  )}
-                  <span className="bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800 text-emerald-300">
+                <div className="flex items-center gap-2 font-bold">
+                  {item.jumlahGelas > 0 && <span>{item.jumlahGelas} Cup</span>}
+                  <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-lg">
                     {item.beratKg} kg
                   </span>
                 </div>
               </div>
 
               {item.catatan && (
-                <p className="text-xs text-emerald-300/80 italic bg-[#05371a]/50 px-2.5 py-1 rounded-lg">
+                <p className="text-xs text-slate-500 italic bg-slate-50 px-2.5 py-1 rounded-xl">
                   "{item.catatan}"
                 </p>
               )}
