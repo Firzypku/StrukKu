@@ -31,9 +31,9 @@ function GreenworthApp() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 selection:bg-amber-400 selection:text-slate-950 font-sans antialiased">
-      {/* Container Mobile Terpusat (Max Width 448px) — Bersih, Seimbang & Elegan */}
-      <div className="max-w-md mx-auto min-h-screen flex flex-col bg-[#F8FAFC] shadow-2xl relative border-x border-slate-200/80">
+    <div className="min-h-screen bg-[#F8FAFC] sm:bg-slate-100 text-slate-900 selection:bg-amber-400 selection:text-slate-950 font-sans antialiased">
+      {/* Container Mobile Terpusat (Full-width di smartphone, Max Width 448px di desktop/tablet) */}
+      <div className="w-full max-w-md mx-auto min-h-screen flex flex-col bg-[#F8FAFC] sm:shadow-2xl relative sm:border-x sm:border-slate-200/80">
         {!isAuthenticated ? (
           /* Layar Masuk / Daftar dengan Verifikasi OTP Demo */
           <div className="flex-1 px-4 py-4 flex flex-col justify-between">
@@ -47,7 +47,7 @@ function GreenworthApp() {
             <Header onOpenQr={() => setShowQrModal(true)} />
 
             {/* Konten Halaman Aktif dengan Ruang Bawah Aman untuk Navigasi */}
-            <main className="flex-1 px-4 py-4 pb-28">
+            <main className="flex-1 px-4 py-3 pb-36">
               {activeTab === 'beranda' && (
                 <Beranda
                   onPindahMenu={handlePindahMenu}

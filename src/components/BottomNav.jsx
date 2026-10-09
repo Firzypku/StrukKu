@@ -34,7 +34,7 @@ export default function BottomNav({ activeTab, onTabChange }) {
   return (
     <nav
       aria-label="Navigasi Utama"
-      className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] px-3 py-2"
+      className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-md mx-auto bg-white/95 backdrop-blur-md border-t border-slate-200/80 sm:border-x sm:border-slate-200/80 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-3 pt-2 pb-[max(env(safe-area-inset-bottom),10px)]"
     >
       <div className="flex items-center justify-around">
         {navItems.map((item) => {
