@@ -1,7 +1,6 @@
 /**
  * Auth.jsx — Halaman Masuk / Daftar GREENWORTH Surabaya
- * Estetika Hijau Putih Seimbang & Clear (Vibe Design Standard):
- * Form onboarding fintech bersih, verifikasi OTP 6 digit transparan, dan kenyamanan visual maksimal.
+ * Tema: Hijau-Putih Segar & Bersih (Non-Gelap, Rapi, Seimbang & Terstruktur).
  */
 
 import { useState } from 'react';
@@ -17,7 +16,6 @@ import {
   KeyRound,
   AlertCircle,
   Recycle,
-  Sparkles,
 } from 'lucide-react';
 import { useGreenworth } from '../context/GreenworthContext';
 
@@ -97,16 +95,16 @@ export default function Auth({ onSuccess }) {
 
   return (
     <div className="min-h-[80vh] flex flex-col justify-center py-6 px-1 animate-fade-in text-slate-900">
-      {/* ── LOGO & BRANDING SEIMBANG ────────────────────────────────────────── */}
+      {/* ── LOGO & BRANDING SEGAR ───────────────────────────────────────────── */}
       <div className="text-center mb-6">
-        <div className="w-14 h-14 rounded-2xl bg-[#064E3B] mx-auto flex items-center justify-center shadow-md text-white mb-3">
-          <Recycle className="w-7 h-7 stroke-[2.3]" />
+        <div className="w-13 h-13 rounded-2xl bg-emerald-600 mx-auto flex items-center justify-center shadow-xs text-white mb-3">
+          <Recycle className="w-7 h-7 stroke-[2.2]" />
         </div>
         <div className="flex items-center justify-center gap-1.5">
-          <h1 className="text-xl font-black tracking-tight text-slate-900">
+          <h1 className="text-lg font-black tracking-tight text-slate-900">
             GREENWORTH
           </h1>
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-md">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
             Surabaya
           </span>
         </div>
@@ -115,22 +113,22 @@ export default function Auth({ onSuccess }) {
         </p>
       </div>
 
-      {/* ── KARTU FORMULIR ONBOARDING (PUTIH BERSIH) ────────────────────────── */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-md space-y-4">
+      {/* ── KARTU FORMULIR ONBOARDING ───────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs space-y-4">
         {/* Step Indicator */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
             Langkah {step} dari 3
           </span>
-          <span className="text-xs text-[#064E3B] font-extrabold">
-            {step === 1 && 'Nomor WhatsApp'}
+          <span className="text-xs text-emerald-700 font-bold">
+            {step === 1 && 'Nomor Telepon'}
             {step === 2 && 'Verifikasi OTP'}
             {step === 3 && 'Lengkapi Profil'}
           </span>
         </div>
 
         {errorPesan && (
-          <div className="bg-rose-50 border border-rose-200 p-3 rounded-2xl text-rose-700 text-xs flex items-center gap-2">
+          <div className="bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-rose-700 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
             <span>{errorPesan}</span>
           </div>
@@ -138,18 +136,18 @@ export default function Auth({ onSuccess }) {
 
         {/* ── LANGKAH 1: INPUT NOMOR HP ────────────────────────────────────── */}
         {step === 1 && (
-          <form onSubmit={handleKirimOtp} className="space-y-4">
+          <form onSubmit={handleKirimOtp} className="space-y-3.5">
             <div>
-              <h2 className="text-sm font-black text-slate-900">
-                Masuk atau Registrasi Anggota
+              <h2 className="text-sm font-bold text-slate-900">
+                Masuk atau Daftar Akun
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                Masukkan nomor HP untuk menerima kode OTP demo 6 digit verifikasi instan.
+              <p className="text-xs text-slate-500 mt-0.5">
+                Masukkan nomor HP untuk menerima kode OTP demo 6 digit.
               </p>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700">
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">
                 Nomor WhatsApp / HP
               </label>
               <div className="relative">
@@ -158,18 +156,18 @@ export default function Auth({ onSuccess }) {
                   value={telepon}
                   onChange={(e) => setTelepon(e.target.value)}
                   placeholder="081234567890"
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl pl-9 pr-3 py-3 focus:outline-none focus:ring-2 focus:ring-[#064E3B]"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-semibold rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-600"
                   required
                 />
                 <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
-            <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/80 text-xs">
+            <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-150 text-xs">
               <button
                 type="button"
                 onClick={() => setTelepon('0812-3456-7890')}
-                className="text-left text-xs font-bold text-[#064E3B] hover:underline"
+                className="text-left text-xs font-bold text-emerald-700 hover:text-emerald-900 underline"
               >
                 Gunakan Akun Demo Bawaan: 0812-3456-7890
               </button>
@@ -177,46 +175,46 @@ export default function Auth({ onSuccess }) {
 
             <button
               type="submit"
-              className="w-full py-3.5 bg-[#064E3B] hover:bg-[#043E2E] active:scale-95 text-white font-black text-xs rounded-2xl transition-all flex items-center justify-center gap-2 shadow-sm"
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs"
             >
               <span>Kirim Kode OTP (6 Digit)</span>
-              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </form>
         )}
 
         {/* ── LANGKAH 2: VERIFIKASI OTP 6 DIGIT ────────────────────────────── */}
         {step === 2 && (
-          <form onSubmit={handleVerifikasiOtp} className="space-y-4">
+          <form onSubmit={handleVerifikasiOtp} className="space-y-3.5">
             <div>
-              <h2 className="text-sm font-black text-slate-900">
+              <h2 className="text-sm font-bold text-slate-900">
                 Verifikasi Kode OTP
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                Kode verifikasi telah dikirim ke nomor <strong className="text-slate-900">{telepon}</strong>.
+              <p className="text-xs text-slate-500 mt-0.5">
+                Kode verifikasi telah dikirim ke nomor <strong>{telepon}</strong>.
               </p>
             </div>
 
             {/* Banner Simulasi OTP */}
-            <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 text-center space-y-1.5 shadow-2xs">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 block">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">
                 Simulasi Kode OTP Demo
               </span>
-              <div className="tracking-[0.35em] text-2xl font-black text-slate-900 font-mono py-1">
+              <div className="tracking-[0.3em] text-xl font-black text-slate-900 font-mono py-1">
                 {otpGenerated}
               </div>
               <button
                 type="button"
                 onClick={() => setOtpInput(otpGenerated)}
-                className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 text-xs font-black rounded-xl transition-all inline-flex items-center gap-1.5 shadow-2xs"
+                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-lg transition-all inline-flex items-center gap-1 shadow-2xs"
               >
-                <CheckCircle2 className="w-3.5 h-3.5" />
+                <CheckCircle2 className="w-3 h-3" />
                 <span>Salin & Isi Otomatis</span>
               </button>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700">
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">
                 Masukkan 6 Digit OTP
               </label>
               <div className="relative">
@@ -226,19 +224,19 @@ export default function Auth({ onSuccess }) {
                   value={otpInput}
                   onChange={(e) => setOtpInput(e.target.value.replace(/[^0-9]/g, ''))}
                   placeholder="------"
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-center text-xl font-mono font-black tracking-[0.25em] rounded-xl py-2.5 focus:outline-none focus:ring-2 focus:ring-[#064E3B]"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-center text-lg font-mono font-black tracking-[0.25em] rounded-xl py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600"
                   required
                 />
                 <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <button
                 type="submit"
-                className="w-full py-3.5 bg-[#064E3B] hover:bg-[#043E2E] active:scale-95 text-white font-black text-xs rounded-2xl transition-all flex items-center justify-center gap-2 shadow-sm"
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs"
               >
-                <ShieldCheck className="w-4.5 h-4.5 stroke-[2.5]" />
+                <ShieldCheck className="w-4 h-4" />
                 <span>Verifikasi OTP</span>
               </button>
 
@@ -246,9 +244,9 @@ export default function Auth({ onSuccess }) {
                 <button
                   type="button"
                   onClick={generateNewOtp}
-                  className="text-amber-800 hover:text-amber-950 font-bold flex items-center gap-1"
+                  className="text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
+                  <RefreshCw className="w-3 h-3" />
                   <span>Kirim Ulang</span>
                 </button>
                 <button
@@ -265,18 +263,18 @@ export default function Auth({ onSuccess }) {
 
         {/* ── LANGKAH 3: LENGKAPI NAMA & EMAIL ─────────────────────────────── */}
         {step === 3 && (
-          <form onSubmit={handleSelesaiMasuk} className="space-y-4">
+          <form onSubmit={handleSelesaiMasuk} className="space-y-3.5">
             <div>
-              <h2 className="text-sm font-black text-slate-900">
+              <h2 className="text-sm font-bold text-slate-900">
                 Lengkapi Data Diri
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Nama diperlukan untuk sapaan dan akad tabarru' sedekah.
               </p>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700">
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">
                 Nama Lengkap <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
@@ -285,19 +283,19 @@ export default function Auth({ onSuccess }) {
                   value={nama}
                   onChange={(e) => setNama(e.target.value)}
                   placeholder="Contoh: Ahmad Rizky Pratama"
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold rounded-xl pl-9 pr-3 py-3 focus:outline-none focus:ring-2 focus:ring-[#064E3B]"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs font-semibold rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-600"
                   required
                 />
                 <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
+                <label className="text-xs font-bold text-slate-700">
                   Alamat Email
                 </label>
-                <span className="text-[10px] text-slate-400 font-mono">(Opsional)</span>
+                <span className="text-[10px] text-slate-400">(Opsional)</span>
               </div>
               <div className="relative">
                 <input
@@ -305,21 +303,21 @@ export default function Auth({ onSuccess }) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="nama@email.com"
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-xl pl-9 pr-3 py-3 focus:outline-none focus:ring-2 focus:ring-[#064E3B] placeholder-slate-400"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-600 placeholder-slate-400"
                 />
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700">
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">
                 Wilayah Domisili Surabaya
               </label>
               <div className="relative">
                 <select
                   value={wilayahDomisili}
                   onChange={(e) => setWilayahDomisili(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold rounded-xl pl-9 pr-7 py-3 focus:outline-none focus:ring-2 focus:ring-[#064E3B] appearance-none"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs font-semibold rounded-xl pl-9 pr-7 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-600 appearance-none"
                 >
                   <option value="Surabaya Timur">Surabaya Timur (Gubeng, Rungkut, Sukolilo)</option>
                   <option value="Surabaya Pusat">Surabaya Pusat (Tunjungan, Tegalsari, Genteng)</option>
@@ -333,16 +331,16 @@ export default function Auth({ onSuccess }) {
 
             <button
               type="submit"
-              className="w-full py-3.5 bg-[#064E3B] hover:bg-[#043E2E] active:scale-95 text-white font-black text-xs rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5"
             >
               <span>Selesai & Masuk ke Beranda</span>
-              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </form>
         )}
       </div>
 
-      <p className="text-center mt-5 text-[11px] text-slate-400 font-mono">
+      <p className="text-center mt-5 text-[11px] text-slate-400">
         Data tersimpan lokal untuk kebutuhan demonstrasi lomba.
       </p>
     </div>
