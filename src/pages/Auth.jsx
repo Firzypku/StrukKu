@@ -97,7 +97,7 @@ export default function Auth({ onSuccess }) {
     <div className="min-h-[80vh] flex flex-col justify-center py-6 px-1 animate-fade-in text-slate-900">
       {/* ── LOGO & BRANDING SEGAR ───────────────────────────────────────────── */}
       <div className="text-center mb-6">
-        <div className="w-13 h-13 rounded-2xl bg-emerald-600 mx-auto flex items-center justify-center shadow-xs text-white mb-3">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 mx-auto flex items-center justify-center shadow-md shadow-emerald-700/20 text-white mb-3">
           <Recycle className="w-7 h-7 stroke-[2.2]" />
         </div>
         <div className="flex items-center justify-center gap-1.5">

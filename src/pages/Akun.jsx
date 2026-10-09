@@ -57,9 +57,10 @@ export default function Akun({ onOpenQr }) {
         </div>
       )}
 
-      {/* ── KARTU PROFIL ANGGOTA (HIJAU SEGAR EMERALD-600) ──────────────────── */}
-      <div className="bg-emerald-600 rounded-2xl p-5 text-white shadow-xs space-y-3.5">
-        <div className="flex items-start justify-between">
+      {/* ── KARTU PROFIL ANGGOTA (EMERALD-JEWEL RADIANT GRADIENT) ─────────── */}
+      <div className="bg-gradient-to-br from-[#059669] via-[#047857] to-[#0f766e] rounded-3xl p-5 text-white shadow-xl shadow-emerald-900/15 border border-emerald-400/25 space-y-3.5 relative overflow-hidden">
+        <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="relative z-10 flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-white text-emerald-700 font-black text-xl flex items-center justify-center shadow-xs">
               {akun.nama.charAt(0)}

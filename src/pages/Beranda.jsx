@@ -130,7 +130,7 @@ export default function Beranda({ onPindahMenu, onOpenQr }) {
       <div className="grid grid-cols-4 gap-2 px-0.5">
         <button
           type="button"
-          onClick={() => onPindahMenu('setor')}
+          onClick={() => onPindahMenu('setor', { jenisSampah: 'gelasPlastik' })}
           className="bg-white hover:border-emerald-300 active:scale-95 transition-all p-3 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col items-center text-center gap-1.5 group"
         >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/25 group-hover:scale-105 transition-transform">
@@ -148,7 +148,7 @@ export default function Beranda({ onPindahMenu, onOpenQr }) {
 
         <button
           type="button"
-          onClick={() => onPindahMenu('setor')}
+          onClick={() => onPindahMenu('setor', { jenisSampah: 'kardus' })}
           className="bg-white hover:border-amber-300 active:scale-95 transition-all p-3 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col items-center text-center gap-1.5 group"
         >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center shadow-md shadow-amber-600/25 group-hover:scale-105 transition-transform">
@@ -166,7 +166,7 @@ export default function Beranda({ onPindahMenu, onOpenQr }) {
 
         <button
           type="button"
-          onClick={() => onPindahMenu('lacak')}
+          onClick={() => onPindahMenu('lacak', { posId: 'pos-wakaf-produktif' })}
           className="bg-white hover:border-teal-300 active:scale-95 transition-all p-3 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col items-center text-center gap-1.5 group"
         >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 text-white flex items-center justify-center shadow-md shadow-teal-600/25 group-hover:scale-105 transition-transform">
@@ -369,7 +369,7 @@ export default function Beranda({ onPindahMenu, onOpenQr }) {
 
               <button
                 type="button"
-                onClick={() => onPindahMenu('lacak')}
+                onClick={() => onPindahMenu('lacak', { posId: pos.id })}
                 className="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-700/20 active:scale-95"
               >
                 <span>Salurkan Poin</span>
@@ -434,7 +434,7 @@ export default function Beranda({ onPindahMenu, onOpenQr }) {
 
               <button
                 type="button"
-                onClick={() => onPindahMenu('setor')}
+                onClick={() => onPindahMenu('setor', { titikKumpulId: kedai.id })}
                 className="px-3 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1 active:scale-95 shadow-xs shadow-emerald-700/20 flex-shrink-0"
               >
                 <span>Setor</span>

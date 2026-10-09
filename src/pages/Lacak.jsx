@@ -3,7 +3,7 @@
  * Tema: Hijau-Putih Segar & Bersih (Non-Gelap, Rapi, Seimbang & Terstruktur).
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   HeartHandshake,
   CheckCircle2,
@@ -16,16 +16,24 @@ import {
 import { useGreenworth } from '../context/GreenworthContext';
 import { NILAI_POIN } from '../config';
 
-export default function Lacak() {
+export default function Lacak({ onPindahMenu, navParams = {} }) {
   const { sumbanganList, ringkasan, posSumbanganList, tambahSumbangan } = useGreenworth();
 
   // State untuk form donasi
-  const [bukaFormDonasi, setBukaFormDonasi] = useState(false);
-  const [posTerpilihId, setPosTerpilihId] = useState(posSumbanganList[0]?.id || 'pos-wakaf-produktif');
+  const [bukaFormDonasi, setBukaFormDonasi] = useState(Boolean(navParams?.posId));
+  const [posTerpilihId, setPosTerpilihId] = useState(navParams?.posId || posSumbanganList[0]?.id || 'pos-wakaf-produktif');
   const [poinDonasi, setPoinDonasi] = useState(10);
   const [pesanDoa, setPesanDoa] = useState('');
   const [pesanSukses, setPesanSukses] = useState(null);
   const [errorDonasi, setErrorDonasi] = useState('');
+
+  // Sinkronisasi otomatis saat parameter posId berubah dari halaman Beranda
+  useEffect(() => {
+    if (navParams?.posId) {
+      setPosTerpilihId(navParams.posId);
+      setBukaFormDonasi(true);
+    }
+  }, [navParams]);
 
   // State untuk detail tahap yang di-expand
   const [expandedId, setExpandedId] = useState(sumbanganList[0]?.id || null);

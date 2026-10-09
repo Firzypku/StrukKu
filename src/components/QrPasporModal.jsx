@@ -1,6 +1,6 @@
 /**
  * QrPasporModal.jsx — Modal Paspor Digital GREENWORTH Surabaya
- * Format Hijau-Putih Seimbang, Bersih & Profesional untuk Barista Kedai Kopi.
+ * Format Hijau-Putih Segar, Bersih & Profesional untuk Barista Kedai Kopi.
  */
 
 import { QrCode, ShieldCheck, X, Sparkles, MapPin, CheckCircle2 } from 'lucide-react';
@@ -17,15 +17,15 @@ export default function QrPasporModal({ isOpen, onClose }) {
         {/* Header Modal */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#064E3B] text-white flex items-center justify-center shadow-xs">
-              <QrCode className="w-4.5 h-4.5" />
+            <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+              <QrCode className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-sm font-black tracking-tight text-slate-900">
                 Paspor Digital Anggota
               </h3>
-              <span className="text-[10px] text-emerald-800 font-bold uppercase tracking-wider">
-                Jejak Sirkular Syariah
+              <span className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">
+                Mitra Kedai Kopi Surabaya
               </span>
             </div>
           </div>
@@ -43,7 +43,7 @@ export default function QrPasporModal({ isOpen, onClose }) {
         <div className="my-4 bg-emerald-50/60 rounded-2xl p-4 border border-emerald-200/80 text-center shadow-2xs">
           <div className="flex items-center justify-between mb-3 text-left">
             <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#064E3B] block">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-800 block">
                 ID Anggota Surabaya
               </span>
               <h4 className="text-base font-black text-slate-900">{akun.nama}</h4>
@@ -57,7 +57,7 @@ export default function QrPasporModal({ isOpen, onClose }) {
           <div className="bg-white p-3 rounded-2xl mx-auto w-48 h-48 shadow-sm border border-slate-200 flex flex-col items-center justify-center relative">
             <div className="w-full h-full border-4 border-slate-900 rounded-xl p-2 flex flex-col justify-between relative bg-white">
               {/* Scan Reticle Simulation */}
-              <div className="absolute inset-x-2 top-0 h-1 bg-[#064E3B] animate-pulse rounded-full" />
+              <div className="absolute inset-x-2 top-0 h-1 bg-emerald-500 animate-pulse rounded-full" />
 
               {/* QR Pattern Representation */}
               <div className="grid grid-cols-6 gap-1 w-full h-full p-1 opacity-90">
@@ -69,7 +69,7 @@ export default function QrPasporModal({ isOpen, onClose }) {
                 <div className="bg-slate-300" />
                 <div className="bg-slate-900" />
                 <div className="bg-slate-900" />
-                <div className="bg-[#064E3B] col-span-2 row-span-2 rounded-md flex items-center justify-center text-[10px] font-black text-white">
+                <div className="bg-emerald-600 col-span-2 row-span-2 rounded-md flex items-center justify-center text-[10px] font-black text-white">
                   GW
                 </div>
                 <div className="bg-slate-900" />
@@ -82,8 +82,8 @@ export default function QrPasporModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-[#064E3B] font-bold">
-            <ShieldCheck className="w-4 h-4 text-[#064E3B]" />
+          <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-emerald-700 font-bold">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
             <span>Terverifikasi • Terkoneksi Mitra Kedai</span>
           </div>
 
@@ -103,8 +103,8 @@ export default function QrPasporModal({ isOpen, onClose }) {
 
         {/* Petunjuk Penggunaan untuk Kasir / Barista */}
         <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200/80 text-xs text-slate-600 space-y-1">
-          <p className="font-bold text-[#064E3B] flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5" />
+          <p className="font-bold text-emerald-800 flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
             <span>Cara Penggunaan di Kedai Kopi:</span>
           </p>
           <p className="text-[11px] leading-relaxed text-slate-500">
@@ -116,7 +116,7 @@ export default function QrPasporModal({ isOpen, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="w-full mt-4 py-3 bg-[#064E3B] hover:bg-[#043E2E] text-white font-black text-xs rounded-2xl shadow-sm active:scale-95 transition-all"
+          className="w-full mt-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-2xl shadow-sm active:scale-95 transition-all"
         >
           Selesai & Kembali
         </button>

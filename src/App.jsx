@@ -2,7 +2,7 @@
  * App.jsx — Aplikasi Utama GREENWORTH Surabaya
  * Prototipe Mobile-First untuk Lampiran Proposal Syariah Business Plan Competition.
  * Menghubungkan alur Masuk/Daftar (OTP demo) dan 4 menu: Beranda, Setor, Lacak, Akun.
- * Semua data bersumber dari GreenworthContext (terpusat & dinamis).
+ * Dilengkapi deep parameter passing antar menu tanpa bug.
  */
 
 import { useState } from 'react';
@@ -15,13 +15,20 @@ import Setor from './pages/Setor';
 import Lacak from './pages/Lacak';
 import Akun from './pages/Akun';
 import Auth from './pages/Auth';
-
 import QrPasporModal from './components/QrPasporModal';
 
 function GreenworthApp() {
   const { isAuthenticated } = useGreenworth();
   const [activeTab, setActiveTab] = useState('beranda');
+  const [navParams, setNavParams] = useState({});
   const [showQrModal, setShowQrModal] = useState(false);
+
+  // Navigasi terpadu antar halaman dengan parameter dinamis
+  const handlePindahMenu = (tab, params = {}) => {
+    setNavParams(params);
+    setActiveTab(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 selection:bg-amber-400 selection:text-slate-950 font-sans antialiased">
@@ -30,7 +37,7 @@ function GreenworthApp() {
         {!isAuthenticated ? (
           /* Layar Masuk / Daftar dengan Verifikasi OTP Demo */
           <div className="flex-1 px-4 py-4 flex flex-col justify-between">
-            <Auth onSuccess={() => setActiveTab('beranda')} />
+            <Auth onSuccess={() => handlePindahMenu('beranda')} />
             <Footer />
           </div>
         ) : (
@@ -43,14 +50,27 @@ function GreenworthApp() {
             <main className="flex-1 px-4 py-4 pb-28">
               {activeTab === 'beranda' && (
                 <Beranda
-                  onPindahMenu={setActiveTab}
+                  onPindahMenu={handlePindahMenu}
                   onOpenQr={() => setShowQrModal(true)}
                 />
               )}
-              {activeTab === 'setor' && <Setor onPindahMenu={setActiveTab} />}
-              {activeTab === 'lacak' && <Lacak onPindahMenu={setActiveTab} />}
+              {activeTab === 'setor' && (
+                <Setor
+                  onPindahMenu={handlePindahMenu}
+                  navParams={navParams}
+                />
+              )}
+              {activeTab === 'lacak' && (
+                <Lacak
+                  onPindahMenu={handlePindahMenu}
+                  navParams={navParams}
+                />
+              )}
               {activeTab === 'akun' && (
-                <Akun onOpenQr={() => setShowQrModal(true)} />
+                <Akun
+                  onPindahMenu={handlePindahMenu}
+                  onOpenQr={() => setShowQrModal(true)}
+                />
               )}
 
               {/* Footer Resmi Prototipe */}
@@ -58,7 +78,7 @@ function GreenworthApp() {
             </main>
 
             {/* Navigasi Bawah 4 Menu */}
-            <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+            <BottomNav activeTab={activeTab} onTabChange={(tab) => handlePindahMenu(tab)} />
 
             {/* Modal Paspor QR Digital Publik */}
             <QrPasporModal
@@ -79,4 +99,3 @@ export default function App() {
     </GreenworthProvider>
   );
 }
-

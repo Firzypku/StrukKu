@@ -3,7 +3,7 @@
  * Tema: Hijau-Putih Segar & Bersih (Non-Gelap, Rapi, Seimbang & Terstruktur).
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   PlusCircle,
   Coffee,
@@ -17,16 +17,26 @@ import {
 import { useGreenworth } from '../context/GreenworthContext';
 import { NILAI_POIN, POIN_PER_KG, BERAT_PER_GELAS_KG } from '../config';
 
-export default function Setor() {
+export default function Setor({ onPindahMenu, navParams = {} }) {
   const { titikKumpulList, setoranList, tambahSetoran } = useGreenworth();
 
   // Form states
-  const [titikKumpulId, setTitikKumpulId] = useState(titikKumpulList[0]?.id || 'kumpul-tunjungan');
-  const [jenisSampah, setJenisSampah] = useState('gelasPlastik');
+  const [titikKumpulId, setTitikKumpulId] = useState(navParams?.titikKumpulId || titikKumpulList[0]?.id || 'kumpul-tunjungan');
+  const [jenisSampah, setJenisSampah] = useState(navParams?.jenisSampah || 'gelasPlastik');
   const [jumlahGelas, setJumlahGelas] = useState(25);
   const [beratKardusKg, setBeratKardusKg] = useState(2.0);
   const [catatan, setCatatan] = useState('');
   const [pesanSukses, setPesanSukses] = useState(null);
+
+  // Sinkronisasi otomatis saat parameter dari halaman lain berubah
+  useEffect(() => {
+    if (navParams?.jenisSampah) {
+      setJenisSampah(navParams.jenisSampah);
+    }
+    if (navParams?.titikKumpulId) {
+      setTitikKumpulId(navParams.titikKumpulId);
+    }
+  }, [navParams]);
 
   // Perhitungan Real-time
   const estimasiBeratKg =
@@ -101,13 +111,24 @@ export default function Setor() {
               {pesanSukses.label} ({pesanSukses.berat} kg) di {pesanSukses.kedai}. Mendapatkan <strong className="text-emerald-700">+{pesanSukses.poin} Poin</strong> (Rp {pesanSukses.rupiah.toLocaleString('id-ID')}).
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setPesanSukses(null)}
-            className="text-xs text-emerald-800 font-bold hover:underline"
-          >
-            Tutup
-          </button>
+          <div className="flex items-center gap-2 flex-shrink-0 self-start">
+            {onPindahMenu && (
+              <button
+                type="button"
+                onClick={() => onPindahMenu('lacak')}
+                className="text-xs text-white bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 rounded-lg font-bold shadow-2xs transition-all active:scale-95 whitespace-nowrap"
+              >
+                Salurkan Poin →
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setPesanSukses(null)}
+              className="text-xs text-slate-500 hover:text-slate-700 font-bold px-1"
+            >
+              Tutup
+            </button>
+          </div>
         </div>
       )}
 
